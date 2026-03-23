@@ -23,6 +23,7 @@
 ---
 
 ## Commit Conventions
+Use conventional commit messages as follow:
 ```
 <type>(<scope>): <short description>
 ```
@@ -37,6 +38,8 @@
 | `docs` | Documentation only |
 
 **Examples:** `feat(goals): add goal creation screen` · `fix(timer): prevent background crash`
+
+Read more about Conventional Commits [here](https://www.conventionalcommits.org/).
 
 ---
 
