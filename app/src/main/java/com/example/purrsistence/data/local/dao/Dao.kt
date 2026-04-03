@@ -26,10 +26,6 @@ interface Dao {
     @Query("SELECT * FROM Goal WHERE userId = :userId")
     fun getGoals(userId: String): Flow<List<GoalWithSessions>>
 
-    // Sessions
-    @Insert
-    suspend fun insertSession(session: TrackingSession)
-
     // Observe total time spent on a goal
     @Query(
         """
@@ -54,4 +50,29 @@ interface Dao {
     """
     )
     suspend fun updateGoal(goalId: Long, title: String, hours: Int)
+
+    // Tracking Sessions DAO part
+
+    @Insert
+    suspend fun insertTrackingSession(session: TrackingSession): Long
+
+    @Query("""
+        SELECT * FROM TrackingSession
+        WHERE goalId = :goalId and endTime IS NULL
+        ORDER BY startTime DESC
+        LIMIT 1
+    """)
+    suspend fun getActiveTrackingSession(goalId: Int): TrackingSession?
+
+    @Query("""
+        UPDATE TrackingSession
+        SET endTime = :endTime
+        WHERE trackingId = :trackingId
+    """)
+    suspend fun stopTrackingSession(trackingId: Int, endTime: Long)
+
+    @Query("SELECT * FROM TrackingSession WHERE trackingId = :trackingId LIMIT 1")
+    suspend fun getTrackingSessionById(trackingId: Int): TrackingSession?
+
+
 }
