@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.DataViewModel
+import java.util.Locale
 
 @Composable
 fun GoalsScreen(
@@ -28,7 +29,6 @@ fun GoalsScreen(
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
@@ -41,13 +41,38 @@ fun GoalsScreen(
                 }
             } else {
                 items(goals) { goalWithSessions ->
+
+                    val goal = goalWithSessions.goal
+
                     Card(
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(
-                            text = goalWithSessions.goal.title,
-                            modifier = Modifier.padding(16.dp)
-                        )
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+
+                            // Title
+                            Text(
+                                text = goal.title,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            // Type
+                            Text("Type: ${goal.type}")
+                            // Duration (convert minutes -> European UX expectation hours)
+                            val minutes = goal.targetDuration
+                            val hoursFloat = minutes / 60f
+                            val displayHours = String.format(Locale.GERMANY, "%.1f", hoursFloat)
+                            Text("Duration: ${displayHours}h (${minutes} min)")
+                            // Deep Focus Mode
+                            Text("Deep Focus: ${if (goal.deepFocus) "ON" else "OFF"}")
+                            // Inactive
+                            Text("Inactive: ${if (goal.inactive) "YES" else "NO"}")
+                            // Created At (raw)
+                            Text("Created: ${goal.createdAt}")
+                            // Completion status
+                            Text("Completed: ${if (goal.isCompleted) "YES" else "NO"}")
+                        }
                     }
                 }
             }

@@ -94,7 +94,8 @@ fun AddGoalScreen(
         // Save Button
         Button(
             onClick = {
-                val minutes = (hours.toIntOrNull() ?: 0) * 60
+                val normalized = hours.replace(",", ".")
+                val minutes = ((normalized.toFloatOrNull() ?: 0f) * 60f).toInt()
 
                 onSave(
                     title,
