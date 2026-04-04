@@ -36,25 +36,6 @@ class DataRepository (
         )
     }
 
-    suspend fun trackSession(
-        goalId: Int,
-        userId: Int,
-        pauseReminder: Boolean,
-        start: Long,
-        end: Long?
-    ) {
-        dao.insertSession(
-            TrackingSession(
-                goalId = goalId,
-                userId = userId,
-                pauseReminder = pauseReminder,
-                startTime = start,
-                endTime = end
-            )
-        )
-    }
-
-    // TODO: goalId should be int instead of Long
     suspend fun deleteGoal(goalId: Long) {
         dao.deleteGoal(goalId)
     }

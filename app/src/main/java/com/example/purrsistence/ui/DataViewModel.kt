@@ -77,24 +77,4 @@ class DataViewModel(
             repository.updateGoal(goalId, title, hours)
         }
     }
-
-    // SESSION
-
-    fun trackSession(
-        goalId: Int, // !
-        userId: Int, // !
-        pauseReminder: Boolean,
-        start: Long,
-        end: Long?
-    ) {
-        viewModelScope.launch {
-            repository.trackSession(
-                goalId = goalId,
-                userId = userId,
-                pauseReminder = pauseReminder,
-                start = start,
-                end = end
-            )
-        }
-    }
 }
