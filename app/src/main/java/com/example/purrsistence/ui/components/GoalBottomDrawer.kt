@@ -55,7 +55,7 @@ fun GoalBottomDrawer(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            selectedGoal?.title ?: "Select a goal",
+                            selectedGoal?.title ?: "Create a goal to track",
                             style = MaterialTheme.typography.titleMedium
                         )
                         selectedGoal?.let {

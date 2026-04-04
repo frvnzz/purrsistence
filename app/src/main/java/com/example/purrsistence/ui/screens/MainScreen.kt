@@ -9,10 +9,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.purrsistence.ui.DataViewModel
 import com.example.purrsistence.ui.components.BottomNavBar
 import com.example.purrsistence.ui.navigation.AppNavHost
+import com.example.purrsistence.ui.tracking.TrackingViewModel
 
 @Composable
 fun MainScreen(
-    viewModel: DataViewModel
+    dataViewModel: DataViewModel,
+    trackingViewModel: TrackingViewModel
 ) {
     val navController = rememberNavController()
 
@@ -35,7 +37,8 @@ fun MainScreen(
     ) { padding ->
         AppNavHost(
             navController = navController,
-            viewModel = viewModel,
+            dataViewModel = dataViewModel,
+            trackingViewModel = trackingViewModel,
             modifier = Modifier.padding(padding)
         )
     }

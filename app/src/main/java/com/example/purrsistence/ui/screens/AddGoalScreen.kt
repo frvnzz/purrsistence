@@ -94,6 +94,7 @@ fun AddGoalScreen(
         // Save Button
         Button(
             onClick = {
+                // TODO: make it possible to enter minute duration (or e.g. 0,1 hours)
                 val normalized = hours.replace(",", ".")
                 val minutes = ((normalized.toFloatOrNull() ?: 0f) * 60f).toInt()
 
