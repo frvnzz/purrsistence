@@ -1,12 +1,14 @@
 package com.example.purrsistence.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 
 @Composable
 fun AddGoalScreen(
@@ -23,7 +25,7 @@ fun AddGoalScreen(
     var type by remember { mutableStateOf("Weekly") }
     var hours by remember { mutableStateOf("") }
     var deepFocus by remember { mutableStateOf(false) }
-    var inactive by remember { mutableStateOf(false) }
+    var inactive by remember { mutableStateOf(false) } // false per default
 
     Column(
         modifier = Modifier
@@ -62,7 +64,8 @@ fun AddGoalScreen(
             value = hours,
             onValueChange = { hours = it },
             label = { Text("Target Duration (hours)") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
         )
 
         // Deep Focus
@@ -78,25 +81,12 @@ fun AddGoalScreen(
             )
         }
 
-        // Inactive ??
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Inactive")
-            Switch(
-                checked = inactive,
-                onCheckedChange = { inactive = it }
-            )
-        }
-
         // Save Button
         Button(
             onClick = {
-                // TODO: make it possible to enter minute duration (or e.g. 0,1 hours)
-                val normalized = hours.replace(",", ".")
-                val minutes = ((normalized.toFloatOrNull() ?: 0f) * 60f).toInt()
+                val normalized = hours.trim().replace(",", ".")
+                val hoursFloat = normalized.toFloatOrNull() ?: 0f
+                val minutes = (hoursFloat * 60f).roundToInt()
 
                 onSave(
                     title,
