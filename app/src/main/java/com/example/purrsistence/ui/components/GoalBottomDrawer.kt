@@ -55,12 +55,14 @@ fun GoalBottomDrawer(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            selectedGoal?.title ?: "Create a goal to track",
+                            if (goals.isEmpty()) "Create a Goal to track" else selectedGoal?.title ?: "Select a Goal",
                             style = MaterialTheme.typography.titleMedium
                         )
                         selectedGoal?.let {
+                            val hours = it.targetDuration / 60f
+                            val displayHours = String.format(Locale.GERMANY, "%.1f", hours)
                             Text(
-                                it.targetDuration.toString() + " minutes",
+                                "$displayHours h (${it.targetDuration} min)",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }

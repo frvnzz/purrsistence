@@ -3,6 +3,7 @@ package com.example.purrsistence.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.DataViewModel
@@ -13,7 +14,7 @@ fun HomeScreen(
     viewModel: DataViewModel,
     onStartTracking: (Int, Int) -> Unit
 ) {
-    val goals by viewModel.goals("1").collectAsState(initial = emptyList())
+    val goals by viewModel.goals(1).collectAsState(initial = emptyList())
 
     // Use ViewModel state so that user can switch between screens and selectedGoalId is remembered
     val selectedGoalId = viewModel.selectedGoalId
@@ -36,7 +37,7 @@ fun HomeScreen(
             goals = goals,
             selectedGoalId = selectedGoalId,
             onGoalSelected = { viewModel.selectGoal(it) },
-            onStartClick = { goalId ->
+            onStartClick = {
                 selectedGoal?.let {
                     onStartTracking(it.goalId, it.targetDuration)
                 }
@@ -47,10 +48,14 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Welcome Home!", style = MaterialTheme.typography.titleLarge)
-
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Welcome Home!", style = MaterialTheme.typography.titleLarge)
+                }
                 // Cat UI can go here later :)
             }
         }
