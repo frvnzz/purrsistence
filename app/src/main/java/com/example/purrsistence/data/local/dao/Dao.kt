@@ -42,10 +42,19 @@ interface Dao {
 
     @Query("""
     UPDATE Goal 
-    SET title = :title, targetDuration = :hours 
+    SET title = :title,
+        type = :type,
+        targetDuration = :hours,
+        deepFocus = :deepFocus
     WHERE goalId = :goalId
     """)
-    suspend fun updateGoal(goalId: Int, title: String, hours: Int)
+    suspend fun updateGoal(
+        goalId: Int,
+        title: String,
+        type: String,
+        hours: Int,
+        deepFocus: Boolean
+    )
 
     // Tracking Sessions DAO part
 

@@ -16,7 +16,6 @@ fun AddGoalScreen(
         String,
         String,
         Int,
-        Boolean,
         Boolean
     ) -> Unit,
     onBack: () -> Unit
@@ -25,7 +24,6 @@ fun AddGoalScreen(
     var type by remember { mutableStateOf("Weekly") }
     var hours by remember { mutableStateOf("") }
     var deepFocus by remember { mutableStateOf(false) }
-    var inactive by remember { mutableStateOf(false) } // false per default
 
     Column(
         modifier = Modifier
@@ -92,8 +90,7 @@ fun AddGoalScreen(
                     title,
                     type,
                     minutes,
-                    deepFocus,
-                    inactive
+                    deepFocus
                 )
                 onBack()
             },

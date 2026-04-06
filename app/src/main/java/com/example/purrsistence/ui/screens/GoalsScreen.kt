@@ -13,19 +13,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.purrsistence.ui.DataViewModel
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 @Composable
 fun GoalsScreen(
     viewModel: DataViewModel,
     onAddGoalClick: () -> Unit = {},
-    onGoalClick: (Int) -> Unit = {}
+    onGoalClick: (Int) -> Unit = {},
+    snackbarHostState: SnackbarHostState
 ) {
     val goals by viewModel.goals(1).collectAsState(initial = emptyList())
 
     var isEditMode by remember { mutableStateOf(false) }
     var selectedGoals by remember { mutableStateOf(setOf<Int>()) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
+    val scope = rememberCoroutineScope()
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     LaunchedEffect(lifecycleOwner) {
@@ -57,9 +61,14 @@ fun GoalsScreen(
                     if (isEditMode) {
                         TextButton(
                             onClick = {
-                                selectedGoals.forEach { viewModel.deleteGoal(it) }
-                                selectedGoals = emptySet()
-                                isEditMode = false
+                                if (selectedGoals.isEmpty()) {
+                                    // 👉 show snackbar
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Select at least one goal to delete")
+                                    }
+                                } else {
+                                    showDeleteDialog = true
+                                }
                             }
                         ) {
                             Text("Delete (${selectedGoals.size})")
@@ -97,7 +106,8 @@ fun GoalsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .then(
-                                    if (!isEditMode) Modifier.clickable {
+                                    // click on a Card to edit the goal (when isEditMode)
+                                    if (isEditMode) Modifier.clickable {
                                         onGoalClick(goal.goalId)
                                     } else Modifier
                                 )
@@ -152,6 +162,35 @@ fun GoalsScreen(
                 .padding(16.dp)
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add Goal")
+        }
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Delete Goals") },
+                text = {
+                    Text("Are you sure you want to delete ${selectedGoals.size} goals?")
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            selectedGoals.forEach { viewModel.deleteGoal(it) }
+                            selectedGoals = emptySet()
+                            isEditMode = false
+                            showDeleteDialog = false
+                        }
+                    ) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDeleteDialog = false }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

@@ -43,7 +43,13 @@ class DataRepository (
         if (goalId == null) flowOf(null)
         else dao.getGoal(goalId)
 
-    suspend fun updateGoal(goalId: Int, title: String, hours: Int) {
-        dao.updateGoal(goalId, title, hours)
+    suspend fun updateGoal(
+        goalId: Int,
+        title: String,
+        type: String,
+        hours: Int,
+        deepFocus: Boolean
+    ) {
+        dao.updateGoal(goalId, title, type, hours, deepFocus)
     }
 }

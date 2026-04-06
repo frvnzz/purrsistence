@@ -1,5 +1,6 @@
 package com.example.purrsistence.ui.navigation
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -20,7 +21,8 @@ fun AppNavHost(
     navController: NavHostController,
     dataViewModel: DataViewModel,
     trackingViewModel: TrackingViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState
 ) {
     LaunchedEffect(Unit) {
         trackingViewModel.events.collect { event ->
@@ -59,7 +61,8 @@ fun AppNavHost(
                 },
                 onGoalClick = { goalId ->
                     navController.navigate("edit_goal/$goalId")
-                }
+                },
+                snackbarHostState = snackbarHostState
             )
         }
         // -> edit goal
@@ -77,14 +80,14 @@ fun AppNavHost(
         // -> add goal
         composable("add_goal") {
             AddGoalScreen(
-                onSave = { title, type, minutes, deepFocus, inactive ->
+                onSave = { title, type, minutes, deepFocus ->
                     dataViewModel.addGoal(
                         userId = 1,
                         title = title,
                         type = type,
                         weeklyMinutes = minutes,
                         deepFocus = deepFocus,
-                        inactive = inactive,
+                        inactive = false, // inactive false per default
                         createdAt = System.currentTimeMillis(),
                         isCompleted = false
                     )

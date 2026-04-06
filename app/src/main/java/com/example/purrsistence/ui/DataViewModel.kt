@@ -71,9 +71,15 @@ class DataViewModel(
     fun getGoal(goalId: Int?) =
         repository.getGoal(goalId)
 
-    fun updateGoal(goalId: Int, title: String, hours: Int) {
+    fun updateGoal(
+        goalId: Int,
+        title: String,
+        type: String,
+        hours: Int,
+        deepFocus: Boolean
+    ) {
         viewModelScope.launch {
-            repository.updateGoal(goalId, title, hours)
+            repository.updateGoal(goalId, title, type, hours, deepFocus)
         }
     }
 }

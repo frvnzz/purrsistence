@@ -1,8 +1,13 @@
 package com.example.purrsistence.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -17,18 +22,28 @@ fun MainScreen(
     trackingViewModel: TrackingViewModel
 ) {
     val navController = rememberNavController()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // find out which route is currently active
     val currentRoute = navController
         .currentBackStackEntryAsState()
         .value
         ?.destination
         ?.route
 
-    // main routes that are shown on BottomNavBar
     val topLevelRoutes = listOf("home", "goals")
 
     Scaffold(
+        // SNACK BAR (for alerts / warnings / errors)
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.primary, // background
+                    contentColor = MaterialTheme.colorScheme.onPrimary  // text color
+                )
+            }
+        },
+        // NAV BAR
         bottomBar = {
             if (currentRoute in topLevelRoutes) {
                 BottomNavBar(navController)
@@ -39,7 +54,8 @@ fun MainScreen(
             navController = navController,
             dataViewModel = dataViewModel,
             trackingViewModel = trackingViewModel,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
+            snackbarHostState = snackbarHostState
         )
     }
 }
