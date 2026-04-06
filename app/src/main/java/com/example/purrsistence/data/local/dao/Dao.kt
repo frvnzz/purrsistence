@@ -24,32 +24,28 @@ interface Dao {
 
     @androidx.room.Transaction
     @Query("SELECT * FROM Goal WHERE userId = :userId")
-    fun getGoals(userId: String): Flow<List<GoalWithSessions>>
+    fun getGoals(userId: Int): Flow<List<GoalWithSessions>>
 
     // Observe total time spent on a goal
-    @Query(
-        """
-        SELECT SUM(endTime - startTime) 
-        FROM TrackingSession 
-        WHERE goalId = :goalId
-    """
-    )
-    fun observeTotalTime(goalId: Long): Flow<Long?>
+    @Query("""
+    SELECT SUM(endTime - startTime) 
+    FROM TrackingSession 
+    WHERE goalId = :goalId
+    """)
+    fun observeTotalTime(goalId: Int): Flow<Long?>
 
     @Query("DELETE FROM Goal WHERE goalId = :goalId")
-    suspend fun deleteGoal(goalId: Long)
+    suspend fun deleteGoal(goalId: Int)
 
     @Query("SELECT * FROM Goal WHERE goalId = :goalId")
-    fun getGoal(goalId: Long): Flow<Goal?>
+    fun getGoal(goalId: Int): Flow<Goal?>
 
-    @Query(
-        """
-        UPDATE Goal 
-        SET title = :title, targetDuration = :hours 
-        WHERE goalId = :goalId
-    """
-    )
-    suspend fun updateGoal(goalId: Long, title: String, hours: Int)
+    @Query("""
+    UPDATE Goal 
+    SET title = :title, targetDuration = :hours 
+    WHERE goalId = :goalId
+    """)
+    suspend fun updateGoal(goalId: Int, title: String, hours: Int)
 
     // Tracking Sessions DAO part
 
@@ -73,6 +69,5 @@ interface Dao {
 
     @Query("SELECT * FROM TrackingSession WHERE trackingId = :trackingId LIMIT 1")
     suspend fun getTrackingSessionById(trackingId: Int): TrackingSession?
-
 
 }

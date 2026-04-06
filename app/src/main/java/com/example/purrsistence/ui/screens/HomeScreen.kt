@@ -10,7 +10,8 @@ import com.example.purrsistence.ui.components.GoalBottomDrawer
 
 @Composable
 fun HomeScreen(
-    viewModel: DataViewModel
+    viewModel: DataViewModel,
+    onStartTracking: (Int, Int) -> Unit
 ) {
     val goals by viewModel.goals("1").collectAsState(initial = emptyList())
 
@@ -24,6 +25,8 @@ fun HomeScreen(
         }
     }
 
+    val selectedGoal = goals.find { it.goal.goalId == selectedGoalId }?.goal
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -34,7 +37,9 @@ fun HomeScreen(
             selectedGoalId = selectedGoalId,
             onGoalSelected = { viewModel.selectGoal(it) },
             onStartClick = { goalId ->
-                // TODO: add timer logic to start tracking goal
+                selectedGoal?.let {
+                    onStartTracking(it.goalId, it.targetDuration)
+                }
             }
         ) {
 

@@ -35,7 +35,7 @@ class DataViewModel(
 
     // CRUD GOAL
 
-    fun goals(userId: String) = // here userId is a string
+    fun goals(userId: Int) =
         repository.getGoals(userId)
 
     fun addGoal(
@@ -62,17 +62,16 @@ class DataViewModel(
         }
     }
 
-    // TODO: goalId should be Int, not Long
-    fun deleteGoal(goalId: Long) {
+    fun deleteGoal(goalId: Int) {
         viewModelScope.launch {
             repository.deleteGoal(goalId)
         }
     }
 
-    fun getGoal(goalId: Long?) =
+    fun getGoal(goalId: Int?) =
         repository.getGoal(goalId)
 
-    fun updateGoal(goalId: Long, title: String, hours: Int) {
+    fun updateGoal(goalId: Int, title: String, hours: Int) {
         viewModelScope.launch {
             repository.updateGoal(goalId, title, hours)
         }

@@ -9,14 +9,18 @@ import androidx.lifecycle.lifecycleScope
 import com.example.purrsistence.data.local.AppDatabase
 import com.example.purrsistence.data.local.entity.User
 import com.example.purrsistence.data.local.repository.DataRepository
+import com.example.purrsistence.data.local.repository.TrackingRepositoryImpl
+import com.example.purrsistence.domain.time.SystemTimeProvider
 import com.example.purrsistence.ui.DataViewModel
 import com.example.purrsistence.ui.screens.MainScreen
 import com.example.purrsistence.ui.theme.PurrsistenceTheme
+import com.example.purrsistence.ui.tracking.TrackingViewModel
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var viewModel: DataViewModel
+    private lateinit var dataViewModel: DataViewModel
+    private lateinit var trackingViewModel: TrackingViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,11 +31,15 @@ class MainActivity : ComponentActivity() {
         val dao = db.dao()
         val repo = DataRepository(dao)
 
+        val timeProvider = SystemTimeProvider()
+        val trackingRepo = TrackingRepositoryImpl(dao, timeProvider)
+
         // shared preferences (for storing last selected goal from GoalBottomDrawer)
         val prefs = getSharedPreferences("purrsistence_prefs", Context.MODE_PRIVATE)
 
-        // create ViewModel instance for this activity
-        viewModel = DataViewModel(repo, prefs)
+        // create ViewModel instances for this activity
+        dataViewModel = DataViewModel(repo, prefs)
+        trackingViewModel = TrackingViewModel(trackingRepo, timeProvider)
 
         val exampleUser = User(
             username = "testuser",
@@ -46,8 +54,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PurrsistenceTheme {
-                // pass created ViewModel to MainScreen (scaffold)
-                MainScreen(viewModel = viewModel)
+                // pass created ViewModels to MainScreen (scaffold)
+                MainScreen(
+                    dataViewModel = dataViewModel,
+                    trackingViewModel = trackingViewModel
+                )
             }
         }
     }
