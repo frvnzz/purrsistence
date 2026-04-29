@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.purrsistence.domain.cat.CatRepository
+import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.ui.components.CurrencyBadge
 import com.example.purrsistence.ui.components.ShopItemCard
 import com.example.purrsistence.ui.components.TopBar
@@ -23,7 +23,7 @@ fun ShopScreen(
     val collectedCats = user?.collectedCatsIds ?: emptyList()
 
     // Get list of all cats (+ details) available
-    val shopItems = CatRepository.cats
+    val shopItems = CatList.cats
 
     Column(
         modifier = Modifier

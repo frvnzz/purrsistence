@@ -5,8 +5,8 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.purrsistence.data.local.dao.Dao
-import com.example.purrsistence.data.local.entity.Goal
-import com.example.purrsistence.data.local.entity.User
+import com.example.purrsistence.data.local.entity.GoalEntity
+import com.example.purrsistence.data.local.entity.UserEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -43,7 +43,7 @@ class GoalCrudIntegrationTest {
 
     private suspend fun insertTestUser(userId: Int = 1) {
         dao.insertUser(
-            User(
+            UserEntity(
                 userId = 1,
                 username = "TestUser",
                 balance = 10,
@@ -63,8 +63,8 @@ class GoalCrudIntegrationTest {
         inactive: Boolean = false,
         createdAt: Long = 1000L,
         isCompleted: Boolean = false
-    ): Goal {
-        return Goal(
+    ): GoalEntity {
+        return GoalEntity(
             goalId = goalId,
             userId = userId,
             title = title,

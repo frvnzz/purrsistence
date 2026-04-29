@@ -7,7 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.purrsistence.data.local.relation.GoalWithSessions
+import com.example.purrsistence.data.local.relation.GoalWithSessionsEntity
+import com.example.purrsistence.domain.model.GoalWithSessions
 import java.util.Locale
 
 @Composable
@@ -32,7 +33,6 @@ fun GoalCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -40,13 +40,11 @@ fun GoalCard(
                 Text(goal.title, style = MaterialTheme.typography.titleMedium)
                 Text("Type: ${goal.type}")
 
-                val minutes = goal.targetDuration
+                val minutes = goal.targetDuration.toMinutes().toInt()
                 val hoursFloat = minutes / 60f
-                val displayHours =
-                    String.format(Locale.GERMANY, "%.1f", hoursFloat)
+                val displayHours = String.format(Locale.GERMANY, "%.1f", hoursFloat)
 
-                val trackedMinutes =
-                    goalWithSessions.totalTrackedMillis / 1000 / 60
+                val trackedMinutes = goalWithSessions.totalTrackedDuration().toMinutes()
                 val trackedHours = trackedMinutes / 60
                 val trackedRemainderMinutes = trackedMinutes % 60
 

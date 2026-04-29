@@ -1,5 +1,11 @@
 package com.example.purrsistence.domain.time
 
-class FakeTimeProvider(var currentTime: Long) : TimeProvider {
-    override fun now(): Long = currentTime
+import java.time.Instant
+
+class FakeTimeProvider(var currentTime: Instant) : TimeProvider {
+    override fun now(): Instant = currentTime
+
+    fun setNow(newNow: Instant) {
+        currentTime  = newNow
+    }
 }

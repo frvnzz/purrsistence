@@ -5,8 +5,8 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.purrsistence.data.local.dao.Dao
-import com.example.purrsistence.data.local.entity.Goal
-import com.example.purrsistence.data.local.entity.User
+import com.example.purrsistence.data.local.entity.GoalEntity
+import com.example.purrsistence.data.local.entity.UserEntity
 import com.example.purrsistence.data.local.repository.TrackingRepositoryImpl
 import com.example.purrsistence.domain.time.FakeTimeProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,7 +52,7 @@ class TrackingRepositoryRoomTest {
         val testGoalId = 100
 
         dao.insertUser(
-            User(
+            UserEntity(
                 userId = 1,
                 username = "TestUsr",
                 balance = 10,
@@ -61,7 +61,7 @@ class TrackingRepositoryRoomTest {
             )
         )
         dao.insertGoal(
-            Goal(
+            GoalEntity(
                 goalId = testGoalId,
                 userId = 1,
                 title = "Test Goal",

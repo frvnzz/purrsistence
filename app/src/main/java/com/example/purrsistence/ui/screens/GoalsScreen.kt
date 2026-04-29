@@ -28,15 +28,13 @@ fun GoalsScreen(
     onGoalClick: (Int) -> Unit = {},
     snackbarHostState: SnackbarHostState
 ) {
-    // get all goals from the current user
     val goals by goalViewModel
         .searchedGoals(userViewModel.currentUserId)
         .collectAsState(initial = emptyList())
-    // search goals (GoalSearchBar)
+
     val query = goalViewModel.searchQuery
     val isSearching = query.isNotBlank()
 
-    // Edit / delete goal
     var isEditMode by remember { mutableStateOf(false) }
     var selectedGoals by remember { mutableStateOf(setOf<Int>()) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -44,10 +42,9 @@ fun GoalsScreen(
     val scope = rememberCoroutineScope()
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
-    // Reset search query and edit mode when screen is resumed
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            goalViewModel.onSearchQueryChange("")   // reset search
+            goalViewModel.onSearchQueryChange("")
             isEditMode = false
             selectedGoals = emptySet()
         }
@@ -56,27 +53,25 @@ fun GoalsScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // TOP BAR
             TopBar(
                 title = "Your Goals",
                 actions = if (goals.isNotEmpty()) {
                     {
                         Row {
                             if (isEditMode) {
-                                // Delete Button
                                 Button(
                                     onClick = {
                                         if (selectedGoals.isEmpty()) {
-                                            // show snackbar when no goals are selected for deletion
                                             scope.launch {
-                                                snackbarHostState.showSnackbar("Select at least one goal to delete")
+                                                snackbarHostState.showSnackbar(
+                                                    "Select at least one goal to delete"
+                                                )
                                             }
                                         } else {
                                             showDeleteDialog = true
@@ -87,15 +82,22 @@ fun GoalsScreen(
                                         containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp),
                                         contentColor = MaterialTheme.colorScheme.error
                                     ),
-                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                                    contentPadding = PaddingValues(
+                                        horizontal = 12.dp,
+                                        vertical = 8.dp
+                                    ),
                                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
                                     modifier = Modifier.height(40.dp)
                                 ) {
-                                    Text("Delete (${selectedGoals.size})", style = MaterialTheme.typography.titleMedium)
+                                    Text(
+                                        "Delete (${selectedGoals.size})",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
                                 }
+
                                 Spacer(modifier = Modifier.width(8.dp))
                             }
-                            // Toggle Edit-Mode Button
+
                             Button(
                                 onClick = {
                                     isEditMode = !isEditMode
@@ -106,7 +108,10 @@ fun GoalsScreen(
                                     containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp),
                                     contentColor = MaterialTheme.colorScheme.primary
                                 ),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                                contentPadding = PaddingValues(
+                                    horizontal = 12.dp,
+                                    vertical = 8.dp
+                                ),
                                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
                                 modifier = Modifier.height(40.dp)
                             ) {
@@ -117,21 +122,20 @@ fun GoalsScreen(
                             }
                         }
                     }
-                } else null
+                } else {
+                    null
+                }
             )
 
-            // SEARCH BAR
             GoalSearchBar(
                 query = goalViewModel.searchQuery,
                 onQueryChange = goalViewModel::onSearchQueryChange
             )
 
-            // CONTENT
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // if no goals are added or found, show a message
                 if (goals.isEmpty()) {
                     item {
                         val message = if (isSearching) {
@@ -139,36 +143,35 @@ fun GoalsScreen(
                         } else {
                             "No goals yet - Add one! 🐱"
                         }
+
                         Box(
                             modifier = Modifier.fillMaxWidth(),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(message)
                         }
-
                     }
-                // List Goal Cards that are found
                 } else {
                     items(
                         items = goals,
-                        key = { it.goal.goalId }
+                        key = { it.goal.id }
                     ) { goalWithSessions ->
 
                         val goal = goalWithSessions.goal
-                        val isSelected = selectedGoals.contains(goal.goalId)
+                        val isSelected = selectedGoals.contains(goal.id)
 
                         GoalCard(
                             goalWithSessions = goalWithSessions,
                             isEditMode = isEditMode,
                             isSelected = isSelected,
                             onClick = {
-                                onGoalClick(goal.goalId)
+                                onGoalClick(goal.id)
                             },
                             onCheckedChange = { checked ->
                                 selectedGoals = if (checked) {
-                                    selectedGoals + goal.goalId
+                                    selectedGoals + goal.id
                                 } else {
-                                    selectedGoals - goal.goalId
+                                    selectedGoals - goal.id
                                 }
                             }
                         )
@@ -177,7 +180,6 @@ fun GoalsScreen(
             }
         }
 
-        // Add Goal Button (FAB) - always floats bottom right
         FloatingActionButton(
             onClick = onAddGoalClick,
             modifier = Modifier

@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.focus.DeepFocusAccessibilityState
 import java.util.Locale
@@ -46,15 +47,13 @@ fun EditGoalScreen(
 
     goal?.let { currentGoal ->
 
-        // Pre-filled state
         var title by remember { mutableStateOf(currentGoal.title) }
         var type by remember { mutableStateOf(currentGoal.type) }
 
-        // convert minutes -> hours string
         val initialHours = String.format(
             Locale.GERMANY,
             "%.1f",
-            currentGoal.targetDuration / 60f
+            currentGoal.targetDuration.toMinutes() / 60.0
         )
         var hours by remember { mutableStateOf(initialHours) }
 
@@ -70,7 +69,6 @@ fun EditGoalScreen(
 
             Text("Edit Goal", style = MaterialTheme.typography.titleLarge)
 
-            // TITLE
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -78,20 +76,20 @@ fun EditGoalScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // TYPE
             Text("Goal Type")
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("Daily", "Weekly", "Monthly").forEach { option ->
+                    val optionType = GoalType.valueOf(option.uppercase())
+
                     FilterChip(
-                        selected = type == option,
-                        onClick = { type = option },
+                        selected = type == optionType,
+                        onClick = { type = optionType },
                         label = { Text(option) }
                     )
                 }
             }
 
-            // HOURS
             OutlinedTextField(
                 value = hours,
                 onValueChange = { hours = it },
@@ -100,7 +98,6 @@ fun EditGoalScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
             )
 
-            // DEEP FOCUS
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -125,10 +122,10 @@ fun EditGoalScreen(
                     text = {
                         Text(
                             "To block other apps during Deep Focus, enable the accessibility service:\n\n" +
-                                "1. Tap Open Settings\n" +
-                                "2. Accessibility\n" +
-                                "3. Use Purrsistence\n" +
-                                "4. Turn it on"
+                                    "1. Tap Open Settings\n" +
+                                    "2. Accessibility\n" +
+                                    "3. Use Purrsistence\n" +
+                                    "4. Turn it on"
                         )
                     },
                     confirmButton = {
@@ -159,7 +156,6 @@ fun EditGoalScreen(
                 )
             }
 
-            // SAVE
             Button(
                 onClick = {
                     val normalized = hours.trim().replace(",", ".")
@@ -168,7 +164,7 @@ fun EditGoalScreen(
                     val minutes = (hoursRounded * 60).roundToInt()
 
                     viewModel.updateGoal(
-                        goalId = currentGoal.goalId,
+                        goalId = currentGoal.id,
                         title = title,
                         type = type,
                         hours = minutes,

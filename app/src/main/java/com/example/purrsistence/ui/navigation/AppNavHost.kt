@@ -96,7 +96,6 @@ fun AppNavHost(
                         weeklyMinutes = minutes,
                         deepFocus = deepFocus,
                         inactive = false, // inactive false per default
-                        createdAt = System.currentTimeMillis(),
                         isCompleted = false
                     )
                 },

@@ -3,7 +3,8 @@ package com.example.purrsistence.ui.util
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.provider.Settings
-import com.example.purrsistence.data.local.entity.Goal
+import com.example.purrsistence.data.local.entity.GoalEntity
+import com.example.purrsistence.domain.model.Goal
 import com.example.purrsistence.focus.DeepFocusAccessibilityState
 
 fun handleStartTrackingClick(
@@ -20,7 +21,7 @@ fun handleStartTrackingClick(
     if (needsAccessibilitySetup) {
         onNeedsAccessibilitySetup()
     } else {
-        onStartTracking(goal.goalId, goal.userId, goal.deepFocus)
+        onStartTracking(goal.id, goal.userId, goal.deepFocus)
     }
 }
 

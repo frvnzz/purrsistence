@@ -1,28 +1,38 @@
 package com.example.purrsistence.data.local.repository
 
 import com.example.purrsistence.data.local.dao.UserDao
-import com.example.purrsistence.data.local.entity.User
+import com.example.purrsistence.data.local.mapping.toDomain
+import com.example.purrsistence.data.local.mapping.toEntity
+import com.example.purrsistence.domain.model.User
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 
+interface UserRepository {
+    fun getUser(userId: Int): Flow<User?>
+    suspend fun insertUser(user: User)
+    suspend fun updateUser(user: User)
+    suspend fun addCurrency(userId: Int, amount: Int)
+}
 
-class UserRepository(
+class UserRepositoryImpl (
     private val userDao: UserDao
-) {
-    fun getUser(userId: Int): Flow<User?> {
-        return userDao.getUser(userId)
+) : UserRepository {
+
+    override fun getUser(userId: Int): Flow<User?> {
+        return userDao.getUser(userId).map { entity ->
+            entity?.toDomain()
+        }
     }
 
-    suspend fun buyCat(userId: Int, catId: String, price: Int) {
-        val user = userDao.getUser(userId).firstOrNull() ?: return
+    override suspend fun insertUser(user: User) {
+        userDao.insertUser(user.toEntity())
+    }
 
-        // cat already owned -> do nothing
-        if (catId in user.collectedCatsIds) return
-        // not enough money to buy the cat
-        if (user.balance < price) return
+    override suspend fun updateUser(user: User) {
+        userDao.updateUser(user.toEntity())
+    }
 
-        val updatedCats = user.collectedCatsIds + catId
-
-        userDao.buyCat(userId, price, updatedCats)
+    override suspend fun addCurrency(userId: Int, amount: Int) {
+        userDao.addCurrency(userId, amount)
     }
 }

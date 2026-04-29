@@ -5,16 +5,20 @@ import androidx.compose.runtime.*
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.purrsistence.data.local.repository.GoalRepository
+import com.example.purrsistence.domain.model.types.GoalType
+import com.example.purrsistence.service.GoalService
 import kotlinx.coroutines.launch
 
 class GoalViewModel(
-    private val repository: GoalRepository,
+    private val goalService: GoalService,
     private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
 
     // Goal Selection state (HomeScreen goal picker)
     var selectedGoalId by mutableStateOf<Int?>(null)
+        private set
+
+    var searchQuery by mutableStateOf("")
         private set
 
     init {
@@ -34,27 +38,25 @@ class GoalViewModel(
     // CRUD GOAL
 
     fun goals(userId: Int) =
-        repository.getGoals(userId)
+        goalService.getGoals(userId)
 
     fun addGoal(
-        userId: Int, // unnecessary danger of mismatch?
+        userId: Int,
         title: String,
         type: String,
         weeklyMinutes: Int,
         deepFocus: Boolean,
         inactive: Boolean,
-        createdAt: Long,
         isCompleted: Boolean
     ) {
         viewModelScope.launch {
-            repository.createGoal(
+            goalService.createGoal(
                 userId = userId,
                 title = title,
                 type = type,
-                weeklyMinutes = weeklyMinutes,
+                targetMinutes = weeklyMinutes,
                 deepFocus = deepFocus,
                 inactive = inactive,
-                createdAt = createdAt,
                 isCompleted = isCompleted
             )
         }
@@ -62,32 +64,29 @@ class GoalViewModel(
 
     fun deleteGoal(goalId: Int) {
         viewModelScope.launch {
-            repository.deleteGoal(goalId)
+            goalService.deleteGoal(goalId)
         }
     }
 
     fun getGoal(goalId: Int?) =
-        repository.getGoal(goalId)
+        goalService.getGoal(goalId)
 
     fun updateGoal(
         goalId: Int,
         title: String,
-        type: String,
+        type: GoalType,
         hours: Int,
         deepFocus: Boolean
     ) {
         viewModelScope.launch {
-            repository.updateGoal(goalId, title, type, hours, deepFocus)
+            goalService.updateGoal(goalId, title, type, hours, deepFocus)
         }
     }
-
-    var searchQuery by mutableStateOf("")
-        private set
 
     fun onSearchQueryChange(query: String) {
         searchQuery = query
     }
 
     fun searchedGoals(userId: Int) =
-        repository.searchGoals(userId, searchQuery)
+        goalService.searchGoals(userId, searchQuery)
 }
