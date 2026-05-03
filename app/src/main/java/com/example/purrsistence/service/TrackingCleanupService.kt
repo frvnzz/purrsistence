@@ -6,13 +6,21 @@ import com.example.purrsistence.domain.time.TimeProvider
 import kotlinx.coroutines.flow.forEach
 import java.time.Duration
 
+interface CleanupRunner {
+    suspend fun runCleanup()
+}
+
 class TrackingCleanupService(
     private val goalRepository: GoalRepository,
     private val trackingRepository: TrackingRepository,
     private val timeProvider: TimeProvider
-) {
+) : CleanupRunner{
 
     private val retentionDuration: Duration = Duration.ofDays(28)
+
+    override suspend fun runCleanup() {
+        cleanupInactiveGoalsAndOldSessions()
+    }
 
     suspend fun cleanupInactiveGoalsAndOldSessions() {
         val cutoff = timeProvider.now().minus(retentionDuration)

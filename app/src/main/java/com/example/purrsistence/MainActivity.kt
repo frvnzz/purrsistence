@@ -16,6 +16,7 @@ import com.example.purrsistence.data.local.repository.TrackingRepository
 import com.example.purrsistence.data.local.repository.TrackingRepositoryImpl
 import com.example.purrsistence.data.local.repository.UserRepository
 import com.example.purrsistence.data.local.repository.UserRepositoryImpl
+import com.example.purrsistence.domain.preferences.SharedPrefCleanupPreferences
 import com.example.purrsistence.domain.time.SystemTimeProvider
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.focus.DeepFocusConfig
@@ -25,7 +26,6 @@ import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.service.ShopService
 import com.example.purrsistence.service.StatisticsService
 import com.example.purrsistence.service.TrackingCleanupService
-import com.example.purrsistence.service.TrackingService
 import com.example.purrsistence.service.TrackingServiceImpl
 import com.example.purrsistence.ui.screens.MainScreen
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
@@ -68,16 +68,17 @@ class MainActivity : ComponentActivity() {
         val trackingCleanupService = TrackingCleanupService(goalRepo,trackingRepo, timeProvider)
 
         // shared preferences (for storing last selected goal from GoalBottomDrawer)
-        val prefs = getSharedPreferences(DeepFocusConfig.PREFS_NAME, MODE_PRIVATE)
-        val focusBlocker = SharedPrefsFocusBlocker(prefs)
+        val focusPrefs = getSharedPreferences(DeepFocusConfig.PREFS_NAME, MODE_PRIVATE)
+        val focusBlocker = SharedPrefsFocusBlocker(focusPrefs)
+        val cleanupPrefs = SharedPrefCleanupPreferences(getSharedPreferences("app_prefs", MODE_PRIVATE))
 
         // create ViewModel instances for this activity
         userViewModel = UserViewModel(shopService)
-        goalViewModel = GoalViewModel(goalService, prefs)
+        goalViewModel = GoalViewModel(goalService, focusPrefs)
         trackingViewModel = TrackingViewModel(trackingService, timeProvider, focusBlocker)
         statisticsViewModel = StatisticsViewModel(statisticsService)
 
-        val cleanupScheduler = CleanupScheduler(prefs, timeProvider, trackingCleanupService)
+        val cleanupScheduler = CleanupScheduler(cleanupPrefs, timeProvider, trackingCleanupService)
 
         lifecycleScope.launch {
             // Only insert if userId 1 doesn't exist

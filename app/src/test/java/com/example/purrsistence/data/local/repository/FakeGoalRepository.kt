@@ -12,6 +12,10 @@ class FakeGoalRepository : GoalRepository {
     private val goalsFlow = MutableStateFlow<List<Goal>>(emptyList())
     private var nextId = 1
 
+    var deleteCalls = 0
+    var updateCalls = 0
+    var insertCalls = 0
+
     override fun getGoals(userId: Int): Flow<List<GoalWithSessions>> {
         return goalsFlow.map { list ->
             list.filter { it.userId == userId }
@@ -20,16 +24,21 @@ class FakeGoalRepository : GoalRepository {
     }
 
     override fun getActiveGoals(userId: Int): Flow<List<GoalWithSessions>> {
-        TODO("Not yet implemented")
+        return goalsFlow.map { list ->
+            list.filter { it.userId == userId && !it.inactive }
+                .map { GoalWithSessions(it, emptyList()) }
+        }
     }
 
     override suspend fun insertGoal(goal: Goal) {
+        insertCalls++
         val stored = goal.copy(id = nextId++)
         goals.add(stored)
         goalsFlow.value = goals.toList()
     }
 
     override suspend fun deleteGoal(goalId: Int) {
+        deleteCalls++
         goals.removeAll { it.id == goalId }
         goalsFlow.value = goals.toList()
     }
@@ -39,6 +48,7 @@ class FakeGoalRepository : GoalRepository {
     }
 
     override suspend fun updateGoal(goal: Goal) {
+        updateCalls++
         val index = goals.indexOfFirst { it.id == goal.id }
         if (index == -1) return
         goals[index] = goal
@@ -54,7 +64,18 @@ class FakeGoalRepository : GoalRepository {
     }
 
     override suspend fun getInactiveGoals(): List<Goal>{
-        TODO("Not yet implemented")
+        return goals.filter { it.inactive }
+    }
+
+    fun seedGoal(goal: Goal) {
+        goals.removeAll { it.id == goal.id }
+        goals.add(goal)
+        nextId = maxOf(nextId, goal.id + 1)
+        goalsFlow.value = goals.toList()
+    }
+
+    fun getStoredGoal(goalId: Int): Goal? {
+        return goals.find { it.id == goalId }
     }
 
 }

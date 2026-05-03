@@ -8,7 +8,12 @@ class FakeTrackingRepository : TrackingRepository {
     private val sessions = mutableListOf<TrackingSession>()
     private var nextId = 1
 
+    var cleanupCalls = 0
+    var finishCalls = 0
+    var insertCalls = 0
+
     override suspend fun insertTrackingSession(session: TrackingSession): TrackingSession {
+        insertCalls++
         val stored = session.copy(id = nextId++)
         sessions.add(stored)
         return stored
@@ -41,10 +46,24 @@ class FakeTrackingRepository : TrackingRepository {
         goalId: Int,
         cutoff: Instant
     ) {
-        TODO("Not yet implemented")
+        cleanupCalls++
+        sessions.removeAll {
+            it.goalId == goalId &&
+                    it.endTime != null &&
+                    it.endTime.isBefore(cutoff)
+        }
     }
 
     override suspend fun countSessionsForGoal(goalId: Int): Int {
-        TODO("Not yet implemented")
+        return sessions.count { it.goalId == goalId }
+    }
+
+    fun seedSession(session: TrackingSession) {
+        sessions.add(session)
+        nextId = maxOf(nextId, session.id + 1)
+    }
+
+    fun getSessionsForGoal(goalId: Int): List<TrackingSession> {
+        return sessions.filter { it.goalId == goalId }
     }
 }
