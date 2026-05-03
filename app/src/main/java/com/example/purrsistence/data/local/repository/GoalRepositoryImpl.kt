@@ -10,11 +10,13 @@ import kotlinx.coroutines.flow.map
 
 interface GoalRepository {
     fun getGoals(userId: Int): Flow<List<GoalWithSessions>>
+    fun getActiveGoals(userId: Int): Flow<List<GoalWithSessions>>
     suspend fun insertGoal(goal: Goal)
     suspend fun deleteGoal(goalId: Int)
     fun getGoal(goalId: Int?): Flow<Goal?>
     suspend fun updateGoal(goal: Goal)
     fun searchGoals(userId: Int, query: String): Flow<List<GoalWithSessions>>
+    suspend fun getInactiveGoals(): List<Goal>
 }
 
 class GoalRepositoryImpl(
@@ -23,6 +25,12 @@ class GoalRepositoryImpl(
 
     override fun getGoals(userId: Int): Flow<List<GoalWithSessions>> {
         return dao.getGoals(userId).map { list ->
+            list.map { it.toDomain() }
+        }
+    }
+
+    override fun getActiveGoals(userId: Int): Flow<List<GoalWithSessions>> {
+        return dao.getActiveGoals(userId).map { list ->
             list.map { it.toDomain() }
         }
     }
@@ -51,7 +59,9 @@ class GoalRepositoryImpl(
             title = goal.title,
             type = goal.type.name,
             hours = goal.targetDuration.toMinutes().toInt(),
-            deepFocus = goal.deepFocus
+            deepFocus = goal.deepFocus,
+            inactive = goal.inactive,
+            isCompleted = goal.isCompleted
         )
     }
 
@@ -59,6 +69,10 @@ class GoalRepositoryImpl(
         return dao.searchGoalsWithSessions(userId, query).map { list ->
             list.map { it.toDomain() }
         }
+    }
+
+    override suspend fun getInactiveGoals(): List<Goal> {
+        return dao.getInactiveGoals().map { it.toDomain() }
     }
 }
 

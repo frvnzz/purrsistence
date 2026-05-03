@@ -19,10 +19,12 @@ import com.example.purrsistence.data.local.repository.UserRepositoryImpl
 import com.example.purrsistence.domain.time.SystemTimeProvider
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.focus.DeepFocusConfig
+import com.example.purrsistence.service.CleanupScheduler
 import com.example.purrsistence.service.GoalService
 import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.service.ShopService
 import com.example.purrsistence.service.StatisticsService
+import com.example.purrsistence.service.TrackingCleanupService
 import com.example.purrsistence.service.TrackingService
 import com.example.purrsistence.service.TrackingServiceImpl
 import com.example.purrsistence.ui.screens.MainScreen
@@ -63,6 +65,7 @@ class MainActivity : ComponentActivity() {
         val trackingService = TrackingServiceImpl(trackingRepo, userRepo, rewardService, timeProvider)
         val shopService = ShopService(userRepo)
         val statisticsService = StatisticsService(statisticsRepo)
+        val trackingCleanupService = TrackingCleanupService(goalRepo,trackingRepo, timeProvider)
 
         // shared preferences (for storing last selected goal from GoalBottomDrawer)
         val prefs = getSharedPreferences(DeepFocusConfig.PREFS_NAME, MODE_PRIVATE)
@@ -73,6 +76,8 @@ class MainActivity : ComponentActivity() {
         goalViewModel = GoalViewModel(goalService, prefs)
         trackingViewModel = TrackingViewModel(trackingService, timeProvider, focusBlocker)
         statisticsViewModel = StatisticsViewModel(statisticsService)
+
+        val cleanupScheduler = CleanupScheduler(prefs, timeProvider, trackingCleanupService)
 
         lifecycleScope.launch {
             // Only insert if userId 1 doesn't exist
@@ -87,6 +92,7 @@ class MainActivity : ComponentActivity() {
                 )
                 userDao.insertUser(exampleUserEntity)
             }
+            cleanupScheduler.runIfDue()
         }
 
         setContent {

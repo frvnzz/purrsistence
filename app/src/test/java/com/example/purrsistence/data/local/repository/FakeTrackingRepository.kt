@@ -1,6 +1,7 @@
 package com.example.purrsistence.data.local.repository
 
 import com.example.purrsistence.domain.model.TrackingSession
+import java.time.Instant
 
 class FakeTrackingRepository : TrackingRepository {
 
@@ -34,5 +35,16 @@ class FakeTrackingRepository : TrackingRepository {
 
     override suspend fun getActiveTrackingSession(goalId: Int): TrackingSession? {
         return sessions.lastOrNull { it.goalId == goalId && it.endTime == null }
+    }
+
+    override suspend fun deleteFinishedSessionsForGoalBefore(
+        goalId: Int,
+        cutoff: Instant
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun countSessionsForGoal(goalId: Int): Int {
+        TODO("Not yet implemented")
     }
 }

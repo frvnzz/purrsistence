@@ -21,6 +21,10 @@ interface GoalsDao {
     @Query("SELECT * FROM GoalEntity WHERE userId = :userId")
     fun getGoals(userId: Int): Flow<List<GoalWithSessionsEntity>>
 
+    @Transaction
+    @Query("SELECT * FROM GoalEntity WHERE userId = :userId AND inactive = 0")
+    fun getActiveGoals(userId: Int): Flow<List<GoalWithSessionsEntity>>
+
     @Query("SELECT * FROM GoalEntity WHERE userId = :userId")
     fun getGoalsRaw(userId: Int): Flow<List<GoalEntity>> //get only the goals data
 
@@ -36,7 +40,9 @@ interface GoalsDao {
     SET title = :title,
         type = :type,
         targetDuration = :hours,
-        deepFocus = :deepFocus
+        deepFocus = :deepFocus,
+        inactive = :inactive,
+        isCompleted = :isCompleted
     WHERE goalId = :goalId
     """
     )
@@ -45,7 +51,9 @@ interface GoalsDao {
         title: String,
         type: String,
         hours: Int,
-        deepFocus: Boolean
+        deepFocus: Boolean,
+        inactive: Boolean,
+        isCompleted: Boolean
     )
 
     @Transaction
@@ -61,5 +69,8 @@ interface GoalsDao {
         userId: Int,
         query: String
     ): Flow<List<GoalWithSessionsEntity>>
+
+    @Query("SELECT * FROM GoalEntity WHERE inactive = 1")
+    suspend fun getInactiveGoals(): List<GoalEntity>
 
 }

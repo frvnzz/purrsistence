@@ -65,9 +65,12 @@ class GoalService(
     }
 
     suspend fun deleteGoal(goalId: Int) {
-        goalRepository.deleteGoal(goalId)
-    }
+        val currentGoal = goalRepository.getGoal(goalId).firstOrNull() ?: return
+        if (currentGoal.inactive) return
 
+        val inactiveGoal = currentGoal.copy(inactive = true)
+        goalRepository.updateGoal(inactiveGoal)
+    }
     fun searchGoals(userId: Int, query: String) =
         goalRepository.searchGoals(userId, query)
 }

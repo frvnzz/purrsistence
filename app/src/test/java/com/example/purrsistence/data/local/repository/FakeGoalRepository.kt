@@ -19,6 +19,10 @@ class FakeGoalRepository : GoalRepository {
         }
     }
 
+    override fun getActiveGoals(userId: Int): Flow<List<GoalWithSessions>> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun insertGoal(goal: Goal) {
         val stored = goal.copy(id = nextId++)
         goals.add(stored)
@@ -47,6 +51,10 @@ class FakeGoalRepository : GoalRepository {
                 it.userId == userId && it.title.contains(query, ignoreCase = true)
             }.map { GoalWithSessions(it, emptyList()) }
         }
+    }
+
+    override suspend fun getInactiveGoals(): List<Goal>{
+        TODO("Not yet implemented")
     }
 
 }

@@ -4,6 +4,7 @@ import com.example.purrsistence.data.local.dao.TrackingDao
 import com.example.purrsistence.data.local.mapping.toDomain
 import com.example.purrsistence.data.local.mapping.toEntity
 import com.example.purrsistence.domain.model.TrackingSession
+import java.time.Instant
 
 // TODO: refactor logic to service layer (Ramon) :)
 
@@ -12,6 +13,8 @@ interface TrackingRepository {
     suspend fun finishTrackingSession(trackingId: Int, endTimeMillis: Long): TrackingSession?
     suspend fun getTrackingSessionById(trackingId: Int): TrackingSession?
     suspend fun getActiveTrackingSession(goalId: Int): TrackingSession?
+    suspend fun deleteFinishedSessionsForGoalBefore(goalId: Int, cutoff: java.time.Instant)
+    suspend fun countSessionsForGoal(goalId: Int): Int
 }
 
 class TrackingRepositoryImpl(
@@ -38,5 +41,19 @@ class TrackingRepositoryImpl(
 
     override suspend fun getActiveTrackingSession(goalId: Int): TrackingSession? {
         return trackingDao.getActiveTrackingSession(goalId)?.toDomain()
+    }
+
+    override suspend fun deleteFinishedSessionsForGoalBefore(
+        goalId: Int,
+        cutoff: Instant
+    ) {
+        trackingDao.deleteFinishedSessionsForGoalBefore(
+            goalId = goalId,
+            cutoffMillis = cutoff.toEpochMilli()
+        )
+    }
+
+    override suspend fun countSessionsForGoal(goalId: Int): Int {
+        return trackingDao.countSessionsForGoal(goalId)
     }
 }

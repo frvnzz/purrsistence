@@ -55,4 +55,15 @@ interface TrackingDao {
     """
     )
     fun getCompletedSessionsForUser(userId: Int): Flow<List<TrackingSessionEntity>> //get the sessions that are completed and not ongoing
+
+    @Query("""
+    DELETE FROM TrackingSessionEntity
+    WHERE goalId = :goalId
+      AND endTime IS NOT NULL
+      AND endTime < :cutoffMillis
+""")
+    suspend fun deleteFinishedSessionsForGoalBefore(goalId: Int, cutoffMillis: Long)
+
+    @Query("SELECT COUNT(*) FROM TrackingSessionEntity WHERE goalId = :goalId")
+    suspend fun countSessionsForGoal(goalId: Int): Int
 }
