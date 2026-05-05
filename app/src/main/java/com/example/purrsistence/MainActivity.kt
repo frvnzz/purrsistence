@@ -89,7 +89,10 @@ class MainActivity : ComponentActivity() {
                     balance = 100,
                     friends = listOf("alice", "bob"),
                     collectedCatsIds = listOf("cat_1"),
-                    selectedCatIds = listOf("cat_1")
+                    selectedCatIds = listOf("cat_1"),
+                    profileImageUrl = null,
+                    isSupabaseLinked = false,
+                    supabaseUserId = null
                 )
                 userDao.insertUser(exampleUserEntity)
             }

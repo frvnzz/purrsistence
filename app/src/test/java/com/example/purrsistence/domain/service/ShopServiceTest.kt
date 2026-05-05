@@ -10,6 +10,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.net.URL
 
 class ShopServiceTest {
 
@@ -25,7 +26,10 @@ class ShopServiceTest {
                 balance = 100,
                 friends = emptyList(),
                 collectedCatsIds = emptyList(),
-                selectedCatIds = emptyList()
+                selectedCatIds = emptyList(),
+                profileImageUrl = URL("https://example.com/profile.png"),
+                isSupabaseLinked = true,
+                supabaseUserId = "supabase-123"
             )
         )
 
@@ -48,7 +52,10 @@ class ShopServiceTest {
                 balance = 100,
                 friends = emptyList(),
                 collectedCatsIds = listOf("cat_lucky"),
-                selectedCatIds = listOf("cat_lucky")
+                selectedCatIds = listOf("cat_lucky"),
+                profileImageUrl = URL("https://example.com/profile.png"),
+                isSupabaseLinked = true,
+                supabaseUserId = "supabase-123"
             )
         )
 
@@ -71,7 +78,10 @@ class ShopServiceTest {
                 balance = 10,
                 friends = emptyList(),
                 collectedCatsIds = emptyList(),
-                selectedCatIds = emptyList()
+                selectedCatIds = emptyList(),
+                profileImageUrl = URL("https://example.com/profile.png"),
+                isSupabaseLinked = true,
+                supabaseUserId = "supabase-123"
             )
         )
 
@@ -109,7 +119,10 @@ class ShopServiceTest {
                 balance = 10,
                 friends = emptyList(),
                 collectedCatsIds = emptyList(),
-                selectedCatIds = emptyList()
+                selectedCatIds = emptyList(),
+                profileImageUrl = URL("https://example.com/profile.png"),
+                isSupabaseLinked = true,
+                supabaseUserId = "supabase-123"
             )
         )
 
