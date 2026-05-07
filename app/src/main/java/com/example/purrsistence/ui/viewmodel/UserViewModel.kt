@@ -7,7 +7,6 @@ import com.example.purrsistence.service.ShopService
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.net.URL
 
 class UserViewModel(
     private val shopService: ShopService,
@@ -47,7 +46,7 @@ class UserViewModel(
         }
     }
 
-    fun updateProfileImage(imageUrl: URL?) {
+    fun updateProfileImage(imageUrl: String?) {
         viewModelScope.launch {
             profileService?.updateProfilePicture(
                 userId = currentUserId,

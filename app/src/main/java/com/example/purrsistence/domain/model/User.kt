@@ -1,11 +1,9 @@
 package com.example.purrsistence.domain.model
 
-import java.net.URL
-
 data class User(
     val id: Int,
     val username: String,
-    val profileImageUrl: URL?,
+    val profileImageUrl: String?,
     val balance: Int,
     val friends: List<String>,
     val isSupabaseLinked: Boolean,

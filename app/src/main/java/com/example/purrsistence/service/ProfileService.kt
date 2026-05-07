@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
-import java.net.URL
 
 class ProfileService(
     private val userRepository: UserRepository,
@@ -28,7 +27,7 @@ class ProfileService(
     suspend fun updateProfile(
         userId: Int,
         username: String,
-        profileImageUrl: URL?
+        profileImageUrl: String?
     ) {
         val currentUser = userRepository.getUser(userId).firstOrNull() ?: return
 
@@ -42,7 +41,7 @@ class ProfileService(
 
     suspend fun updateProfilePicture(
         userId: Int,
-        profileImageUrl: URL?
+        profileImageUrl: String?
     ) {
         val currentUser = userRepository.getUser(userId).firstOrNull() ?: return
 
@@ -58,13 +57,13 @@ class ProfileService(
             userId = id,
             supabaseUserId = supabaseUserId,
             username = username,
-            profileImageUrl = profileImageUrl?.toString(),
+            profileImageUrl = profileImageUrl,
             balance = balance,
             friends = friends.map {
                 FriendProfile(
                     userId = it.id,
                     username = it.username,
-                    profileImageUrl = it.profileImageUrl?.toString()
+                    profileImageUrl = it.profileImageUrl
                 )
             },
             collectedCatIds = collectedCatsIds,
