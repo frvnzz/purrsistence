@@ -30,6 +30,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.People
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
@@ -221,13 +223,13 @@ private fun ProfileActionButtons(
     ) {
         ActionButton(
             label = "Settings",
-            icon = Icons.Outlined.Edit,
+            icon = Icons.Outlined.Settings,
             onClick = onNavigateToSettings,
             modifier = Modifier.weight(1f)
         )
         ActionButton(
             label = "Friends",
-            icon = Icons.Outlined.Edit,
+            icon = Icons.Outlined.People,
             onClick = onNavigateToFriends,
             modifier = Modifier.weight(1f)
         )
