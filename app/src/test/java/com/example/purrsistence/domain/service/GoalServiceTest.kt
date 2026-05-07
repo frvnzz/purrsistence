@@ -10,7 +10,10 @@ import com.example.purrsistence.service.GoalService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Duration
 import java.time.Instant
@@ -52,6 +55,7 @@ class GoalServiceTest {
 
         val now = Instant.parse("2026-05-07T12:00:00Z") //Set up time provider to return fixed "now" for testing
         val timeProvider = FakeTimeProvider(now)
+        val zone =  ZoneId.of("Europe/Vienna")
 
         val service = GoalService(repository, timeProvider)
 
@@ -86,13 +90,13 @@ class GoalServiceTest {
 
         val result = service.completeGoalIfReached( //Call the method under test
             goalWithSessions = goalWithSessions,
-            now = now.atZone(java.time.ZoneId.systemDefault())
+            now = now.atZone(zone)
         )
 
         val updatedGoal = repository.getGoal(goal.id).first()!! //Fetch the updated goal to verify changes
 
-        assertEquals(true, result) //Method should return true indicating goal was completed
-        assertEquals(true, updatedGoal.isCompleted) //Goal should be marked as completed
+        assertTrue(result) //Method should return true indicating goal was completed
+        assertTrue(updatedGoal.isCompleted) //Goal should be marked as completed
         assertEquals(now, updatedGoal.lastCompletedAt) //lastCompletedAt should be updated to "now"
     }
 
@@ -102,6 +106,8 @@ class GoalServiceTest {
 
         val now = Instant.parse("2026-05-07T12:00:00Z")
         val timeProvider = FakeTimeProvider(now)
+
+        val zone =  ZoneId.of("Europe/Vienna")
 
         val service = GoalService(repository, timeProvider)
 
@@ -135,14 +141,14 @@ class GoalServiceTest {
 
         val result = service.completeGoalIfReached(
             goalWithSessions,
-            now.atZone(java.time.ZoneId.systemDefault())
+            now.atZone(zone)
         )
 
         val updatedGoal = repository.getGoal(goal.id).first()!!
 
-        assertEquals(false, result) //should be false
-        assertEquals(false, updatedGoal.isCompleted) //goal should not be marked complete
-        assertEquals(null, updatedGoal.lastCompletedAt) //since goal was never completed before lastCompletedAt should remain null
+        assertFalse( result) //should be false
+        assertFalse(updatedGoal.isCompleted) //goal should not be marked complete
+        assertNull(updatedGoal.lastCompletedAt) //since goal was never completed before lastCompletedAt should remain null
     }
 
     @Test
@@ -151,6 +157,8 @@ class GoalServiceTest {
 
         val now = Instant.parse("2026-05-07T12:00:00Z")
         val timeProvider = FakeTimeProvider(now)
+
+        val zone =  ZoneId.of("Europe/Vienna")
 
         val service = GoalService(repository, timeProvider)
 
@@ -188,16 +196,16 @@ class GoalServiceTest {
 
         val result = service.completeGoalIfReached(
             goalWithSessions,
-            now.atZone(ZoneId.systemDefault())
+            now.atZone(zone)
         )
 
         val unchangedGoal = repository.getGoal(1).first()!!
 
         // should return false since goal was already completed in the current time window
-        assertEquals(false, result)
+        assertFalse(result)
 
         // goal should remain unchanged and still completed
-        assertEquals(true, unchangedGoal.isCompleted)
+        assertTrue( unchangedGoal.isCompleted)
         assertEquals( //lastCompletedAt should remain the same since goal was already completed in the current window and method should not update it
             now.minus(Duration.ofHours(1)),
             unchangedGoal.lastCompletedAt
