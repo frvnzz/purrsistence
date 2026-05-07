@@ -48,6 +48,8 @@ fun GoalsScreen(
             goalViewModel.onSearchQueryChange("")
             isEditMode = false
             selectedGoals = emptySet()
+
+            goalViewModel.resetCompletedGoalsIfNewCycle(userViewModel.currentUserId) //Reset completed goals at the start of a new timeframe
         }
     }
 

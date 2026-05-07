@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.service.GoalService
 import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
 
 class GoalViewModel(
     private val goalService: GoalService,
@@ -89,4 +90,10 @@ class GoalViewModel(
 
     fun searchedGoals(userId: Int) =
         goalService.searchGoals(userId, searchQuery)
+
+    fun resetCompletedGoalsIfNewCycle(userId: Int) { //called on goal screen open to reset completed goals if a new time window has started
+        viewModelScope.launch {
+            goalService.resetCompletedGoalsIfNewCycle(userId, ZonedDateTime.now())
+        }
+    }
 }

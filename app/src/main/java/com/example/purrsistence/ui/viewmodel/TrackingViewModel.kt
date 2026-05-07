@@ -80,7 +80,8 @@ class TrackingViewModel(
                 rewardedCurrency = stopResult.rewardedCurrency,
                 multiplier = stopResult.multiplier,
                 sessionDurationMillis = stopResult.sessionDurationMillis,
-                elapsedMillis = stopResult.sessionDurationMillis
+                elapsedMillis = stopResult.sessionDurationMillis,
+                goalCompletionReward = stopResult.goalCompletionReward  //added to show goal completion reward in UI if applicable
             )
         }
     }

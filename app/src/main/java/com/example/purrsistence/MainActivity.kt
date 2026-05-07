@@ -34,6 +34,7 @@ import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
 
 class MainActivity : ComponentActivity() {
 
@@ -62,7 +63,7 @@ class MainActivity : ComponentActivity() {
         //Services
         val goalService = GoalService(goalRepo, timeProvider)
         val rewardService = RewardService()
-        val trackingService = TrackingServiceImpl(trackingRepo, userRepo, rewardService, timeProvider)
+        val trackingService = TrackingServiceImpl(trackingRepo, userRepo, goalRepo, goalService, rewardService, timeProvider)
         val shopService = ShopService(userRepo)
         val statisticsService = StatisticsService(statisticsRepo)
         val trackingCleanupService = TrackingCleanupService(goalRepo,trackingRepo, timeProvider)
@@ -93,6 +94,13 @@ class MainActivity : ComponentActivity() {
                 )
                 userDao.insertUser(exampleUserEntity)
             }
+
+            //reset completed goals for new time window/cycle
+            //TODO: update somewhere else, because this is to infrequent and only happens when app is opened
+            //goalService.resetCompletedGoalsIfNewCycle(
+            //    userId = 1,
+            //    now = ZonedDateTime.now()
+            //)
             cleanupScheduler.runIfDue()
         }
 

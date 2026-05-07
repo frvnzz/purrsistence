@@ -21,7 +21,7 @@ import com.example.purrsistence.data.local.dao.UserDao
     ],
     // increment version if the following error occurs:
     // java.lang.IllegalStateException: Room cannot verify the data integrity.
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(StringListConverter::class)
