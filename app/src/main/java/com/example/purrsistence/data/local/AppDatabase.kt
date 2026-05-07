@@ -27,7 +27,6 @@ import com.example.purrsistence.data.local.dao.UserDao
 @TypeConverters(StringListConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 
-    // TODO: Split Dao and add all of them
     abstract fun goalsDao(): GoalsDao
     abstract fun trackingDao(): TrackingDao
     abstract fun userDao(): UserDao

@@ -1,0 +1,51 @@
+package com.example.purrsistence.data.remote.supabase.datasource
+
+import com.example.purrsistence.data.remote.supabase.dto.UserCatDto
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.postgrest.from
+
+class SupabaseCatRemoteDataSource(
+    private val supabase: SupabaseClient
+) {
+
+    suspend fun fetchCollectedCatIds(userId: String): List<String> {
+        return supabase
+            .from("user_cats")
+            .select {
+                filter {
+                    eq("user_id", userId)
+                }
+            }
+            .decodeList<UserCatDto>()
+            .map { it.catId }
+    }
+
+    suspend fun addCollectedCat(
+        userId: String,
+        catId: String
+    ) {
+        val row = UserCatDto(
+            userId = userId,
+            catId = catId,
+            source = "shop"
+        )
+
+        supabase
+            .from("user_cats")
+            .upsert(row) {
+                onConflict = "user_id,cat_id"
+            }
+    }
+
+    suspend fun uploadLocalCollectedCats(
+        userId: String,
+        catIds: List<String>
+    ) {
+        catIds.distinct().forEach { catId ->
+            addCollectedCat(
+                userId = userId,
+                catId = catId
+            )
+        }
+    }
+}
