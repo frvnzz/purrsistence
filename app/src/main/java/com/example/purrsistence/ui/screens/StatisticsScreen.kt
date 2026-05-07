@@ -113,7 +113,7 @@ private fun LandscapeStatistics(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            WeekSelector(viewModel, state)
+            WeekSelector(viewModel, state, compact = true)
             Spacer(modifier = Modifier.height(Spacing.md))
             GoalStatsList(state.goalStats)
         }

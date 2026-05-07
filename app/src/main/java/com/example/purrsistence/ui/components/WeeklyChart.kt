@@ -1,6 +1,5 @@
 package com.example.purrsistence.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -63,7 +62,7 @@ fun WeeklyChart(dailyStats: List<DailyStat>) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "No tracking data for this week yet",
+                    "No tracking data for this week",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -25,25 +25,26 @@ class StatisticsViewModel(
 
     init {
         // Restore weekOffset from saved state, default to 0 if not found
-        val savedOffset = savedStateHandle.get<Int>(WEEK_OFFSET_KEY) ?: 0
+        val savedOffset = (savedStateHandle.get<Int>(WEEK_OFFSET_KEY) ?: 0).coerceAtMost(0)
         loadStats(savedOffset)
     }
 
     private fun loadStats(offset: Int) {
+        val safeOffset = offset.coerceAtMost(0)
         currentJob?.cancel()
 
         _uiState.value = _uiState.value.copy(
-            weekOffset = offset,
+            weekOffset = safeOffset,
             isLoading = true
         )
 
         // Save weekOffset for configuration changes (rotation)
-        savedStateHandle[WEEK_OFFSET_KEY] = offset
+        savedStateHandle[WEEK_OFFSET_KEY] = safeOffset
 
         currentJob = viewModelScope.launch {
-            statisticsService.getWeeklyStats(offset).collect { (daily, goals) ->
+            statisticsService.getWeeklyStats(safeOffset).collect { (daily, goals) ->
                 _uiState.value = _uiState.value.copy(
-                    weekOffset = offset,
+                    weekOffset = safeOffset,
                     dailyStats = daily,
                     goalStats = goals,
                     isLoading = false
@@ -52,11 +53,11 @@ class StatisticsViewModel(
         }
     }
 
-    fun previousWeek(){
+    fun previousWeek() {
         loadStats(_uiState.value.weekOffset - 1)
     }
 
-    fun nextWeek(){
+    fun nextWeek() {
         loadStats(_uiState.value.weekOffset + 1)
     }
 }
