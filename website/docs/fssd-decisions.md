@@ -115,12 +115,15 @@ Read more: https://www.conventionalcommits.org/
 
 ## Externals of the Application
 
-- **Authentication:** Not integrated yet (planned). Current app state uses local Room data only
-  (`User` entity and seed insert in `MainActivity`), with no auth SDK wired in.
+- **Authentication:** Not integrated yet (planned). The app currently uses local Room data only
+  (`User` entity plus the seed insert in `MainActivity`), with no auth SDK wired in.
+- **Profile Images:** Picked with the Android photo picker. Local `content://` images are copied
+  into app cache when needed, then stored in Room as a local file URL through `ProfileService`.
+  No external image storage service is connected yet.
 - **Time:** Abstracted via `TimeProvider`; production uses `SystemTimeProvider : TimeProvider`,
   while tests use `FakeTimeProvider : TimeProvider` for timing.
 - **Database:** Local storage via Room (`Goal`, `TrackingSession`, `User` entities). No external
-  database or backend integration yet (planned Supabase).
+  database or backend integration is fully connected yet, although Supabase is planned for later.
 - **Statistics:** Implemented locally through Room (`Dao.observeTotalTime(goalId)` and
   `GoalWithSessions` relation). No external analytics/statistics provider is connected yet.
 
