@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -26,6 +27,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
@@ -57,16 +60,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -384,20 +385,34 @@ private fun ProfileHeaderSection(
                         onClick = callbacks.onSaveUsername,
                         modifier = Modifier
                             .weight(1f)
-                            .height(32.dp),
-                        shape = Shapes.buttons
+                            .heightIn(min = 32.dp),
+                        shape = Shapes.buttons,
+                        contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text("Save", style = MaterialTheme.typography.labelSmall)
+                        // center label regardless of font / device differences
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Save", style = MaterialTheme.typography.labelSmall)
+                        }
                     }
 
                     OutlinedButton(
                         onClick = { callbacks.onEditingChange(false) },
                         modifier = Modifier
                             .weight(1f)
-                            .height(32.dp),
-                        shape = Shapes.buttons
+                            .heightIn(min = 32.dp),
+                        shape = Shapes.buttons,
+                        contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text("Cancel", style = MaterialTheme.typography.labelSmall)
+                        // center label regardless of font / device differences
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Cancel", style = MaterialTheme.typography.labelSmall)
+                        }
                     }
                 }
             } else {
