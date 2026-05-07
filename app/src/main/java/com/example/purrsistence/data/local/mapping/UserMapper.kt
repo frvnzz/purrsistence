@@ -2,12 +2,13 @@ package com.example.purrsistence.data.local.mapping
 
 import com.example.purrsistence.data.local.entity.UserEntity
 import com.example.purrsistence.domain.model.User
+import java.net.URL
 
 fun UserEntity.toDomain(): User =
     User(
         id = userId,
         username = username,
-        profileImageUrl = profileImageUrl?.takeIf { it.isNotBlank() },
+        profileImageUrl = profileImageUrl?.takeIf { it.isNotBlank() }?.let { URL(it) },
         balance = balance,
         friends = friends,
         isSupabaseLinked = isSupabaseLinked,
@@ -22,7 +23,7 @@ fun User.toEntity(): UserEntity =
         username = username,
         supabaseUserId = supabaseUserId,
         isSupabaseLinked = isSupabaseLinked,
-        profileImageUrl = profileImageUrl,
+        profileImageUrl = profileImageUrl?.toString(),
         balance = balance,
         friends = friends,
         collectedCatsIds = collectedCatsIds,

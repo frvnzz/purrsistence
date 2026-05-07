@@ -42,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +59,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.ui.state.TopBarState
@@ -82,8 +84,16 @@ fun ProfileScreen(
     val user by userViewModel.user.collectAsState()
     var isEditingName by remember { mutableStateOf(false) }
     var editedUsername by remember(user?.username) { mutableStateOf(user?.username ?: "") }
-    var selectedProfileImageUri by remember(user?.profileImageUrl) {
-        mutableStateOf(user?.profileImageUrl?.let(Uri::parse))
+    var selectedProfileImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Synchronize profile image URI whenever user data changes
+    val currentUser = user
+    LaunchedEffect(currentUser?.profileImageUrl) {
+        currentUser?.profileImageUrl?.let { profileImageUrl ->
+            selectedProfileImageUri = profileImageUrl.toString().toUri()
+        } ?: run {
+            selectedProfileImageUri = null
+        }
     }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(

@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
         val rewardService = RewardService()
         val trackingService = TrackingServiceImpl(trackingRepo, userRepo, rewardService, timeProvider)
         val shopService = ShopService(userRepo)
-        val profileService = ProfileService(userRepo)
+        val profileService = ProfileService(this, userRepo)
         val statisticsService = StatisticsService(statisticsRepo)
         val trackingCleanupService = TrackingCleanupService(goalRepo,trackingRepo, timeProvider)
 
