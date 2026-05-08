@@ -19,6 +19,9 @@ import com.example.purrsistence.ui.components.addEditGoal.DurationBox
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.clampDurationParts
+import com.example.purrsistence.ui.util.durationPartsToMinutes
+import com.example.purrsistence.ui.util.maxHourForGoalType
 import com.example.purrsistence.ui.util.openAccessibilitySettings
 import com.example.purrsistence.ui.util.requiresDeepFocusSetup
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
@@ -71,6 +74,28 @@ fun EditGoalScreen(
             mutableStateOf(currentGoal.deepFocus)
         }
 
+        val maxHours = maxHourForGoalType(type)
+
+        LaunchedEffect(type) {
+            val (safeHours, safeMinutes) = clampDurationParts(
+                type = type,
+                hours = hours,
+                minutes = minutes
+            )
+
+            hours = safeHours
+            minutes = safeMinutes
+        }
+
+        val durationInMinutes =
+            (hours.toIntOrNull() ?: 0) * 60 +
+                    (minutes.toIntOrNull() ?: 0)
+
+        val titleValid = title.isNotBlank()
+        val durationValid = durationInMinutes >= 1
+
+        val formValid = titleValid && durationValid
+
         setTopBar(
             TopBarState(
                 title = "Edit Goal",
@@ -109,6 +134,12 @@ fun EditGoalScreen(
                     value = title,
                     onValueChange = { title = it },
                     modifier = Modifier.fillMaxWidth(),
+                    isError = !titleValid,
+                    supportingText = {
+                        if (!titleValid) {
+                            Text("Goal title cannot be empty")
+                        }
+                    },
                     shape = Shapes.cards,
                     singleLine = true,
                     trailingIcon = {
@@ -142,7 +173,7 @@ fun EditGoalScreen(
                     DurationBox(
                         value = hours,
                         label = "Hour",
-                        maxValue = 23,
+                        maxValue = maxHours,
                         onValueChange = { hours = it }
                     )
 
@@ -156,6 +187,16 @@ fun EditGoalScreen(
                         label = "Minute",
                         maxValue = 59,
                         onValueChange = { minutes = it }
+                    )
+                }
+
+                if (!durationValid) {
+                    Spacer(modifier = Modifier.height(Spacing.sm))
+
+                    Text(
+                        text = "Duration must be at least 1 minute",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
 
@@ -178,7 +219,7 @@ fun EditGoalScreen(
                     horizontalArrangement = Arrangement.spacedBy(Spacing.md)
                 ) {
 
-                    listOf("Daily", "Weekly", "Monthly").forEach { option ->
+                    listOf("Daily", "Weekly").forEach { option ->
 
                         val selected = type == option
 
@@ -305,13 +346,15 @@ fun EditGoalScreen(
                 Button(
                     onClick = {
 
-                        val updatedMinutes =
-                            (hours.toIntOrNull() ?: 0) * 60 +
-                                    (minutes.toIntOrNull() ?: 0)
+                        val updatedMinutes = durationPartsToMinutes(
+                            type = type,
+                            hours = hours,
+                            minutes = minutes
+                        )
 
                         viewModel.updateGoal(
                             goalId = currentGoal.id,
-                            title = title,
+                            title = title.trim(),
                             type = GoalType.valueOf(type.uppercase()),
                             hours = updatedMinutes,
                             deepFocus = deepFocus
@@ -319,6 +362,8 @@ fun EditGoalScreen(
 
                         onBack()
                     },
+
+                    enabled = formValid,
 
                     modifier = Modifier.weight(1f),
 

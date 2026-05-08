@@ -15,6 +15,9 @@ import com.example.purrsistence.ui.components.addEditGoal.DurationBox
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.clampDurationParts
+import com.example.purrsistence.ui.util.durationPartsToMinutes
+import com.example.purrsistence.ui.util.maxHourForGoalType
 import com.example.purrsistence.ui.util.openAccessibilitySettings
 import com.example.purrsistence.ui.util.requiresDeepFocusSetup
 
@@ -32,7 +35,7 @@ fun AddGoalScreen(
 
     val context = LocalContext.current
 
-    var title by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf("New Goal") }
     var type by remember { mutableStateOf("Weekly") }
     var hours by remember { mutableStateOf("02") }
     var minutes by remember { mutableStateOf("30") }
@@ -43,12 +46,34 @@ fun AddGoalScreen(
         mutableStateOf(false)
     }
 
+    val maxHours = maxHourForGoalType(type)
+    LaunchedEffect(type) {
+        val (safeHours, safeMinutes) = clampDurationParts(
+            type = type,
+            hours= hours,
+            minutes = minutes
+        )
+
+        hours = safeHours
+        minutes = safeMinutes
+    }
+
     setTopBar(
         TopBarState(
             title = "Add New Goal",
             onBackClick = onBack
         )
     )
+
+    val durationInMinutes =
+        (hours.toIntOrNull() ?: 0) * 60 +
+                (minutes.toIntOrNull() ?: 0)
+
+    val titleValid = title.isNotBlank()
+    val durationValid = durationInMinutes >= 1
+
+    val formValid = titleValid && durationValid
+
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -78,6 +103,14 @@ fun AddGoalScreen(
                 onValueChange = { title = it },
 
                 modifier = Modifier.fillMaxWidth(),
+
+                isError = !titleValid,
+
+                supportingText = {
+                    if (!titleValid) {
+                        Text("Goal title cannot be empty")
+                    }
+                },
 
                 placeholder = {
                     Text("New Goal")
@@ -112,7 +145,7 @@ fun AddGoalScreen(
                 DurationBox(
                     value = hours,
                     label = "Hour",
-                    maxValue = 23,
+                    maxValue = maxHours,
                     onValueChange = { hours = it }
                 )
 
@@ -126,6 +159,15 @@ fun AddGoalScreen(
                     label = "Minute",
                     maxValue = 59,
                     onValueChange = { minutes = it }
+                )
+            }
+            if (!durationValid) {
+                Spacer(modifier = Modifier.height(Spacing.sm))
+
+                Text(
+                    text = "Duration must be at least 1 minute",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
@@ -142,7 +184,7 @@ fun AddGoalScreen(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
-                listOf("Daily", "Weekly", "Monthly").forEach { option ->
+                listOf("Daily", "Weekly").forEach { option ->
 
                     val selected = type == option
 
@@ -265,12 +307,14 @@ fun AddGoalScreen(
             Button(
                 onClick = {
 
-                    val totalMinutes =
-                        (hours.toIntOrNull() ?: 0) * 60 +
-                                (minutes.toIntOrNull() ?: 0)
+                    val totalMinutes = durationPartsToMinutes(
+                        type = type,
+                        hours = hours,
+                        minutes = minutes
+                    )
 
                     onSave(
-                        title,
+                        title.trim(),
                         type,
                         totalMinutes,
                         deepFocus
@@ -278,6 +322,8 @@ fun AddGoalScreen(
 
                     onBack()
                 },
+
+                enabled = formValid,
 
                 modifier = Modifier.weight(1f),
 
