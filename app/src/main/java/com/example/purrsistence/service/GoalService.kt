@@ -2,12 +2,15 @@ package com.example.purrsistence.service
 
 import com.example.purrsistence.data.local.repository.GoalRepository
 import com.example.purrsistence.domain.model.Goal
+import com.example.purrsistence.domain.model.GoalWithSessions
 import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.domain.time.TimeProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 import java.time.Duration
+import java.time.Instant
+import java.time.ZonedDateTime
 
 class GoalService(
     private val goalRepository: GoalRepository,
@@ -39,7 +42,8 @@ class GoalService(
             deepFocus = deepFocus,
             inactive = inactive,
             createdAt = timeProvider.now(),
-            isCompleted = isCompleted
+            isCompleted = isCompleted,
+            lastCompletedAt = null
         )
 
         goalRepository.insertGoal(goal)
@@ -73,4 +77,36 @@ class GoalService(
     }
     fun searchGoals(userId: Int, query: String) =
         goalRepository.searchGoals(userId, query)
+
+    suspend fun completeGoalIfReached( //returns boolean if a goal has completed in a time window/frame and updates goal depending on it
+        goalWithSessions: GoalWithSessions,
+        now: ZonedDateTime
+    ) :Boolean {
+        // skip if time window was already completed
+        if (goalWithSessions.hasCompletedCurrentWindow(now)) return false
+
+        // if goals hasn't been reached skip
+        if (!goalWithSessions.isCurrentlyAtOrAboveTarget(now)) return false
+
+        // goal reached, set last completed at
+        val updatedGoal = goalWithSessions.goal.copy(
+            lastCompletedAt = timeProvider.now(),
+            isCompleted = true
+        )
+
+        goalRepository.updateGoal(updatedGoal)
+        return true
+    }
+
+    suspend fun resetCompletedGoalsIfNewCycle(userId: Int, now: ZonedDateTime) { //resets isCompleted for goals that have completed a cycle/time window but haven't completed the current one yet (e.g. daily goal that was completed yesterday but not today)
+        val goals = goalRepository.getGoals(userId).firstOrNull() ?: return
+
+        goals.forEach { goalWithSessions ->
+            if (goalWithSessions.goal.isCompleted && !goalWithSessions.hasCompletedCurrentWindow(now)) {
+                //new cycle/time window -> reset isCompleted
+                val reset = goalWithSessions.goal.copy(isCompleted = false)
+                goalRepository.updateGoal(reset)
+            }
+        }
+    }
 }

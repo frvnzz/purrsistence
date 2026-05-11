@@ -1,9 +1,11 @@
 package com.example.purrsistence.domain.service
 
+import com.example.purrsistence.data.local.repository.FakeGoalRepository
 import com.example.purrsistence.data.local.repository.FakeTrackingRepository
 import com.example.purrsistence.data.local.repository.FakeUserRepository
 import com.example.purrsistence.domain.model.User
 import com.example.purrsistence.domain.time.FakeTimeProvider
+import com.example.purrsistence.service.GoalService
 import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.service.TrackingServiceImpl
 import kotlinx.coroutines.flow.first
@@ -23,12 +25,15 @@ class TrackingServiceTest {
     fun startTracking_createsSessionWithCurrentTime() = runBlocking {
         val trackingRepository = FakeTrackingRepository()
         val userRepository = FakeUserRepository()
+        val goalRepository = FakeGoalRepository()
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1000L))
         val rewardService = RewardService()
 
         val service = TrackingServiceImpl(
             trackingRepository = trackingRepository,
             userRepository = userRepository,
+            goalRepository = goalRepository,
+            goalService = GoalService(goalRepository, timeProvider),
             rewardService = rewardService,
             timeProvider = timeProvider
         )
@@ -49,6 +54,7 @@ class TrackingServiceTest {
     fun stopTracking_finishesSession_andAddsCurrency() = runBlocking {
         val trackingRepository = FakeTrackingRepository()
         val userRepository = FakeUserRepository()
+        val goalRepository = FakeGoalRepository()
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1000L))
         val rewardService = RewardService()
 
@@ -69,6 +75,8 @@ class TrackingServiceTest {
         val service = TrackingServiceImpl(
             trackingRepository = trackingRepository,
             userRepository = userRepository,
+            goalRepository = goalRepository,
+            goalService = GoalService(goalRepository, timeProvider),
             rewardService = rewardService,
             timeProvider = timeProvider
         )
@@ -96,12 +104,15 @@ class TrackingServiceTest {
     fun stopTracking_returnsNull_whenSessionDoesNotExist() = runBlocking {
         val trackingRepository = FakeTrackingRepository()
         val userRepository = FakeUserRepository()
+        val goalRepository = FakeGoalRepository()
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1_000L))
         val rewardService = RewardService()
 
         val service = TrackingServiceImpl(
             trackingRepository = trackingRepository,
             userRepository = userRepository,
+            goalRepository = goalRepository,
+            goalService = GoalService(goalRepository, timeProvider),
             rewardService = rewardService,
             timeProvider = timeProvider
         )
@@ -115,6 +126,7 @@ class TrackingServiceTest {
     fun stopTracking_zeroDuration_givesZeroCoins_andKeepsBalance() = runBlocking {
         val trackingRepository = FakeTrackingRepository()
         val userRepository = FakeUserRepository()
+        val goalRepository = FakeGoalRepository()
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1_000L))
         val rewardService = RewardService()
 
@@ -135,6 +147,8 @@ class TrackingServiceTest {
         val service = TrackingServiceImpl(
             trackingRepository = trackingRepository,
             userRepository = userRepository,
+            goalRepository = goalRepository,
+            goalService = GoalService(goalRepository, timeProvider),
             rewardService = rewardService,
             timeProvider = timeProvider
         )
@@ -161,6 +175,7 @@ class TrackingServiceTest {
     fun stopTracking_shortSessionBelowThreshold_usesBaseMultiplier() = runBlocking {
         val trackingRepository = FakeTrackingRepository()
         val userRepository = FakeUserRepository()
+        val goalRepository = FakeGoalRepository()
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1_000L))
         val rewardService = RewardService()
 
@@ -181,6 +196,8 @@ class TrackingServiceTest {
         val service = TrackingServiceImpl(
             trackingRepository = trackingRepository,
             userRepository = userRepository,
+            goalRepository = goalRepository,
+            goalService = GoalService(goalRepository, timeProvider),
             rewardService = rewardService,
             timeProvider = timeProvider
         )
@@ -207,6 +224,7 @@ class TrackingServiceTest {
     fun stopTracking_capsRewardMultiplierAtTwoTimes() = runBlocking {
         val trackingRepository = FakeTrackingRepository()
         val userRepository = FakeUserRepository()
+        val goalRepository = FakeGoalRepository()
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1_000L))
         val rewardService = RewardService()
 
@@ -227,6 +245,8 @@ class TrackingServiceTest {
         val service = TrackingServiceImpl(
             trackingRepository = trackingRepository,
             userRepository = userRepository,
+            goalRepository = goalRepository,
+            goalService = GoalService(goalRepository, timeProvider),
             rewardService = rewardService,
             timeProvider = timeProvider
         )

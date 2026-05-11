@@ -32,7 +32,11 @@ fun GoalBottomDrawer(
     onStartClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val selectedGoal = goals.find { it.goal.id == selectedGoalId }?.goal
+    // get all goals that are not inactive currently
+    val activeGoals = goals.filter { !it.goal.inactive }
+
+    val selectedGoal = activeGoals.find { it.goal.id == selectedGoalId }?.goal
+    val hasSelectedGoal = selectedGoal != null
 
     // TODO: change this to be responsible (hardcoded height of the drawer)
     val collapsedHeight = 108.dp
@@ -100,12 +104,13 @@ fun GoalBottomDrawer(
             ) {
 
                 GoalListItem(
-                    title = selectedGoal?.title ?: "Select Goal",
+                    title = selectedGoal?.title ?: "Select or create a Goal",
                     durationText = selectedGoal?.let {
                         "${it.targetDuration.toMinutes()} min"
-                    } ?: "",
+                    },
                     backgroundColor = MaterialTheme.colorScheme.background,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    isPlaceholder = !hasSelectedGoal
                 )
 
                 Spacer(modifier = Modifier.width(Spacing.lg))
@@ -136,7 +141,7 @@ fun GoalBottomDrawer(
                     contentPadding = PaddingValues(Spacing.lg),
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
-                    items(goals) { goalWithSessions ->
+                    items(activeGoals) { goalWithSessions ->
                         val goal = goalWithSessions.goal
 
                         GoalListItem(

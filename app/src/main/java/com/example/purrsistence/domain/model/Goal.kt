@@ -13,5 +13,6 @@ data class Goal(
     val deepFocus: Boolean,
     val inactive: Boolean,
     val createdAt: Instant,
-    val isCompleted: Boolean
+    val isCompleted: Boolean,
+    val lastCompletedAt: Instant?
 )

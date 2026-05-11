@@ -10,5 +10,6 @@ data class TrackingUiState(
     // UI to show rewards (+ multiplier) after stopping a tracking session
     val rewardedCurrency: Int? = null,
     val multiplier: Double? = null,
-    val sessionDurationMillis: Long? = null
+    val sessionDurationMillis: Long? = null,
+    val goalCompletionReward: Int? = null, //Additional reward for completing a goal, if applicable
 )

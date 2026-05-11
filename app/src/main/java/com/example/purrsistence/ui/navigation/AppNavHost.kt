@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.screens.AddGoalScreen
 import com.example.purrsistence.ui.screens.EditGoalScreen
+import com.example.purrsistence.ui.screens.GoalDetailsScreen
 import com.example.purrsistence.ui.screens.GoalsScreen
 import com.example.purrsistence.ui.screens.HomeScreen
 import com.example.purrsistence.ui.screens.ProfileScreen
@@ -74,12 +75,30 @@ fun AppNavHost(
                     navController.navigate("add_goal")
                 },
                 onGoalClick = { goalId ->
-                    navController.navigate("edit_goal/$goalId")
+                    navController.navigate("goalDetails/$goalId")
                 },
                 snackbarHostState = snackbarHostState,
                 setTopBar = setTopBar
             )
         }
+        // -> Goal Details
+        composable("goalDetails/{goalId}") { backStackEntry ->
+
+            val goalId = backStackEntry.arguments
+                ?.getString("goalId")
+                ?.toIntOrNull()
+
+            GoalDetailsScreen(
+                goalId = goalId,
+                goalViewModel = goalViewModel,
+                onEditClick = { selectedGoalId ->
+                    navController.navigate("edit_goal/$selectedGoalId")
+                },
+                onBack = { navController.popBackStack() },
+                setTopBar = setTopBar
+            )
+        }
+
         // -> edit goal
         composable("edit_goal/{goalId}") { backStackEntry ->
             val goalId = backStackEntry.arguments

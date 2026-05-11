@@ -1,66 +1,158 @@
 package com.example.purrsistence.ui.components.goalsScreen
 
+import java.util.Locale
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.example.purrsistence.data.local.relation.GoalWithSessionsEntity
 import com.example.purrsistence.domain.model.GoalWithSessions
-import java.util.Locale
+import com.example.purrsistence.ui.theme.Elevation
+import com.example.purrsistence.ui.theme.Shapes
+import com.example.purrsistence.ui.theme.Spacing
 
 @Composable
 fun GoalCard(
     goalWithSessions: GoalWithSessions,
-    isEditMode: Boolean,
+    isDeleteMode: Boolean,
     isSelected: Boolean,
     onClick: () -> Unit,
     onCheckedChange: (Boolean) -> Unit
 ) {
     val goal = goalWithSessions.goal
 
-    Card(
+    // format targetDuration of the goal
+    val totalMinutesDuration = goal.targetDuration.toMinutes()
+    val displayHours = totalMinutesDuration / 60
+    val displayMinutes = totalMinutesDuration % 60
+
+    val formattedDuration =
+        if (displayMinutes == 0L) {
+            "${displayHours}h"
+        } else {
+            "${displayHours}h ${displayMinutes}m"
+        }
+
+    // already tracked minutes (for progress bar)
+    val trackedMinutes = goalWithSessions.totalTrackedDuration().toMinutes().toFloat()
+
+    val formattedType =
+        goal.type
+            .name
+            .lowercase(Locale.ROOT)
+            .replaceFirstChar {
+                it.titlecase(Locale.ROOT)
+            }
+
+    val progress =
+        if (totalMinutesDuration > 0) {
+            (trackedMinutes / totalMinutesDuration.toFloat())
+                .coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+
+    ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .then(
-                if (isEditMode) Modifier.clickable { onClick() }
-                else Modifier
-            )
+                if (isDeleteMode) {
+                    Modifier.clickable { onCheckedChange(!isSelected) }
+                } else {
+                    Modifier.clickable { onClick() }
+                }
+            ),
+        shape = Shapes.cards,
+        elevation = CardDefaults.elevatedCardElevation(
+            defaultElevation = Elevation.Lvl2
+        ),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Spacing.lg)
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(goal.title, style = MaterialTheme.typography.titleMedium)
-                Text("Type: ${goal.type}")
 
-                val minutes = goal.targetDuration.toMinutes().toInt()
-                val hoursFloat = minutes / 60f
-                val displayHours = String.format(Locale.GERMANY, "%.1f", hoursFloat)
+                // TEXT (Goal title & targetDuration)
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = goal.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
-                val trackedMinutes = goalWithSessions.totalTrackedDuration().toMinutes()
-                val trackedHours = trackedMinutes / 60
-                val trackedRemainderMinutes = trackedMinutes % 60
+                    Spacer(modifier = Modifier.height(Spacing.xs))
 
-                Text("Duration: ${displayHours}h (${minutes} min)")
-                Text("Tracked: ${trackedHours}h ${trackedRemainderMinutes}min")
-
-                Text("Deep Focus: ${if (goal.deepFocus) "ON" else "OFF"}")
-                Text("Inactive: ${if (goal.inactive) "YES" else "NO"}")
-                Text("Created: ${goal.createdAt}")
-                Text("Completed: ${if (goal.isCompleted) "YES" else "NO"}")
+                    Text(
+                        text = "$formattedDuration $formattedType",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                // DEEP FOCUS ICON
+                if (goal.deepFocus) {
+                    Icon(
+                        imageVector = Icons.Default.Visibility,
+                        contentDescription = "Deep Focus",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = Spacing.sm)
+                    )
+                }
+                // CHECKBOX (bulk delete)
+                if (isDeleteMode) {
+                    Checkbox(
+                        modifier = Modifier.height(Spacing.sm),
+                        checked = isSelected,
+                        onCheckedChange = onCheckedChange
+                    )
+                }
             }
 
-            if (isEditMode) {
-                Checkbox(
-                    checked = isSelected,
-                    onCheckedChange = onCheckedChange
+            Spacer(modifier = Modifier.height(Spacing.lg))
+
+            // GOAL PROGRESS BAR
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(6.dp)
+                        .clip(Shapes.buttons)
+                        .background(color = MaterialTheme.colorScheme.surfaceDim)
+                ) {
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(progress)
+                            .clip(Shapes.buttons)
+                            .background(color = MaterialTheme.colorScheme.primary)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(Spacing.md))
+
+                Text(
+                    text = "${(progress * 100).toInt()}%",
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
         }

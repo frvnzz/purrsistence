@@ -1,6 +1,8 @@
 package com.example.purrsistence.ui.screens
 
 import android.annotation.SuppressLint
+import android.os.Debug
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -11,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.navigation.TrackingEvent
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
@@ -39,7 +42,7 @@ fun TrackingScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
+            //Session reward
             Text(
                 text = "+${state.rewardedCurrency!!} coins",
                 style = MaterialTheme.typography.headlineLarge
@@ -57,6 +60,25 @@ fun TrackingScreen(
                 text = "Multiplier: x${"%.2f".format(state.multiplier ?: 1.0)}",
                 style = MaterialTheme.typography.titleMedium
             )
+
+            if ((state.goalCompletionReward ?: 0) > 0) { // Goal completion reward, show additional text and the earned reward
+                Log.d("GOAL COMPLETED", "Goal has been completed and reward will be shown on screen!")
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Text(
+                    text = "🎉 GOAL COMPLETED!",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "+${state.goalCompletionReward} bonus coins",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.Green
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 

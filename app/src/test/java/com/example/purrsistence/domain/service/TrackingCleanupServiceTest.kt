@@ -51,7 +51,8 @@ class TrackingCleanupServiceTest {
                 deepFocus = false,
                 inactive = true,
                 createdAt = Instant.parse("2026-01-01T00:00:00Z"),
-                isCompleted = false
+                isCompleted = false,
+                lastCompletedAt = null
             )
         )
 
@@ -108,7 +109,8 @@ class TrackingCleanupServiceTest {
                 deepFocus = false,
                 inactive = true,
                 createdAt = Instant.parse("2026-01-01T00:00:00Z"),
-                isCompleted = false
+                isCompleted = false,
+                lastCompletedAt = null
             )
         )
 
@@ -165,7 +167,8 @@ class TrackingCleanupServiceTest {
                 deepFocus = false,
                 inactive = false,
                 createdAt = Instant.parse("2026-01-01T00:00:00Z"),
-                isCompleted = false
+                isCompleted = false,
+                lastCompletedAt = null
             )
         )
 

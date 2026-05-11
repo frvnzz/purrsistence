@@ -30,5 +30,6 @@ data class GoalEntity(
     val deepFocus: Boolean,
     val inactive: Boolean, // if user deletes a goal, we still want to keep the data for statistics, so we just mark it as inactive
     val createdAt: Long,
-    val isCompleted: Boolean
+    val isCompleted: Boolean,
+    val lastCompletedAt: Long?
 )

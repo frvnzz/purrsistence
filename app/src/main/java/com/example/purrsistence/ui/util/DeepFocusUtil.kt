@@ -1,15 +1,15 @@
 package com.example.purrsistence.ui.util
 
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.provider.Settings
-import com.example.purrsistence.data.local.entity.GoalEntity
 import com.example.purrsistence.domain.model.Goal
 import com.example.purrsistence.focus.DeepFocusAccessibilityState
 
 fun handleStartTrackingClick(
     goal: Goal?,
-    context: android.content.Context,
+    context: Context,
     onStartTracking: (Int, Int, Boolean) -> Unit,
     onNeedsAccessibilitySetup: () -> Unit
 ) {
@@ -25,7 +25,7 @@ fun handleStartTrackingClick(
     }
 }
 
-fun openAccessibilitySettings(context: android.content.Context) {
+fun openAccessibilitySettings(context: Context) {
     try {
         context.startActivity(
             Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
@@ -37,4 +37,14 @@ fun openAccessibilitySettings(context: android.content.Context) {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     }
+}
+
+fun requiresDeepFocusSetup(
+    context: Context,
+    deepFocusEnabled: Boolean
+): Boolean {
+
+    return deepFocusEnabled &&
+            !DeepFocusAccessibilityState
+                .isServiceEnabled(context)
 }
