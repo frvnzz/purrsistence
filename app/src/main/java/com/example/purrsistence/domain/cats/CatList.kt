@@ -13,7 +13,7 @@ object CatList {
         ShopItem("cat_5", "Gray Cat", 15, R.drawable.cat_gray),
         ShopItem("cat_6", "Spotted Cat", 2, R.drawable.cat_spotted),
         ShopItem("cat_7", "Siamese Cat", 3, R.drawable.cat_siamese),
-        ShopItem("cat_8", "Lucky Cat", 5, R.drawable.cat_lucky)
+        ShopItem("cat_8", "Lucky Cat", 200, R.drawable.cat_lucky)
     )
 
     private val catMap = cats.associateBy { it.id }

@@ -24,21 +24,20 @@ fun DeleteGoalDialog(
         onDismissRequest = onDismiss,
         shape = Shapes.cards,
         tonalElevation = Elevation.Lvl3,
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
 
         title = {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.titleLarge
             )
         },
 
         text = {
             Text(
                 text = message,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.bodyLarge
             )
         },
 
@@ -47,8 +46,9 @@ fun DeleteGoalDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(
-                    onClick = onDismiss
+                OutlinedButton(
+                    onClick = onDismiss,
+                    shape = Shapes.buttons
                 ) {
                     Text(
                         text = "Cancel",
@@ -58,10 +58,12 @@ fun DeleteGoalDialog(
 
                 Spacer(modifier = Modifier.width(Spacing.md))
 
-                TextButton(
+                OutlinedButton(
                     onClick = onConfirm,
+                    shape = Shapes.buttons,
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary
                     )
                 ) {
                     Text(

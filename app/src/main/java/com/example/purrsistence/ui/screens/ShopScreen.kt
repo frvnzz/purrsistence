@@ -6,12 +6,14 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.ui.components.CurrencyBadge
-import com.example.purrsistence.ui.components.ShopItemCard
+import com.example.purrsistence.ui.components.shop.ShopItemCard
+import com.example.purrsistence.ui.components.shop.ShopItemDialog
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.viewmodel.UserViewModel
+import com.example.purrsistence.domain.model.ShopItem
 
 @Composable
 fun ShopScreen(
@@ -26,32 +28,40 @@ fun ShopScreen(
     // Get list of all cats (+ details) available
     val shopItems = CatList.cats
 
-    // set TopBar content (header & CurrencyBadge)
+    var selectedItem by remember {
+        mutableStateOf<ShopItem?>(null)
+    }
+
     setTopBar(
         TopBarState(
-            title = "Your Cats",
-            actions = { CurrencyBadge(balance = balance) }
+            title = "Cat Shop",
+            actions = {
+                CurrencyBadge(balance = balance)
+            }
         )
     )
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = Spacing.lg)
     ) {
-
+        // Shop Grid that holds all ShopItemCards (cats)
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(Spacing.lg),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.lg),
+            contentPadding = PaddingValues(
+                top = Spacing.lg,
+                bottom = Spacing.lg
+            )
         ) {
+
             items(
                 items = shopItems,
                 key = { it.id }
             ) { item ->
-
+                // see if user already has a certain cat
                 val isOwned = item.id in collectedCats
 
                 ShopItemCard(
@@ -59,10 +69,24 @@ fun ShopScreen(
                     balance = balance,
                     isOwned = isOwned,
                     onBuy = {
-                        userViewModel.buyCat(item.id, item.price)
+                        selectedItem = item
                     }
                 )
             }
+        }
+
+        // Dialog if user wants to adopt a cat
+        selectedItem?.let { item ->
+            ShopItemDialog(
+                item = item,
+                onDismiss = {
+                    selectedItem = null
+                },
+                onConfirm = {
+                    userViewModel.buyCat(item.id, item.price)
+                    selectedItem = null
+                }
+            )
         }
     }
 }
