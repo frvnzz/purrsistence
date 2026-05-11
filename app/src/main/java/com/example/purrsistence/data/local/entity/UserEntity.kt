@@ -8,7 +8,10 @@ import androidx.room.PrimaryKey
 data class UserEntity(
     @PrimaryKey(autoGenerate = true) val userId: Int = 0,
     val username: String,
+    val profileImageUrl: String?,
     val balance: Int,
+    val isSupabaseLinked: Boolean,
+    val supabaseUserId: String?,
     val friends: List<String>,
     val collectedCatsIds: List<String>,
     val selectedCatIds: List<String>

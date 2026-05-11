@@ -15,6 +15,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.net.URL
 import java.time.Instant
 import kotlin.collections.listOf
 
@@ -64,7 +65,10 @@ class TrackingServiceTest {
                 balance = 0,
                 friends = emptyList(),
                 collectedCatsIds = emptyList(),
-                selectedCatIds =  emptyList()
+                selectedCatIds =  emptyList(),
+                profileImageUrl = URL("https://example.com/profile.png"),
+                isSupabaseLinked = true,
+                supabaseUserId = "supabase-123"
             )
         )
 
@@ -133,7 +137,10 @@ class TrackingServiceTest {
                 balance = 50,
                 friends = emptyList(),
                 collectedCatsIds = emptyList(),
-                selectedCatIds =  emptyList()
+                selectedCatIds =  emptyList(),
+                profileImageUrl = URL("https://example.com/profile.png"),
+                isSupabaseLinked = true,
+                supabaseUserId = "supabase-123"
             )
         )
 
@@ -179,7 +186,10 @@ class TrackingServiceTest {
                 balance = 0,
                 friends = emptyList(),
                 collectedCatsIds = emptyList(),
-                selectedCatIds =  emptyList()
+                selectedCatIds =  emptyList(),
+                profileImageUrl = URL("https://example.com/profile.png"),
+                isSupabaseLinked = true,
+                supabaseUserId = "supabase-123"
             )
         )
 
@@ -225,7 +235,10 @@ class TrackingServiceTest {
                 balance = 0,
                 friends = emptyList(),
                 collectedCatsIds = emptyList(),
-                selectedCatIds =  emptyList()
+                selectedCatIds =  emptyList(),
+                profileImageUrl = URL("https://example.com/profile.png"),
+                isSupabaseLinked = true,
+                supabaseUserId = "supabase-123"
             )
         )
 

@@ -6,8 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.example.purrsistence.data.local.AppDatabase
 import com.example.purrsistence.data.focus.SharedPrefsFocusBlocker
+import com.example.purrsistence.data.local.AppDatabase
 import com.example.purrsistence.data.local.entity.UserEntity
 import com.example.purrsistence.data.local.repository.GoalRepository
 import com.example.purrsistence.data.local.repository.GoalRepositoryImpl
@@ -19,10 +19,10 @@ import com.example.purrsistence.data.local.repository.UserRepository
 import com.example.purrsistence.data.local.repository.UserRepositoryImpl
 import com.example.purrsistence.domain.preferences.SharedPrefCleanupPreferences
 import com.example.purrsistence.domain.time.SystemTimeProvider
-import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.focus.DeepFocusConfig
 import com.example.purrsistence.service.CleanupScheduler
 import com.example.purrsistence.service.GoalService
+import com.example.purrsistence.service.ProfileService
 import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.service.ShopService
 import com.example.purrsistence.service.StatisticsService
@@ -32,6 +32,7 @@ import com.example.purrsistence.ui.screens.MainScreen
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModelFactory
 import com.example.purrsistence.ui.theme.PurrsistenceTheme
+import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 import kotlinx.coroutines.flow.firstOrNull
@@ -67,6 +68,7 @@ class MainActivity : ComponentActivity() {
         val rewardService = RewardService()
         val trackingService = TrackingServiceImpl(trackingRepo, userRepo, goalRepo, goalService, rewardService, timeProvider)
         val shopService = ShopService(userRepo)
+        val profileService = ProfileService(this, userRepo)
         val statisticsService = StatisticsService(statisticsRepo)
         val trackingCleanupService = TrackingCleanupService(goalRepo,trackingRepo, timeProvider)
 
@@ -76,7 +78,7 @@ class MainActivity : ComponentActivity() {
         val cleanupPrefs = SharedPrefCleanupPreferences(getSharedPreferences("app_prefs", MODE_PRIVATE))
 
         // create ViewModel instances for this activity
-        userViewModel = UserViewModel(shopService)
+        userViewModel = UserViewModel(shopService, profileService)
         goalViewModel = GoalViewModel(goalService, focusPrefs)
         trackingViewModel = TrackingViewModel(trackingService, timeProvider, focusBlocker)
         // Use factory for StatisticsViewModel to preserve week offset across configuration changes
@@ -96,7 +98,10 @@ class MainActivity : ComponentActivity() {
                     balance = 100,
                     friends = listOf("alice", "bob"),
                     collectedCatsIds = listOf("cat_1"),
-                    selectedCatIds = listOf("cat_1")
+                    selectedCatIds = listOf("cat_1"),
+                    profileImageUrl = null,
+                    isSupabaseLinked = false,
+                    supabaseUserId = null
                 )
                 userDao.insertUser(exampleUserEntity)
             }

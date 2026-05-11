@@ -1,6 +1,6 @@
 package com.example.purrsistence.ui.screens
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -12,11 +12,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.components.BottomNavBar
 import com.example.purrsistence.ui.components.TopBar
 import com.example.purrsistence.ui.navigation.AppNavHost
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
@@ -56,8 +56,8 @@ fun MainScreen(
         topBar = {
             TopBar(
                 title = topBarState.value.title,
-                onBackClick = topBarState.value.onBackClick,
-                actions = topBarState.value.actions
+                actions = topBarState.value.actions,
+                onBackClick = topBarState.value.onBackClick
             )
         },
         // NAV BAR

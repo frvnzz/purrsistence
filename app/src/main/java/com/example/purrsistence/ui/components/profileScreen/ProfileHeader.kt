@@ -1,0 +1,198 @@
+package com.example.purrsistence.ui.components.profileScreen
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import com.example.purrsistence.domain.model.User
+import com.example.purrsistence.ui.theme.Shapes
+import com.example.purrsistence.ui.theme.Spacing
+
+data class ProfileHeaderCallbacks(
+    val onUsernameChange: (String) -> Unit,
+    val onEditingChange: (Boolean) -> Unit,
+    val onSaveUsername: () -> Unit,
+    val onPickProfileImage: () -> Unit,
+    val onRemoveProfileImage: () -> Unit
+)
+
+@Composable
+fun ProfileHeaderSection(
+    user: User?,
+    username: String,
+    isEditing: Boolean,
+    profileImageUri: android.net.Uri?,
+    usernameFocusRequester: FocusRequester,
+    callbacks: ProfileHeaderCallbacks,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = Shapes.cards
+            )
+            .padding(Spacing.lg),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        EditableProfileAvatar(
+            profileImageUri = profileImageUri,
+            onPickProfileImage = callbacks.onPickProfileImage,
+            onRemoveProfileImage = callbacks.onRemoveProfileImage,
+            modifier = Modifier.size(104.dp)
+        )
+
+        // Username Section
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .align(Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+        ) {
+            if (isEditing) {
+                // Edit mode
+                TextField(
+                    value = username,
+                    onValueChange = callbacks.onUsernameChange,
+                    singleLine = true,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(usernameFocusRequester),
+                    shape = Shapes.inputs,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    textStyle = MaterialTheme.typography.titleMedium,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { callbacks.onSaveUsername() })
+                )
+
+                // Save/Cancel buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+                ) {
+                    Button(
+                        onClick = callbacks.onSaveUsername,
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 32.dp),
+                        shape = Shapes.buttons,
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Save", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+
+                    OutlinedButton(
+                        onClick = { callbacks.onEditingChange(false) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 32.dp),
+                        shape = Shapes.buttons,
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Cancel", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+            } else {
+                // View mode
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = user?.username ?: "Username",
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    IconButton(
+                        onClick = { callbacks.onEditingChange(true) },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = "Edit Username",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                // Additional info
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.md),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${user?.collectedCatsIds?.size ?: 0} Cats",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    if (user?.isSupabaseLinked == true) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.tertiary,
+                            shape = Shapes.buttons,
+                            modifier = Modifier.size(width = 60.dp, height = 20.dp)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                Text(
+                                    text = "Linked",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onTertiary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

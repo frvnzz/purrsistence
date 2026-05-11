@@ -17,6 +17,8 @@ import com.example.purrsistence.ui.screens.ProfileScreen
 import com.example.purrsistence.ui.screens.ShopScreen
 import com.example.purrsistence.ui.screens.StatisticsScreen
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
+import com.example.purrsistence.ui.screens.SettingsScreen
+import com.example.purrsistence.ui.screens.FriendsScreen
 import com.example.purrsistence.ui.screens.TrackingScreen
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
@@ -155,6 +157,22 @@ fun AppNavHost(
         composable("profile") {
             ProfileScreen(
                 userViewModel = userViewModel,
+                setTopBar = setTopBar,
+                onNavigateToSettings = { navController.navigate("settings") },
+                onNavigateToFriends = { navController.navigate("friends") }
+            )
+        }
+        // SETTINGS
+        composable("settings") {
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                setTopBar = setTopBar
+            )
+        }
+        // FRIENDS
+        composable("friends") {
+            FriendsScreen(
+                onBack = { navController.popBackStack() },
                 setTopBar = setTopBar
             )
         }
