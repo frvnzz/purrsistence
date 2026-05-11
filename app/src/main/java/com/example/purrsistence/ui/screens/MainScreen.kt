@@ -57,7 +57,7 @@ fun MainScreen(
             TopBar(
                 title = topBarState.value.title,
                 actions = topBarState.value.actions,
-                navigationIcon = topBarState.value.navigationIcon
+                onBackClick = topBarState.value.onBackClick
             )
         },
         // NAV BAR

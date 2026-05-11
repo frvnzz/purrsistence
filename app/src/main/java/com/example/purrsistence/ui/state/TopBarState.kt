@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 data class TopBarState(
     val title: String = "",
     val actions: @Composable (() -> Unit)? = null,
-    val navigationIcon: @Composable (() -> Unit)? = null
-    val onBackClick: (() -> Unit)? = null,
-    val actions: (@Composable () -> Unit)? = null
+    val navigationIcon: @Composable (() -> Unit)? = null,
+    val onBackClick: (() -> Unit)? = null
 )

@@ -33,7 +33,6 @@ import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModelFactory
 import com.example.purrsistence.ui.theme.PurrsistenceTheme
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
-import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 import kotlinx.coroutines.flow.firstOrNull
