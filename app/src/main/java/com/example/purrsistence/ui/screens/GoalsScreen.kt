@@ -1,22 +1,44 @@
 package com.example.purrsistence.ui.screens
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.purrsistence.ui.components.goalsScreen.GoalSearchBar
 import com.example.purrsistence.ui.components.goalsScreen.DeleteGoalDialog
 import com.example.purrsistence.ui.components.goalsScreen.DeleteGoalsButton
 import com.example.purrsistence.ui.components.goalsScreen.GoalCard
+import com.example.purrsistence.ui.components.goalsScreen.GoalSearchBar
+import com.example.purrsistence.ui.components.goalsScreen.GoalsSortMenu
+import com.example.purrsistence.ui.components.goalsScreen.sortGoals
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Spacing
@@ -43,6 +65,10 @@ fun GoalsScreen(
     var isDeleteMode by remember { mutableStateOf(false) }
     var selectedGoals by remember { mutableStateOf(setOf<Int>()) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var selectedSort by remember { mutableStateOf(com.example.purrsistence.ui.components.goalsScreen.SortOption.LAST_TRACKED) }
+    val listState = rememberLazyListState()
+    var pendingVisibleGoalId by remember { mutableStateOf<Int?>(null) }
+    var pendingVisibleScrollOffset by remember { mutableIntStateOf(0) }
 
     val scope = rememberCoroutineScope()
 
@@ -104,14 +130,46 @@ fun GoalsScreen(
                 .fillMaxSize()
                 .padding(horizontal = Spacing.lg)
         ) {
-
             GoalSearchBar(
                 query = goalViewModel.searchQuery,
                 onQueryChange = goalViewModel::onSearchQueryChange
             )
 
-            // GOAL CARDS LIST
+
+            // currently visible item when the user changes sort (to preserve scroll position)
+            val displayGoals = remember(goals, selectedSort) {
+                sortGoals(goals, selectedSort)
+            }
+
+            GoalsSortMenu(
+                selectedSort = selectedSort,
+                onSortChange = { newSort ->
+                    // capture currently visible goal id + offset so we can restore view after reordering
+                    pendingVisibleGoalId =
+                        displayGoals.getOrNull(listState.firstVisibleItemIndex)?.goal?.id
+                    pendingVisibleScrollOffset = listState.firstVisibleItemScrollOffset
+                    selectedSort = newSort
+                }
+            )
+
+            // GOAL CARDS LIST (sorted according to selectedSort)
+            LaunchedEffect(selectedSort) {
+                // after the selectedSort changes, try to restore the visible item using the captured id
+                pendingVisibleGoalId?.let { id ->
+                    val idx = displayGoals.indexOfFirst { it.goal.id == id }
+                    if (idx != -1) {
+                        // restore scroll position to the same item and offset
+                        listState.scrollToItem(idx, pendingVisibleScrollOffset)
+                    } else {
+                        // if we can't find the item anymore, scroll to top
+                        listState.scrollToItem(0)
+                    }
+                    pendingVisibleGoalId = null
+                }
+            }
+
             LazyColumn(
+                state = listState,
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg),
                 contentPadding = PaddingValues(
@@ -119,7 +177,7 @@ fun GoalsScreen(
                     bottom = 64.dp
                 )
             ) {
-                if (goals.isEmpty()) {
+                if (displayGoals.isEmpty()) {
                     item {
                         val message = if (isSearching) {
                             "No results for \"$query\""
@@ -136,7 +194,7 @@ fun GoalsScreen(
                     }
                 } else {
                     items(
-                        items = goals,
+                        items = displayGoals,
                         key = { it.goal.id }
                     ) { goalWithSessions ->
 
@@ -163,7 +221,7 @@ fun GoalsScreen(
             }
         }
 
-        // ADD GOAL BUTTON
+        // ADD GOAL BUTTON (positioned in the Box, not in the Column)
         FloatingActionButton(
             onClick = onAddGoalClick,
             containerColor = MaterialTheme.colorScheme.primary,
