@@ -46,10 +46,13 @@ class SupabaseAuthRemoteDataSource(
     }
 
     override fun currentUserId(): String? {
-        return supabase.auth.currentUserOrNull()?.id
-    }
+        val user = supabase.auth.currentUserOrNull()
 
-    fun isSignedIn(): Boolean {
-        return currentUserId() != null
+        android.util.Log.d(
+            "SUPABASE_AUTH",
+            "Current user = ${user?.id}"
+        )
+
+        return user?.id
     }
 }

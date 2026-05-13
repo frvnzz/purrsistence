@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 class UserViewModel(
     private val shopService: ShopService,
-    private val supabaseSyncService: SupabaseSyncService?,
+    private val supabaseSyncService: SupabaseSyncService,
     private val profileService: ProfileService? = null
 ) : ViewModel() {
 
@@ -30,8 +30,17 @@ class UserViewModel(
         )
 
     // Centralized source of truth of remote user (sign up / in / out)
-    private val _isSupabaseSignedIn = MutableStateFlow(supabaseSyncService?.isSignedIn() ?: false)
-    val isSupabaseSignedIn: MutableStateFlow<Boolean> = _isSupabaseSignedIn
+    private val _isSupabaseSignedIn =
+        MutableStateFlow(
+            supabaseSyncService.isSignedIn()
+        )
+    val isSupabaseSignedIn: StateFlow<Boolean> =
+        _isSupabaseSignedIn
+    // refresh the state of the remote user authorization (for session recovery)
+    fun refreshAuthState() {
+        _isSupabaseSignedIn.value =
+            supabaseSyncService.isSignedIn()
+    }
 
     private val _supabaseError = MutableStateFlow<String?>(null)
     val supabaseError: StateFlow<String?> = _supabaseError
@@ -57,7 +66,7 @@ class UserViewModel(
 
                 // If the user is signed in to Supabase, mirror the cat remotely.
                 // If not signed in, the local app still works.
-                if (supabaseSyncService?.currentSupabaseUserId() != null) {
+                if (supabaseSyncService.currentSupabaseUserId() != null) {
                     supabaseSyncService.forceUploadLocalToSupabase()
                 }
             } catch (exception: Exception) {
@@ -101,7 +110,7 @@ class UserViewModel(
             _supabaseError.value = null
 
             try {
-                supabaseSyncService?.signUp(
+                supabaseSyncService.signUp(
                     email = email,
                     password = password,
                     username = username
@@ -126,14 +135,15 @@ class UserViewModel(
             _supabaseError.value = null
 
             try {
-                supabaseSyncService?.signIn(
+                supabaseSyncService.signIn(
                     email = email,
                     password = password
                 )
-                _isSupabaseSignedIn.value = true
+                refreshAuthState()
+
             } catch (exception: Exception) {
-                _isSupabaseSignedIn.value = false
                 _supabaseError.value = exception.message
+
             } finally {
                 _isSupabaseLoading.value = false
             }
@@ -146,11 +156,11 @@ class UserViewModel(
             _supabaseError.value = null
 
             try {
-                supabaseSyncService?.signOut()
+                supabaseSyncService.signOut()
             } catch (exception: Exception) {
                 _supabaseError.value = exception.message
             } finally {
-                _isSupabaseSignedIn.value = false
+                refreshAuthState()
                 _isSupabaseLoading.value = false
             }
         }
@@ -162,7 +172,7 @@ class UserViewModel(
             _supabaseError.value = null
 
             try {
-                if (supabaseSyncService?.currentSupabaseUserId() != null) {
+                if (supabaseSyncService.currentSupabaseUserId() != null) {
                     supabaseSyncService.checkAndSyncIfNeeded()
                 }
             } catch (exception: Exception) {
@@ -179,7 +189,7 @@ class UserViewModel(
             _supabaseError.value = null
 
             try {
-                supabaseSyncService?.updateUsername(username)
+                supabaseSyncService.updateUsername(username)
             } catch (exception: Exception) {
                 _supabaseError.value = exception.message
             } finally {
@@ -194,7 +204,7 @@ class UserViewModel(
             _supabaseError.value = null
 
             try {
-                supabaseSyncService?.updateAvatarPath(avatarPath)
+                supabaseSyncService.updateAvatarPath(avatarPath)
             } catch (exception: Exception) {
                 _supabaseError.value = exception.message
             } finally {

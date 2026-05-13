@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
         val focusBlocker = SharedPrefsFocusBlocker(focusPrefs)
         val cleanupPrefs = SharedPrefCleanupPreferences(getSharedPreferences("app_prefs", MODE_PRIVATE))
 
-        val supabase = SupabaseClientProvider.create()
+        val supabase = SupabaseClientProvider.create(this)
 
         val supabaseAuthRemoteDataSource =
             SupabaseAuthRemoteDataSource(supabase)
