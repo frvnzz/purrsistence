@@ -193,7 +193,6 @@ fun GoalsScreen(
                         GoalsEmptyState(
                             isSearching = isSearching,
                             query = query,
-                            onClearSearch = { goalViewModel.onSearchQueryChange("") },
                             onAddGoalClick = onAddGoalClick
                         )
                     }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,7 +21,6 @@ import com.example.purrsistence.ui.theme.Spacing
 fun GoalsEmptyState(
     isSearching: Boolean,
     query: String,
-    onClearSearch: () -> Unit,
     onAddGoalClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -54,8 +54,8 @@ fun GoalsEmptyState(
 
                 Spacer(modifier = Modifier.height(Spacing.lg))
 
-                Button(onClick = onClearSearch) {
-                    Text("Clear search")
+                TextButton(onClick = onAddGoalClick) {
+                    Text("Create new goal")
                 }
             } else {
                 Text(
