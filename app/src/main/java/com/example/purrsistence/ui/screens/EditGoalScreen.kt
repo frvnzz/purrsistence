@@ -33,7 +33,6 @@ fun EditGoalScreen(
     onBack: () -> Unit,
     setTopBar: (TopBarState) -> Unit
 ) {
-
     val context = LocalContext.current
 
     val goal by viewModel
@@ -96,12 +95,14 @@ fun EditGoalScreen(
 
         val formValid = titleValid && durationValid
 
-        setTopBar(
-            TopBarState(
-                title = "Edit Goal",
-                onBackClick = onBack
+        LaunchedEffect(Unit) {
+            setTopBar(
+                TopBarState(
+                    title = "Edit Goal",
+                    onBackClick = onBack
+                )
             )
-        )
+        }
 
         Box(
             modifier = Modifier.fillMaxSize()
@@ -334,24 +335,19 @@ fun EditGoalScreen(
 
                 OutlinedButton(
                     onClick = onBack,
-
                     modifier = Modifier.weight(1f),
-
                     shape = Shapes.buttons
                 ) {
-
                     Text("Cancel")
                 }
 
                 Button(
                     onClick = {
-
                         val updatedMinutes = durationPartsToMinutes(
                             type = type,
                             hours = hours,
                             minutes = minutes
                         )
-
                         viewModel.updateGoal(
                             goalId = currentGoal.id,
                             title = title.trim(),
@@ -359,14 +355,11 @@ fun EditGoalScreen(
                             hours = updatedMinutes,
                             deepFocus = deepFocus
                         )
-
                         onBack()
                     },
 
                     enabled = formValid,
-
                     modifier = Modifier.weight(1f),
-
                     shape = Shapes.buttons
                 ) {
 

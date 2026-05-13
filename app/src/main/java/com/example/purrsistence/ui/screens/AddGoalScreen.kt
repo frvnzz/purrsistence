@@ -32,6 +32,14 @@ fun AddGoalScreen(
     onBack: () -> Unit,
     setTopBar: (TopBarState) -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        setTopBar(
+            TopBarState(
+                title = "Add New Goal",
+                onBackClick = onBack
+            )
+        )
+    }
 
     val context = LocalContext.current
 
@@ -57,13 +65,6 @@ fun AddGoalScreen(
         hours = safeHours
         minutes = safeMinutes
     }
-
-    setTopBar(
-        TopBarState(
-            title = "Add New Goal",
-            onBackClick = onBack
-        )
-    )
 
     val durationInMinutes =
         (hours.toIntOrNull() ?: 0) * 60 +

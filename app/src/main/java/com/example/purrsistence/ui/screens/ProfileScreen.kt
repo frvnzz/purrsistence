@@ -7,14 +7,11 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,11 +42,13 @@ fun ProfileScreen(
     onNavigateToFriends: () -> Unit = {}
 ) {
     // set TopBar content (header only)
-    setTopBar(
-        TopBarState(
-            title = "Profile"
+    LaunchedEffect(Unit) {
+        setTopBar(
+            TopBarState(
+                title = "Profile"
+            )
         )
-    )
+    }
 
     val user by userViewModel.user.collectAsState()
     var isEditingName by remember { mutableStateOf(false) }
@@ -116,32 +115,34 @@ fun ProfileScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(focusManager) {
+                .pointerInput(Unit) {
                     detectTapGestures(onTap = { focusManager.clearFocus() })
                 }
                 .padding(Spacing.lg),
             horizontalArrangement = Arrangement.spacedBy(Spacing.lg)
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xl),
+                contentPadding = PaddingValues(bottom = Spacing.lg)
             ) {
-                ProfileHeaderSection(
-                    user = user,
-                    username = editedUsername,
-                    isEditing = isEditingName,
-                    profileImageUri = selectedProfileImageUri,
-                    usernameFocusRequester = usernameFocusRequester,
-                    callbacks = headerCallbacks
-                )
+                item {
+                    ProfileHeaderSection(
+                        user = user,
+                        username = editedUsername,
+                        isEditing = isEditingName,
+                        profileImageUri = selectedProfileImageUri,
+                        usernameFocusRequester = usernameFocusRequester,
+                        callbacks = headerCallbacks
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(Spacing.xl))
-
-                ProfileActionButtons(
-                    onNavigateToSettings = onNavigateToSettings,
-                    onNavigateToFriends = onNavigateToFriends
-                )
+                item {
+                    ProfileActionButtons(
+                        onNavigateToSettings = onNavigateToSettings,
+                        onNavigateToFriends = onNavigateToFriends
+                    )
+                }
             }
 
             InventorySection(
@@ -151,39 +152,39 @@ fun ProfileScreen(
             )
         }
     } else {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(focusManager) {
+                .pointerInput(Unit) {
                     detectTapGestures(onTap = { focusManager.clearFocus() })
-                }
-                .verticalScroll(rememberScrollState())
-                .padding(Spacing.lg)
+                },
+            verticalArrangement = Arrangement.spacedBy(Spacing.xl),
+            contentPadding = PaddingValues(Spacing.lg)
         ) {
-            ProfileHeaderSection(
-                user = user,
-                username = editedUsername,
-                isEditing = isEditingName,
-                profileImageUri = selectedProfileImageUri,
-                usernameFocusRequester = usernameFocusRequester,
-                callbacks = headerCallbacks
-            )
+            item {
+                ProfileHeaderSection(
+                    user = user,
+                    username = editedUsername,
+                    isEditing = isEditingName,
+                    profileImageUri = selectedProfileImageUri,
+                    usernameFocusRequester = usernameFocusRequester,
+                    callbacks = headerCallbacks
+                )
+            }
 
-            Spacer(modifier = Modifier.height(Spacing.xl))
+            item {
+                ProfileActionButtons(
+                    onNavigateToSettings = onNavigateToSettings,
+                    onNavigateToFriends = onNavigateToFriends
+                )
+            }
 
-            ProfileActionButtons(
-                onNavigateToSettings = onNavigateToSettings,
-                onNavigateToFriends = onNavigateToFriends
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.xl))
-
-            InventorySection(
-                user = user,
-                maxGridHeight = 500.dp
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.xl))
+            item {
+                InventorySection(
+                    user = user,
+                    maxGridHeight = 500.dp
+                )
+            }
         }
     }
 }
