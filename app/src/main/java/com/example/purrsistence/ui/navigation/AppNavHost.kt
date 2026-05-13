@@ -34,7 +34,7 @@ fun AppNavHost(
     trackingViewModel: TrackingViewModel,
     statisticsViewModel: StatisticsViewModel,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState,
+    snackbarHostState: SnackbarHostState
 ) {
     LaunchedEffect(Unit) {
         trackingViewModel.events.collect { event ->

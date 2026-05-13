@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -37,7 +38,8 @@ fun AuthScreen(
     LaunchedEffect(Unit) {
         setTopBar(
             TopBarState(
-                title = "Account"
+                title = "Account",
+                onBackClick = onBack
             )
         )
     }
@@ -49,6 +51,7 @@ fun AuthScreen(
     val isSignedIn by userViewModel
         .isSupabaseSignedIn
         .collectAsState()
+
     // check if account creation was a success and user can safely log in
     val signUpSuccess by userViewModel
         .signUpSuccess
@@ -76,133 +79,140 @@ fun AuthScreen(
         }
     }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(Spacing.lg),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(Spacing.xl, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Text(
-            text = if (isLoginMode) {
-                "Login"
-            } else {
-                "Create Account"
-            },
-            style = MaterialTheme.typography.titleLarge
-        )
-
-        Spacer(Modifier.height(Spacing.xl))
-
-        Text(
-            text = "and see what your Friends are doing...",
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Spacer(modifier = Modifier.height(Spacing.xl))
-
-        if (!isLoginMode) {
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Username") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.md))
-        }
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(Spacing.md))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(Spacing.xl))
-
-        Button(
-            onClick = {
-                if (isLoginMode) {
-                    if (email.isBlank() || password.isBlank()) return@Button
-                    userViewModel.signInWithSupabase(
-                        email = email,
-                        password = password
-                    )
-                } else {
-                    // validate user input
-                    if (
-                        username.isBlank() ||
-                        email.isBlank() ||
-                        password.isBlank()
-                    ) {
-                        return@Button
-                    }
-                    // sign up
-                    userViewModel.signUpWithSupabase(
-                        email = email,
-                        password = password,
-                        username = username
-                    )
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        item {
             Text(
-                if (isLoginMode) {
+                text = if (isLoginMode) {
                     "Login"
                 } else {
                     "Create Account"
-                }
+                },
+                style = MaterialTheme.typography.titleLarge
             )
         }
 
-        Spacer(modifier = Modifier.height(Spacing.md))
+        item {
+            Text(
+                text = "and see what your Friends are doing...",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
 
-        TextButton(
-            onClick = {
-                isLoginMode = !isLoginMode
-                userViewModel.clearSupabaseError()
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (!isLoginMode) {
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { Text("Username") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(Spacing.md))
+                }
+
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(Spacing.md))
+
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-        ) {
-            Text(
-                if (isLoginMode) {
-                    "Don't have an account? Register"
-                } else {
-                    "Already have an account? Login"
+        }
+
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // TODO: Complete validation input (no spaces possible, password confirmation etc...)
+                Button(
+                    onClick = {
+                        if (isLoginMode) {
+                            if (email.isBlank() || password.isBlank()) return@Button
+                            userViewModel.signInWithSupabase(
+                                email = email,
+                                password = password
+                            )
+                        } else {
+                            // validate user input
+                            if (
+                                username.isBlank() ||
+                                email.isBlank() ||
+                                password.isBlank()
+                            ) {
+                                return@Button
+                            }
+                            // sign up
+                            userViewModel.signUpWithSupabase(
+                                email = email,
+                                password = password,
+                                username = username
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        if (isLoginMode) {
+                            "Login"
+                        } else {
+                            "Create Account"
+                        }
+                    )
                 }
-            )
-        }
 
-        Spacer(modifier = Modifier.height(Spacing.md))
+                Spacer(modifier = Modifier.height(Spacing.md))
 
-        TextButton(onClick = onBack) {
-            Text("Back")
-        }
+                TextButton(
+                    onClick = {
+                        isLoginMode = !isLoginMode
+                        userViewModel.clearSupabaseError()
+                    }
+                ) {
+                    Text(
+                        if (isLoginMode) {
+                            "Don't have an account? Register"
+                        } else {
+                            "Already have an account? Login"
+                        }
+                    )
+                }
 
-        if (isLoading) {
-            Spacer(modifier = Modifier.height(Spacing.lg))
-            CircularProgressIndicator()
-        }
+                if (isLoading) {
+                    Spacer(modifier = Modifier.height(Spacing.lg))
+                    CircularProgressIndicator()
+                }
 
-        error?.let {
-            Spacer(modifier = Modifier.height(Spacing.md))
-
-            Text(
-                text = it,
-                color = MaterialTheme.colorScheme.error
-            )
+                // ERROR TEXT
+                // Todo: Maybe replace with snackbar alert?
+                Spacer(modifier = Modifier.height(Spacing.lg))
+                Text(
+                    text = error ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    minLines = 2
+                )
+            }
         }
     }
 }

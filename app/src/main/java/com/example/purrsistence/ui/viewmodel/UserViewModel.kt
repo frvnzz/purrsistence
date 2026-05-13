@@ -30,8 +30,17 @@ class UserViewModel(
         )
 
     // Centralized source of truth of remote user (sign up / in / out)
-    private val _isSupabaseSignedIn = MutableStateFlow(supabaseSyncService.isSignedIn())
-    val isSupabaseSignedIn: StateFlow<Boolean> = _isSupabaseSignedIn
+    private val _isSupabaseSignedIn =
+        MutableStateFlow(
+            supabaseSyncService.isSignedIn()
+        )
+    val isSupabaseSignedIn: StateFlow<Boolean> =
+        _isSupabaseSignedIn
+    // refresh the state of the remote user authorization (for session recovery)
+    fun refreshAuthState() {
+        _isSupabaseSignedIn.value =
+            supabaseSyncService.isSignedIn()
+    }
 
     private val _supabaseError = MutableStateFlow<String?>(null)
     val supabaseError: StateFlow<String?> = _supabaseError
@@ -130,10 +139,11 @@ class UserViewModel(
                     email = email,
                     password = password
                 )
-                _isSupabaseSignedIn.value = true
+                refreshAuthState()
+
             } catch (exception: Exception) {
-                _isSupabaseSignedIn.value = false
                 _supabaseError.value = exception.message
+
             } finally {
                 _isSupabaseLoading.value = false
             }
@@ -150,7 +160,7 @@ class UserViewModel(
             } catch (exception: Exception) {
                 _supabaseError.value = exception.message
             } finally {
-                _isSupabaseSignedIn.value = false
+                refreshAuthState()
                 _isSupabaseLoading.value = false
             }
         }
