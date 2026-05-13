@@ -35,8 +35,8 @@ class UserRepositoryImpl (
         val localUpdatedAt = user.localUpdatedAt
         userDao.insertUser(
             user.toEntity().copy(
-                localUpdatedAt = localUpdatedAt ?: now,
-                lastSyncedAt = user.lastSyncedAt,
+                localUpdatedAt = localUpdatedAt?.toEpochMilli() ?: now.toEpochMilli(),
+                lastSyncedAt = user.lastSyncedAt?.toEpochMilli(),
                 hasPendingLocalChanges = user.hasPendingLocalChanges
             )
         )
@@ -47,7 +47,7 @@ class UserRepositoryImpl (
 
         userDao.updateUser(
             user.toEntity().copy(
-                localUpdatedAt = now,
+                localUpdatedAt = now.toEpochMilli(),
                 hasPendingLocalChanges = true
             )
         )
@@ -58,7 +58,7 @@ class UserRepositoryImpl (
 
         userDao.updateUser(
             user.toEntity().copy(
-                lastSyncedAt = now,
+                lastSyncedAt = now.toEpochMilli(),
                 hasPendingLocalChanges = false
             )
         )
@@ -70,7 +70,7 @@ class UserRepositoryImpl (
 
         userDao.updateUser(
             user.toEntity().copy(
-                lastSyncedAt = now,
+                lastSyncedAt = now.toEpochMilli(),
                 hasPendingLocalChanges = false
             )
         )

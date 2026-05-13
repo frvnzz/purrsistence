@@ -46,7 +46,7 @@ class SupabaseSyncService(
             password = password
         )
 
-        checkAndSyncIfNeeded()
+        syncUserAfterSignIn()
     }
 
     suspend fun signOut() {
@@ -55,6 +55,79 @@ class SupabaseSyncService(
 
     fun currentSupabaseUserId(): String? {
         return authRemoteDataSource.currentUserId()
+    }
+
+    private suspend fun syncUserAfterSignIn(): SyncStatus {
+        if (!isSignedIn()) {
+            return SyncStatus.NOT_LINKED
+        }
+
+        val localUser = requireLocalUser()
+        val supabaseUserId = requireSupabaseUserId()
+        val remoteData = fetchRemoteUserData(supabaseUserId)
+
+        val mergedCollectedCatIds =
+            (localUser.collectedCatsIds + remoteData.collectedCatIds)
+                .distinct()
+
+        val mergedSelectedCatIds =
+            (localUser.selectedCatIds + remoteData.selectedCatIds)
+                .distinct()
+                .filter { it in mergedCollectedCatIds }
+
+        val useLocalProfileData =
+            localUser.hasPendingLocalChanges &&
+                    localUser.localUpdatedAt?.isAfter(
+                        parseSupabaseTimestamp(remoteData.remoteUpdatedAt)
+                    ) == true
+
+        val mergedUsername =
+            if (useLocalProfileData) {
+                localUser.username
+            } else {
+                remoteData.profile.username
+            }
+
+        val mergedAvatarPath =
+            if (useLocalProfileData) {
+                localUser.profileImageUrl?.toString()
+            } else {
+                remoteData.profile.avatarPath
+            }
+
+        profileRemoteDataSource.updateUsername(
+            userId = supabaseUserId,
+            username = mergedUsername
+        )
+
+        profileRemoteDataSource.updateAvatarPath(
+            userId = supabaseUserId,
+            avatarPath = mergedAvatarPath
+        )
+
+        catRemoteDataSource.uploadLocalCollectedCats(
+            userId = supabaseUserId,
+            catIds = mergedCollectedCatIds
+        )
+
+        catRemoteDataSource.replaceSelectedCats(
+            userId = supabaseUserId,
+            selectedCatIds = mergedSelectedCatIds
+        )
+
+        val mergedUser = localUser.copy(
+            username = mergedUsername,
+            profileImageUrl = mergedAvatarPath?.let { java.net.URL(it) },
+            collectedCatsIds = mergedCollectedCatIds,
+            selectedCatIds = mergedSelectedCatIds,
+            isSupabaseLinked = true,
+            supabaseUserId = supabaseUserId
+        )
+
+        userRepository.updateUserFromRemoteSync(mergedUser)
+        userRepository.markUserSynced(localUserId)
+
+        return SyncStatus.IN_SYNC
     }
 
     suspend fun checkAndSyncIfNeeded(): SyncStatus {

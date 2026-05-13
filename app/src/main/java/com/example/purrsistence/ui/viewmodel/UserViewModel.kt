@@ -30,8 +30,8 @@ class UserViewModel(
         )
 
     // Centralized source of truth of remote user (sign up / in / out)
-    private val _isSupabaseSignedIn = MutableStateFlow(supabaseSyncService.isSignedIn())
-    val isSupabaseSignedIn: StateFlow<Boolean> = _isSupabaseSignedIn
+    private val _isSupabaseSignedIn = MutableStateFlow(supabaseSyncService?.isSignedIn() ?: false)
+    val isSupabaseSignedIn: MutableStateFlow<Boolean> = _isSupabaseSignedIn
 
     private val _supabaseError = MutableStateFlow<String?>(null)
     val supabaseError: StateFlow<String?> = _supabaseError
