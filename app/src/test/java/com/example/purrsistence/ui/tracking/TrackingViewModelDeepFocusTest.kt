@@ -2,8 +2,10 @@ package com.example.purrsistence.ui.tracking
 
 
 import com.example.purrsistence.domain.focus.FakeFocusBlocker
+import com.example.purrsistence.domain.service.fakes.FakeSupabaseSyncService
 import com.example.purrsistence.domain.service.fakes.FakeTrackingService
 import com.example.purrsistence.domain.time.FakeTimeProvider
+import com.example.purrsistence.service.SupabaseSyncService
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,11 +41,13 @@ class TrackingViewModelDeepFocusTest {
         val trackingService = FakeTrackingService()
         val blocker = FakeFocusBlocker()
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1_000L))
+        val trackingSyncService = FakeSupabaseSyncService()
 
         val viewModel = TrackingViewModel(
             trackingService = trackingService,
             timeProvider = timeProvider,
-            focusBlocker = blocker
+            focusBlocker = blocker,
+            supabaseSyncService = trackingSyncService
         )
 
         viewModel.startTrack(goalId = 9, userId = 1, deepFocus = true)
@@ -63,11 +67,13 @@ class TrackingViewModelDeepFocusTest {
         val trackingService = FakeTrackingService()
         val blocker = FakeFocusBlocker()
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1_000L))
+        val trackingSyncService = FakeSupabaseSyncService()
 
         val viewModel = TrackingViewModel(
             trackingService = trackingService,
             timeProvider = timeProvider,
-            focusBlocker = blocker
+            focusBlocker = blocker,
+            supabaseSyncService = trackingSyncService
         )
 
         viewModel.startTrack(goalId = 9, userId = 1, deepFocus = false)
@@ -87,11 +93,13 @@ class TrackingViewModelDeepFocusTest {
         val trackingService = FakeTrackingService()
         val blocker = FakeFocusBlocker()
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1_000L))
+        val trackingSyncService = FakeSupabaseSyncService()
 
         val viewModel = TrackingViewModel(
             trackingService = trackingService,
             timeProvider = timeProvider,
-            focusBlocker = blocker
+            focusBlocker = blocker,
+            supabaseSyncService = trackingSyncService
         )
 
         viewModel.startTrack(goalId = 9, userId = 1, deepFocus = true)

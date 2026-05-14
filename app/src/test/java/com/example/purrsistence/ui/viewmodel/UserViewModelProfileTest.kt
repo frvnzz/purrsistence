@@ -2,6 +2,7 @@ package com.example.purrsistence.ui.viewmodel
 
 import com.example.purrsistence.data.local.repository.FakeUserRepository
 import com.example.purrsistence.domain.model.User
+import com.example.purrsistence.domain.service.fakes.FakeSupabaseSyncService
 import com.example.purrsistence.service.ShopService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,6 +20,7 @@ import java.net.URL
 class UserViewModelProfileTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private val fakeSupabaseSyncService = FakeSupabaseSyncService()
 
     @Before
     fun setup() {
@@ -79,7 +81,7 @@ class UserViewModelProfileTest {
         // We'll call the spy methods directly to simulate correctness of the ViewModel's calls.
         val viewModel = UserViewModel(
             shopService, profileService = null,
-            supabaseSyncService = null
+            supabaseSyncService = fakeSupabaseSyncService
         )
 
         // Instead of relying on the viewModel to call our spy (requires wiring), test the underlying
@@ -123,7 +125,7 @@ class UserViewModelProfileTest {
         val shopService = ShopService(fakeRepo)
         val spy = SpyProfileService()
         val viewModel = UserViewModel(shopService, profileService = null,
-            supabaseSyncService = null
+            supabaseSyncService = fakeSupabaseSyncService
         )
 
         // simulate updating profile image

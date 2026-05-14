@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.service.ProfileService
 import com.example.purrsistence.service.ShopService
-import com.example.purrsistence.service.SupabaseSyncService
+import com.example.purrsistence.service.TrackingSyncService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 class UserViewModel(
     private val shopService: ShopService,
-    private val supabaseSyncService: SupabaseSyncService,
+    private val supabaseSyncService: TrackingSyncService,
     private val profileService: ProfileService? = null
 ) : ViewModel() {
 

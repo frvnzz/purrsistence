@@ -21,6 +21,51 @@ import java.net.URL
 import java.time.Instant
 import java.time.OffsetDateTime
 
+interface TrackingSyncService {
+    fun isSignedIn(): Boolean
+    fun currentSupabaseUserId(): String?
+    suspend fun signUp(
+        email: String,
+        password: String,
+        username: String
+    )
+    suspend fun signIn(
+        email: String,
+        password: String
+    )
+    suspend fun signOut()
+    suspend fun syncAfterLocalGoalChanged(): SyncStatus
+    suspend fun syncAfterLocalTrackingSessionChanged(): SyncStatus
+    suspend fun checkAndSyncIfNeeded(): SyncStatus
+    suspend fun forceUploadLocalToSupabase(): SyncStatus
+    suspend fun forceDownloadFromSupabase(): SyncStatus
+    suspend fun addCollectedCatToSupabaseAndLocal(
+        catId: String
+    )
+    suspend fun updateUsername(
+        username: String
+    )
+    suspend fun updateAvatarPath(
+        avatarPath: String?
+    )
+    suspend fun getFriends(): List<ProfileDto>
+    suspend fun getIncomingFriendRequests(): List<FriendshipDto>
+    suspend fun getOutgoingFriendRequests(): List<FriendshipDto>
+    suspend fun sendFriendRequest(
+        addresseeId: String
+    )
+    suspend fun acceptFriendRequest(
+        friendshipId: Long
+    )
+    suspend fun declineFriendRequest(
+        friendshipId: Long
+    )
+    suspend fun deleteFriendship(
+        friendshipId: Long
+    )
+}
+
+
 class SupabaseSyncService(
     private val userRepository: UserRepository,
     private val authRemoteDataSource: SupabaseAuthRemoteDataSource,
@@ -31,17 +76,17 @@ class SupabaseSyncService(
     private val goalRepository: GoalRepository,
     private val trackingRepository: TrackingRepository,
     private val localUserId: Int = 1
-) {
+) : TrackingSyncService {
 
-    fun isSignedIn(): Boolean {
+    override fun isSignedIn(): Boolean {
         return authRemoteDataSource.currentUserId() != null
     }
 
-    fun currentSupabaseUserId(): String? {
+    override fun currentSupabaseUserId(): String? {
         return authRemoteDataSource.currentUserId()
     }
 
-    suspend fun signUp(
+    override suspend fun signUp(
         email: String,
         password: String,
         username: String
@@ -57,7 +102,7 @@ class SupabaseSyncService(
         }
     }
 
-    suspend fun signIn(
+    override suspend fun signIn(
         email: String,
         password: String
     ) {
@@ -69,15 +114,15 @@ class SupabaseSyncService(
         syncUserAfterSignIn()
     }
 
-    suspend fun signOut() {
+    override suspend fun signOut() {
         authRemoteDataSource.signOut()
     }
 
-    suspend fun syncAfterLocalGoalChanged(): SyncStatus {
+    override suspend fun syncAfterLocalGoalChanged(): SyncStatus {
         return syncGoalsAndTrackingAfterLocalChange()
     }
 
-    suspend fun syncAfterLocalTrackingSessionChanged(): SyncStatus {
+    override suspend fun syncAfterLocalTrackingSessionChanged(): SyncStatus {
         return syncGoalsAndTrackingAfterLocalChange()
     }
 
@@ -204,7 +249,7 @@ class SupabaseSyncService(
         return SyncStatus.IN_SYNC
     }
 
-    suspend fun checkAndSyncIfNeeded(): SyncStatus {
+    override suspend fun checkAndSyncIfNeeded(): SyncStatus {
         if (!isSignedIn()) {
             return SyncStatus.NOT_LINKED
         }
@@ -256,7 +301,7 @@ class SupabaseSyncService(
         }
     }
 
-    suspend fun forceUploadLocalToSupabase(): SyncStatus {
+    override suspend fun forceUploadLocalToSupabase(): SyncStatus {
         if (!isSignedIn()) {
             return SyncStatus.NOT_LINKED
         }
@@ -274,7 +319,7 @@ class SupabaseSyncService(
         return SyncStatus.CONFLICT_RESOLVED_FROM_LOCAL
     }
 
-    suspend fun forceDownloadFromSupabase(): SyncStatus {
+    override suspend fun forceDownloadFromSupabase(): SyncStatus {
         if (!isSignedIn()) {
             return SyncStatus.NOT_LINKED
         }
@@ -292,7 +337,7 @@ class SupabaseSyncService(
         return SyncStatus.CONFLICT_RESOLVED_FROM_REMOTE
     }
 
-    suspend fun addCollectedCatToSupabaseAndLocal(
+    override suspend fun addCollectedCatToSupabaseAndLocal(
         catId: String
     ) {
         val supabaseUserId = requireSupabaseUserId()
@@ -312,7 +357,7 @@ class SupabaseSyncService(
         userRepository.updateUserFromRemoteSync(updatedUser)
     }
 
-    suspend fun updateUsername(
+    override suspend fun updateUsername(
         username: String
     ) {
         val supabaseUserId = requireSupabaseUserId()
@@ -332,7 +377,7 @@ class SupabaseSyncService(
         )
     }
 
-    suspend fun updateAvatarPath(
+    override suspend fun updateAvatarPath(
         avatarPath: String?
     ) {
         val supabaseUserId = requireSupabaseUserId()
@@ -352,25 +397,25 @@ class SupabaseSyncService(
         )
     }
 
-    suspend fun getFriends(): List<ProfileDto> {
+    override suspend fun getFriends(): List<ProfileDto> {
         return friendshipRemoteDataSource.fetchAcceptedFriendProfiles(
             userId = requireSupabaseUserId()
         )
     }
 
-    suspend fun getIncomingFriendRequests(): List<FriendshipDto> {
+    override suspend fun getIncomingFriendRequests(): List<FriendshipDto> {
         return friendshipRemoteDataSource.fetchIncomingRequests(
             userId = requireSupabaseUserId()
         )
     }
 
-    suspend fun getOutgoingFriendRequests(): List<FriendshipDto> {
+    override suspend fun getOutgoingFriendRequests(): List<FriendshipDto> {
         return friendshipRemoteDataSource.fetchOutgoingRequests(
             userId = requireSupabaseUserId()
         )
     }
 
-    suspend fun sendFriendRequest(
+    override suspend fun sendFriendRequest(
         addresseeId: String
     ) {
         friendshipRemoteDataSource.sendFriendRequest(
@@ -379,19 +424,19 @@ class SupabaseSyncService(
         )
     }
 
-    suspend fun acceptFriendRequest(
+    override suspend fun acceptFriendRequest(
         friendshipId: Long
     ) {
         friendshipRemoteDataSource.acceptFriendRequest(friendshipId)
     }
 
-    suspend fun declineFriendRequest(
+    override suspend fun declineFriendRequest(
         friendshipId: Long
     ) {
         friendshipRemoteDataSource.declineFriendRequest(friendshipId)
     }
 
-    suspend fun deleteFriendship(
+    override suspend fun deleteFriendship(
         friendshipId: Long
     ) {
         friendshipRemoteDataSource.deleteFriendship(friendshipId)

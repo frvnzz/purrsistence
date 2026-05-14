@@ -67,6 +67,17 @@ class FakeGoalRepository : GoalRepository {
         return goals.filter { it.inactive }
     }
 
+    override suspend fun getGoalsForSync(userId: Int): List<Goal> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun replaceGoalsFromRemoteSync(
+        userId: Int,
+        goals: List<Goal>
+    ) {
+        TODO("Not yet implemented")
+    }
+
     fun seedGoal(goal: Goal) {
         goals.removeAll { it.id == goal.id }
         goals.add(goal)
