@@ -33,6 +33,8 @@ class TrackingViewModel(
     private var timerJob: Job? = null
     private var isDeepFocusSession = false
 
+    private var pauseJob: Job? = null //for auto stop
+
     fun startTrack(goalId: Int, userId: Int, deepFocus: Boolean) {
         viewModelScope.launch{
             val session = trackingService.startTracking(
@@ -70,6 +72,9 @@ class TrackingViewModel(
             timerJob?.cancel()
             timerJob = null
 
+            pauseJob?.cancel()  //cancel auto-stop timer when stopping manually
+            pauseJob = null
+
             if (isDeepFocusSession) {
                 focusBlocker.stopBlocking()
                 isDeepFocusSession = false
@@ -81,7 +86,8 @@ class TrackingViewModel(
                 multiplier = stopResult.multiplier,
                 sessionDurationMillis = stopResult.sessionDurationMillis,
                 elapsedMillis = stopResult.sessionDurationMillis,
-                goalCompletionReward = stopResult.goalCompletionReward  //added to show goal completion reward in UI if applicable
+                goalCompletionReward = stopResult.goalCompletionReward,  //show goal completion reward in UI if applicable
+                pauseAutoStopWarning = null
             )
         }
     }
@@ -95,6 +101,7 @@ class TrackingViewModel(
 
     override fun onCleared() {
         timerJob?.cancel()
+        pauseJob?.cancel()  //cancel auto-stop timer on ViewModel clear
         if (isDeepFocusSession) {
             focusBlocker.stopBlocking()
             isDeepFocusSession = false
@@ -106,14 +113,91 @@ class TrackingViewModel(
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             while (coroutineContext.isActive) {
-                val elapsed = Duration.between(startTime, timeProvider.now()).toMillis()
+                val state = _uiState.value
 
-                _uiState.value = _uiState.value.copy(
-                    elapsedMillis = elapsed.coerceAtLeast(0L)
-                )
+                // Don't update timer if paused
+                if (!state.isPaused) {
+                    val now = timeProvider.now()
+                    val totalWallClockTime = Duration.between(startTime, now).toMillis()
+                    val effectiveElapsed = (totalWallClockTime - state.totalPausedMillis).coerceAtLeast(0L)
+
+                    _uiState.value = state.copy(
+                        elapsedMillis = effectiveElapsed
+                    )
+                }
 
                 delay(1000)
             }
+        }
+    }
+
+    fun pauseTracking() {
+        viewModelScope.launch {
+            val state = _uiState.value
+            val trackingId = state.trackingId ?: return@launch
+
+            println("pauseTracking: Starting pause for trackingId=$trackingId")
+
+            if (trackingService.pauseTracking(trackingId)) {
+                val now = timeProvider.now()
+                val newState = state.copy(
+                    isPaused = true,
+                    currentPauseStart = now
+                )
+                _uiState.value = newState
+
+                println("pauseTracking: Successfully paused. isPaused=${newState.isPaused}, currentPauseStart=$now, elapsedMillis=${newState.elapsedMillis}")
+
+                startPauseTimer()  //Auto-stop after 1 hour
+            } else {
+                println("pauseTracking: Failed - service returned false")
+            }
+        }
+    }
+
+    fun resumeTracking() {
+        viewModelScope.launch {
+            val state = _uiState.value
+            val trackingId = state.trackingId ?: return@launch
+
+            val pauseStart = state.currentPauseStart ?: return@launch
+
+            if (trackingService.resumeTracking(trackingId)) {
+                val now = timeProvider.now()
+
+                val pausedAddition =
+                    Duration.between(pauseStart, now).toMillis()
+
+                val newTotalPaused =
+                    state.totalPausedMillis + pausedAddition
+
+                val resetWarning =
+                    if (newTotalPaused > 15 * 60 * 1000)
+                        "Multiplier reset due to long pause"
+                    else null
+
+                _uiState.value = state.copy(
+                    isPaused = false,
+                    totalPausedMillis = newTotalPaused,
+                    currentPauseStart = null,
+                    multiplierResetWarning = resetWarning,
+                    pauseAutoStopWarning = null
+                )
+
+                pauseJob?.cancel()
+            }
+        }
+    }
+
+    private fun startPauseTimer() { //Auto-stop after 1 hour of being paused
+        pauseJob?.cancel()
+        pauseJob = viewModelScope.launch {
+            //delay(55 * 60 * 1000)  // 55 minutes
+            delay(1000 * 5)  // 5 seconds for testing
+            _uiState.value = _uiState.value.copy(pauseAutoStopWarning = "Tracking will stop in 5 minutes due to prolonged pause.")
+            //delay(5 * 60 * 1000)  // 5 minutes
+            delay(1000 * 5)  // 5 seconds for testing
+            stopTracking()  // Auto-stop
         }
     }
 }

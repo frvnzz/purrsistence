@@ -9,6 +9,8 @@ class FakeTrackingService : TrackingService {
 
     var startCalls = 0
     var stopCalls = 0
+    var pauseCalls = 0
+    var resumeCalls = 0
 
     var lastStartedGoalId: Int? = null
     var lastStartedUserId: Int? = null
@@ -30,13 +32,13 @@ class FakeTrackingService : TrackingService {
             goalId = goalId,
             userId = userId,
             pauseReminder = pauseReminder,
-            deepFocus = true,
+            deepFocus = deepFocus,
             startTime = Instant.ofEpochMilli(1_000L),
             endTime = null
         )
     }
 
-    override suspend fun stopTracking(trackingId: Int): TrackingStopResult {
+    override suspend fun stopTracking(trackingId: Int): TrackingStopResult? {
         stopCalls++
         stoppedTrackingIds += trackingId
 
@@ -45,5 +47,15 @@ class FakeTrackingService : TrackingService {
             multiplier = 1.0,
             sessionDurationMillis = 60_000L
         )
+    }
+
+    override suspend fun pauseTracking(trackingId: Int): Boolean {
+        pauseCalls++
+        return true
+    }
+
+    override suspend fun resumeTracking(trackingId: Int): Boolean {
+        resumeCalls++
+        return true
     }
 }

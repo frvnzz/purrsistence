@@ -6,6 +6,7 @@ import com.example.purrsistence.ui.util.currentDayWindow
 import com.example.purrsistence.ui.util.currentMonthWindow
 import com.example.purrsistence.ui.util.currentWeekWindow
 import java.time.Duration
+import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -13,20 +14,21 @@ data class GoalWithSessions(
     val goal: Goal,
     val sessions: List<TrackingSession>
 ) {
-    fun totalTrackedDuration(): Duration {
+    fun totalTrackedDuration(now: Instant = Instant.now()): Duration {
         return sessions
-            .mapNotNull { it.finishedDuration() }
-            .fold(Duration.ZERO) { acc, duration -> acc.plus(duration) }
+            .fold(Duration.ZERO) { acc, session ->
+                acc.plus(session.effectiveDuration(now))
+            }
     }
 
-    fun trackedDurationInWindow(window: TimeWindow): Duration{ // Calculate the total tracked duration for sessions that started within the given time window
+    fun trackedDurationInWindow(window: TimeWindow, now: Instant = Instant.now()): Duration{ // Calculate the total tracked duration for sessions that started within the given time window
         return sessions
             .filter { session ->
                 val start = session.startTime
                 start >= window.start && start < window.end
             }
             .fold(Duration.ZERO) { acc, session ->
-                acc.plus(session.finishedDuration())
+                acc.plus(session.effectiveDuration(now))
             }
     }
 
@@ -37,7 +39,7 @@ data class GoalWithSessions(
             GoalType.MONTHLY -> currentMonthWindow(now)
         }
 
-        val tracked = trackedDurationInWindow(window)
+        val tracked = trackedDurationInWindow(window, now.toInstant())
         val target = goal.targetDuration
 
         return (tracked.toMillis().toFloat() / target.toMillis())

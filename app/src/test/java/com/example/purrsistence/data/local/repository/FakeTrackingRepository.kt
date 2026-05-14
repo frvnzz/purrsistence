@@ -58,6 +58,13 @@ class FakeTrackingRepository : TrackingRepository {
         return sessions.count { it.goalId == goalId }
     }
 
+    override suspend fun updateTrackingSession(session: TrackingSession) {
+        val index = sessions.indexOfFirst { it.id == session.id }
+        if (index != -1) {
+            sessions[index] = session
+        }
+    }
+
     fun seedSession(session: TrackingSession) {
         sessions.add(session)
         nextId = maxOf(nextId, session.id + 1)

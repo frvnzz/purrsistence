@@ -3,6 +3,7 @@ package com.example.purrsistence.ui.screens
 import android.annotation.SuppressLint
 import android.os.Debug
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.navigation.TrackingEvent
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
@@ -25,6 +27,13 @@ fun TrackingScreen(
     onNavigateBackHome: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(key1 = state.pauseAutoStopWarning) {
+        state.pauseAutoStopWarning?.let { warning ->
+            Toast.makeText(context, warning, Toast.LENGTH_LONG).show()
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -102,6 +111,18 @@ fun TrackingScreen(
                     text = formatDuration(state.elapsedMillis),
                     style = MaterialTheme.typography.displayLarge
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Paused Time: ${formatDuration(state.totalPausedMillis)}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                state.multiplierResetWarning?.let {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(it, color = Color.Red, style = MaterialTheme.typography.bodySmall)
+                }
             }
 
             Row(
@@ -110,8 +131,10 @@ fun TrackingScreen(
                     .padding(32.dp),
                 horizontalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Button(onClick = { /* TODO: Pause functionality here */ }) {
-                    Text("Pause")
+                Button(onClick = {
+                    if (state.isPaused) viewModel.resumeTracking() else viewModel.pauseTracking()
+                }) {
+                    Text(if (state.isPaused) "Resume" else "Pause")
                 }
 
                 Button(
