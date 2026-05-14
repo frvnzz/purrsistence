@@ -192,11 +192,22 @@ class TrackingViewModel(
     private fun startPauseTimer() { //Auto-stop after 1 hour of being paused
         pauseJob?.cancel()
         pauseJob = viewModelScope.launch {
-            //delay(55 * 60 * 1000)  // 55 minutes
-            delay(1000 * 5)  // 5 seconds for testing
-            _uiState.value = _uiState.value.copy(pauseAutoStopWarning = "Tracking will stop in 5 minutes due to prolonged pause.")
-            //delay(5 * 60 * 1000)  // 5 minutes
-            delay(1000 * 5)  // 5 seconds for testing
+            /*delay(14 * 60 * 1000) // 14 minutes till toast reminder that multiplier will be reset
+            _uiState.value = _uiState.value.copy(
+                multiplierResetWarning = "Reward multiplier will reset in 1 minute due to pause."
+            )
+
+            delay(1 * 60 * 1000) // 1 minute (Total 15 min) after that time multiplier resets
+            _uiState.value = _uiState.value.copy(
+                multiplierResetWarning = "Multiplier reset due to long pause"
+            )*/
+
+            delay(55 * 60 * 1000) // 55 min  tracking will stop in 5 min reminder
+            _uiState.value = _uiState.value.copy(
+                pauseAutoStopWarning = "Tracking will stop in 5 minutes due to prolonged pause."
+            )
+
+            delay(5 * 60 * 1000) // 5 minutes (Total 60 min)
             stopTracking()  // Auto-stop
         }
     }

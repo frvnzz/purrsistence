@@ -1,10 +1,17 @@
 package com.example.purrsistence.ui.screens
 
 import android.annotation.SuppressLint
-import android.os.Debug
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,8 +36,14 @@ fun TrackingScreen(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(key1 = state.pauseAutoStopWarning) {
+    LaunchedEffect(key1 = state.pauseAutoStopWarning) { //Toast auto-stop
         state.pauseAutoStopWarning?.let { warning ->
+            Toast.makeText(context, warning, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    LaunchedEffect(key1 = state.multiplierResetWarning) { //toast multiplier will reset
+        state.multiplierResetWarning?.let { warning ->
             Toast.makeText(context, warning, Toast.LENGTH_LONG).show()
         }
     }
