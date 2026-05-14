@@ -61,8 +61,13 @@ fun AppNavHost(
             HomeScreen(
                 userViewModel = userViewModel,
                 goalViewModel = goalViewModel,
-                onStartTracking = { goalId, userId, deepFocus ->
-                    trackingViewModel.startTrack(goalId, userId, deepFocus)
+                onStartTracking = { goalId, goalTitle, userId, deepFocus ->
+                    trackingViewModel.startTrack(
+                        goalId = goalId,
+                        goalTitle = goalTitle,
+                        userId = userId,
+                        deepFocus = deepFocus
+                    )
                 },
                 setTopBar = setTopBar
         ) }

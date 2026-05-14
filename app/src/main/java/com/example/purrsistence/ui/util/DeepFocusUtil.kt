@@ -10,7 +10,7 @@ import com.example.purrsistence.focus.DeepFocusAccessibilityState
 fun handleStartTrackingClick(
     goal: Goal?,
     context: Context,
-    onStartTracking: (Int, Int, Boolean) -> Unit,
+    onStartTracking: (Int, String, Int, Boolean) -> Unit,
     onNeedsAccessibilitySetup: () -> Unit
 ) {
     goal ?: return
@@ -21,7 +21,9 @@ fun handleStartTrackingClick(
     if (needsAccessibilitySetup) {
         onNeedsAccessibilitySetup()
     } else {
-        onStartTracking(goal.id, goal.userId, goal.deepFocus)
+        // pass goal id, title, userId & deepFocus when starting a TrackingSession
+        // -> this is called when clicking start on GoalBottomDrawer (HomeScreen)
+        onStartTracking(goal.id, goal.title, goal.userId, goal.deepFocus)
     }
 }
 

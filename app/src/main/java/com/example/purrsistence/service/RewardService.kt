@@ -20,7 +20,7 @@ class RewardService {
         return round(effectiveMinutes * multiplier).toInt() to multiplier
     }
 
-    private fun calculateRewardMultiplier(trackedMinutes: Int): Double {
+    fun calculateRewardMultiplier(trackedMinutes: Int): Double {
         if (trackedMinutes < 15) return 1.0
 
         val additionalReward = (trackedMinutes - 15) / 15

@@ -54,11 +54,14 @@ fun MainScreen(
         },
         // TOP BAR
         topBar = {
-            TopBar(
-                title = topBarState.value.title,
-                actions = topBarState.value.actions,
-                onBackClick = topBarState.value.onBackClick
-            )
+            // is visible in every screen except TrackingScreen
+            if (currentRoute != "tracking") {
+                TopBar(
+                    title = topBarState.value.title,
+                    actions = topBarState.value.actions,
+                    onBackClick = topBarState.value.onBackClick
+                )
+            }
         },
         // NAV BAR
         bottomBar = {

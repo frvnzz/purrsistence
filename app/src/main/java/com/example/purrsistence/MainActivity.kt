@@ -37,7 +37,6 @@ import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import java.time.ZonedDateTime
 
 class MainActivity : ComponentActivity() {
 
@@ -80,12 +79,12 @@ class MainActivity : ComponentActivity() {
         // create ViewModel instances for this activity
         userViewModel = UserViewModel(shopService, profileService)
         goalViewModel = GoalViewModel(goalService, focusPrefs)
-        trackingViewModel = TrackingViewModel(trackingService, timeProvider, focusBlocker)
+        trackingViewModel = TrackingViewModel(trackingService, rewardService, timeProvider, focusBlocker)
         // Use factory for StatisticsViewModel to preserve week offset across configuration changes
         statisticsViewModel = ViewModelProvider(
             this,
             StatisticsViewModelFactory(statisticsService)
-        ).get(StatisticsViewModel::class.java)
+        )[StatisticsViewModel::class.java]
 
         val cleanupScheduler = CleanupScheduler(cleanupPrefs, timeProvider, trackingCleanupService)
 

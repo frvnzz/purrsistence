@@ -29,7 +29,7 @@ fun GoalBottomDrawer(
     goals: List<GoalWithSessions>,
     selectedGoalId: Int?,
     onGoalSelected: (Int) -> Unit,
-    onStartClick: (Int) -> Unit,
+    onStartClick: (Int, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // get all goals that are not inactive currently
@@ -123,7 +123,10 @@ fun GoalBottomDrawer(
                 ) {
                     IconButton(
                         onClick = {
-                            selectedGoal?.let { onStartClick(it.id) }
+                            // pass goal's id and title when the trackingSession starts
+                            selectedGoal?.let {
+                                onStartClick(it.id, it.title)
+                            }
                         }
                     ) {
                         Icon(

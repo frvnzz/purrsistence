@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.domain.focus.FocusBlocker
 import com.example.purrsistence.domain.time.TimeProvider
+import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.service.TrackingService
 import com.example.purrsistence.ui.navigation.TrackingEvent
 import com.example.purrsistence.ui.state.TrackingUiState
@@ -20,6 +21,7 @@ import java.time.Instant
 
 class TrackingViewModel(
     private val trackingService: TrackingService,
+    private val rewardService: RewardService,
     private val timeProvider: TimeProvider,
     private val focusBlocker: FocusBlocker
 ) : ViewModel() {
@@ -35,7 +37,12 @@ class TrackingViewModel(
 
     private var pauseJob: Job? = null //for auto stop
 
-    fun startTrack(goalId: Int, userId: Int, deepFocus: Boolean) {
+    fun startTrack(
+        goalId: Int,
+        goalTitle: String,
+        userId: Int,
+        deepFocus: Boolean
+    ) {
         viewModelScope.launch{
             val session = trackingService.startTracking(
                 goalId = goalId,
@@ -52,6 +59,7 @@ class TrackingViewModel(
             _uiState.value = TrackingUiState(
                 trackingId = session.id,
                 goalId = session.goalId,
+                goalTitle = goalTitle,
                 startTime = session.startTime,
                 elapsedMillis = 0L,
                 isTracking = true
@@ -109,6 +117,7 @@ class TrackingViewModel(
         super.onCleared()
     }
 
+    // Realtime session updater (elapsed time)
     private fun startTicker(startTime: Instant) {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
@@ -121,8 +130,24 @@ class TrackingViewModel(
                     val totalWallClockTime = Duration.between(startTime, now).toMillis()
                     val effectiveElapsed = (totalWallClockTime - state.totalPausedMillis).coerceAtLeast(0L)
 
+                    // get the tracked minutes for multiplier calculation
+                    val trackedMinutes = Duration.ofMillis(effectiveElapsed).toMinutes().toInt()
+                    // live multiplier update for FocusTimerProgress component on TrackingScreen
+                    val liveMultiplier =
+                        rewardService.calculateRewardMultiplier(trackedMinutes)
+                    // live progress to next multiplier (x2.0 is max multiplier)
+                    val progressToNextMultiplier =
+                        if (liveMultiplier >= 2.0) {
+                            1f
+                        } else {
+                            (trackedMinutes % 15) / 15f
+                        }
+
+                    // update TrackingUIState
                     _uiState.value = state.copy(
-                        elapsedMillis = effectiveElapsed
+                        elapsedMillis = effectiveElapsed,
+                        liveMultiplier = liveMultiplier,
+                        multiplierProgress = progressToNextMultiplier
                     )
                 }
 

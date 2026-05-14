@@ -5,9 +5,13 @@ import java.time.Instant
 data class TrackingUiState(
     val trackingId: Int? = null,
     val goalId: Int? = null,
-    val startTime: java.time.Instant? = null,
+    val goalTitle: String = "", // show Goal title in during tracking session
+    val startTime: Instant? = null,
     val elapsedMillis: Long = 0L,
     val isTracking: Boolean = false,
+    // show live multiplier progress in FocusTimerProgress component
+    val liveMultiplier: Double = 1.0,
+    val multiplierProgress: Float = 0f,
 
     // UI to show rewards (+ multiplier) after stopping a tracking session
     val rewardedCurrency: Int? = null,

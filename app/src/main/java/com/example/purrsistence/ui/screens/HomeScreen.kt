@@ -25,7 +25,7 @@ import com.example.purrsistence.ui.theme.Spacing
 fun HomeScreen(
     userViewModel: UserViewModel,
     goalViewModel: GoalViewModel,
-    onStartTracking: (Int, Int, Boolean) -> Unit,
+    onStartTracking: (Int, String, Int, Boolean) -> Unit,
     setTopBar: (TopBarState) -> Unit
 ) {
 
@@ -113,7 +113,7 @@ fun HomeScreen(
             goals = goals,
             selectedGoalId = selectedGoalId,
             onGoalSelected = { goalViewModel.selectGoal(it) },
-            onStartClick = {
+            onStartClick = { _, _ ->
                 handleStartTrackingClick(
                     goal = selectedGoal,
                     context = context,
