@@ -17,7 +17,7 @@ class RewardService {
         val pausedMinutes = pausedMillis / (60 * 1000)
         val multiplier = calculateRewardMultiplier(effectiveMinutes)
         if (pausedMinutes > 15) return effectiveMinutes to 1.0  // Reset multiplier
-        return (effectiveMinutes * multiplier).toInt() to multiplier
+        return round(effectiveMinutes * multiplier).toInt() to multiplier
     }
 
     private fun calculateRewardMultiplier(trackedMinutes: Int): Double {
