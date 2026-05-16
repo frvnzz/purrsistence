@@ -49,13 +49,20 @@ class GoalServiceTest {
     @Test
     fun getGoalWithSessions_returnsGoalWithSessions() = runBlocking {
         val repository = FakeGoalRepository()
-        val timeProvider = FakeTimeProvider(Instant.now())
+        val now = Instant.parse("2026-05-07T12:00:00Z")
+        val timeProvider = FakeTimeProvider(now)
         val service = GoalService(repository, timeProvider)
 
         val goal = Goal(
-            id = 1, userId = 1, title = "Test", type = GoalType.DAILY,
-            targetDuration = Duration.ofMinutes(60), deepFocus = false,
-            inactive = false, createdAt = Instant.now(), isCompleted = false,
+            id = 1,
+            userId = 1,
+            title = "Test",
+            type = GoalType.DAILY,
+            targetDuration = Duration.ofMinutes(60),
+            deepFocus = false,
+            inactive = false,
+            createdAt = now,
+            isCompleted = false,
             lastCompletedAt = null
         )
         repository.seedGoal(goal)
@@ -63,7 +70,9 @@ class GoalServiceTest {
         val result = service.getGoalWithSessions(1).first()
 
         assertNotNull(result)
-        assertEquals(1, result!!.goal.id)
+        val goalWithSessions = requireNotNull(result)
+        assertEquals(goal, goalWithSessions.goal)
+        assertTrue(goalWithSessions.sessions.isEmpty())
     }
 
 
