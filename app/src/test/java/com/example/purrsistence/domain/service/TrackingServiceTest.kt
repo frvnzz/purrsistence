@@ -337,7 +337,7 @@ class TrackingServiceTest {
 
         val updated = trackingRepository.getTrackingSessionById(session.id)
         assertEquals(true, success)
-        assertEquals(3000L, updated?.pausedTimeMillis)
+        assertEquals(3000L, updated?.getTotalPausedMillis(timeProvider.now()))
         assertNull(updated?.currentPauseStart)
     }
 
@@ -379,8 +379,8 @@ class TrackingServiceTest {
 
         assertNotNull(result)
         assertEquals(1.0, result!!.multiplier, 0.0001)
-        assertEquals(20, result.rewardedCurrency) // 20 mins * 1.0
-        assertEquals(true, result.multiplierReset)
+        assertEquals(23, result.rewardedCurrency) // 20 mins * 1.15 (checkpointed)
+        assertEquals(false, result.multiplierReset) // Reset already accounted for in resumeTracking
         assertEquals(Duration.ofMinutes(16).toMillis(), result.totalPausedMillis)
     }
 }

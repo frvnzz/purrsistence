@@ -23,5 +23,7 @@ data class TrackingUiState(
     val totalPausedMillis: Long = 0L, //total time spent in paused state
     val currentPauseStart: Instant? = null,
     val multiplierResetWarning: String? = null, //Message to show if multiplier was reset due to inactivity
-    val pauseAutoStopWarning: String? = null //Warning when auto-stop is imminent due to prolonged pause
+    val pauseAutoStopWarning: String? = null, //Warning when auto-stop is imminent due to prolonged pause
+    val checkpointedCurrency: Int = 0, //currency earned in previous focus blocks of this session
+    val minutesSinceReset: Int = 0 //minutes of focus since last multiplier reset
 )

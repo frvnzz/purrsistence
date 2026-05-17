@@ -55,7 +55,8 @@ class TrackingServiceImpl(
             pauseReminder = pauseReminder,
             deepFocus = deepFocus,
             startTime = timeProvider.now(),
-            endTime = null
+            endTime = null,
+            pauseHistory = "0;;0" //start pause History with 0 pause time; no tracking intervals; 0 checkpointed currency
         )
 
         return trackingRepository.insertTrackingSession(session)
@@ -68,19 +69,19 @@ class TrackingServiceImpl(
             endTimeMillis = now.toEpochMilli()
         ) ?: return null
 
-        val effectiveDuration = finishedSession.finishedDuration() ?: Duration.ZERO
-        val sessionDurationMillis = effectiveDuration.toMillis()
+        val effectiveMinutes = finishedSession.getEffectiveMinutesSinceLastReset(now)
+        val hasLongPause = finishedSession.hasLongPause(now)
+        val checkpointed = finishedSession.getCheckpointedCurrency()
 
         val (coins, multiplier) = rewardService.calculateReward(
-            duration = effectiveDuration,
-            pausedMillis = finishedSession.pausedTimeMillis
+            duration = Duration.ofMinutes(effectiveMinutes.toLong()),
+            hasLongPause = hasLongPause,
+            checkpointedCurrency = checkpointed
         )
 
         if (coins > 0) {
             userRepository.addCurrency(finishedSession.userId, coins)
         }
-
-        val multiplierReset = finishedSession.pausedTimeMillis > Duration.ofMinutes(15).toMillis()
 
         //Check if goal has been reached after stopping tracking
         val goalsWithSessions = goalService.getGoals(finishedSession.userId).firstOrNull()
@@ -98,10 +99,10 @@ class TrackingServiceImpl(
         return TrackingStopResult(
             rewardedCurrency = coins,
             multiplier = multiplier,
-            sessionDurationMillis = sessionDurationMillis,
+            sessionDurationMillis = finishedSession.duration(now).toMillis(),
             goalCompletionReward = goalCompletionReward,
-            totalPausedMillis = finishedSession.pausedTimeMillis,
-            multiplierReset = multiplierReset
+            totalPausedMillis = finishedSession.getTotalPausedMillis(now),
+            multiplierReset = hasLongPause
         )
     }
 
@@ -119,7 +120,6 @@ class TrackingServiceImpl(
         val now = timeProvider.now()
         val updated = session.copy(currentPauseStart = now)
         trackingRepository.updateTrackingSession(updated)
-        println("Tracking session $trackingId paused at ${updated.currentPauseStart}")
         return true
     }
 
@@ -128,10 +128,30 @@ class TrackingServiceImpl(
         val pauseStart = session.currentPauseStart ?: return false //not currently paused
         val now = timeProvider.now()
         val pauseDuration = Duration.between(pauseStart, now).toMillis()
-        val newPausedTotal = session.pausedTimeMillis + pauseDuration
+        
+        val segments = session.pauseHistory.split(";")
+        val baseTotal = segments.getOrNull(0)?.toLongOrNull() ?: 0L
+        val intervals = segments.getOrNull(1) ?: ""
+        var checkpointed = segments.getOrNull(2)?.toIntOrNull() ?: 0
+        
+        val newIntervals = if (intervals.isEmpty()) "${pauseStart.toEpochMilli()}-${now.toEpochMilli()}" else "$intervals,${pauseStart.toEpochMilli()}-${now.toEpochMilli()}"
+        val newTotal = baseTotal + pauseDuration
+
+        var lastReset = session.lastResetTime
+        
+        //Sectioned Reward: If this pause was > 15 min, checkpoint the coins/currency
+        if (Duration.between(pauseStart, now).toMinutes() >= 15) {
+            val minutesBeforePause = session.getEffectiveMinutesSinceLastReset(pauseStart)
+            val currentMultiplier = rewardService.calculateRewardMultiplier(minutesBeforePause)
+            val earnedCoins = Math.round(minutesBeforePause * currentMultiplier).toInt()
+            checkpointed += earnedCoins
+            lastReset = now
+        }
+
         val updated = session.copy(
-            pausedTimeMillis = newPausedTotal,
+            pauseHistory = "$newTotal;$newIntervals;$checkpointed", //write pause history in string format
             currentPauseStart = null,
+            lastResetTime = lastReset
         )
         trackingRepository.updateTrackingSession(updated)
         return true

@@ -1,7 +1,12 @@
 package com.example.purrsistence.ui.components.tracking
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,6 +23,7 @@ import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.util.formatDuration
+import kotlin.math.roundToInt
 
 @Composable
 fun FocusTimerProgress(
@@ -25,6 +31,8 @@ fun FocusTimerProgress(
     pausedMillis: Long,
     multiplier: Float,
     multiplierProgress: Float,
+    checkpointedCurrency: Int,
+    minutesSinceReset: Int,
     isPaused: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -87,12 +95,16 @@ fun FocusTimerProgress(
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
             )
-            // TODO: Time paused text for debugging -> please remove after
+            //checkpointed currency + potential currency = total currency in tracking session
+            val potentialCurrency = (minutesSinceReset * multiplier).roundToInt()
+            val totalLiveCurrency = checkpointedCurrency + potentialCurrency
+
             Text(
-                text = "Paused: ${formatDuration(pausedMillis)}",
-                style = MaterialTheme.typography.bodyMedium,
+                text = "Earned: $totalLiveCurrency",
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
             // Multiplier (x2.0 maximum)
             Text(
                 text =

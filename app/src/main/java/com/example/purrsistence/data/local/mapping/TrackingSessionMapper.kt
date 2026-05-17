@@ -13,8 +13,9 @@ fun TrackingSessionEntity.toDomain(): TrackingSession =
         deepFocus = deepFocus,
         startTime = Instant.ofEpochMilli(startTime),
         endTime = endTime?.let { Instant.ofEpochMilli(it) },
-        pausedTimeMillis = pausedTimeMillis,
-        currentPauseStart = currentPauseStart?.let { Instant.ofEpochMilli(it) }
+        pauseHistory = pauseHistory,
+        currentPauseStart = currentPauseStart?.let { Instant.ofEpochMilli(it) },
+        lastResetTime = lastResetTime?.let { Instant.ofEpochMilli(it) }
     )
 
 fun TrackingSession.toEntity(): TrackingSessionEntity =
@@ -26,6 +27,7 @@ fun TrackingSession.toEntity(): TrackingSessionEntity =
         deepFocus = deepFocus,
         startTime = startTime.toEpochMilli(),
         endTime = endTime?.toEpochMilli(),
-        pausedTimeMillis = pausedTimeMillis,
-        currentPauseStart = currentPauseStart?.toEpochMilli()
+        pauseHistory = pauseHistory,
+        currentPauseStart = currentPauseStart?.toEpochMilli(),
+        lastResetTime = lastResetTime?.toEpochMilli()
     )

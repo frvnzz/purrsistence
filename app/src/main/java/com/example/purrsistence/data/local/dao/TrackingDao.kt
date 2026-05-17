@@ -50,10 +50,10 @@ interface TrackingDao {
     @Query("SELECT * FROM TrackingSessionEntity WHERE trackingId = :trackingId LIMIT 1")
     suspend fun getTrackingSessionById(trackingId: Int): TrackingSessionEntity?
 
-    // -> Observe total time spent on a goal
+    //Observe total time spent on a goal - the pause time which is the first number in the pauseHistory before ;
     @Query(
         """
-    SELECT SUM(endTime - startTime - pausedTimeMillis) 
+    SELECT SUM(endTime - startTime - CAST(SUBSTR(pauseHistory, 1, INSTR(pauseHistory, ';') - 1) AS INTEGER))
     FROM TrackingSessionEntity 
     WHERE goalId = :goalId AND endTime IS NOT NULL
     """
@@ -81,6 +81,6 @@ interface TrackingDao {
     @Query("SELECT COUNT(*) FROM TrackingSessionEntity WHERE goalId = :goalId")
     suspend fun countSessionsForGoal(goalId: Int): Int
 
-    @Query("UPDATE TrackingSessionEntity SET pausedTimeMillis = :paused, currentPauseStart = :pauseStart WHERE trackingId = :id")
-    suspend fun updatePauseData(id: Int, paused: Long, pauseStart: Long?)
+    @Query("UPDATE TrackingSessionEntity SET pauseHistory = :history, currentPauseStart = :pauseStart, lastResetTime = :lastReset WHERE trackingId = :id")
+    suspend fun updatePauseData(id: Int, history: String, pauseStart: Long?, lastReset: Long?)
 }
