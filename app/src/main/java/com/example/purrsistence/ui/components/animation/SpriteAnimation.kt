@@ -20,12 +20,13 @@ fun SpriteAnimation(
     data: SpriteSheetData,
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
-    initialFrame: Int = 0
+    initialFrame: Int = 0,
+    isAnimated: Boolean = true
 ) {
     val bitmap = ImageBitmap.imageResource(id = spriteSheetRes)
     var currentFrame by remember { mutableIntStateOf(initialFrame) }
 
-    if (data.frameDurationMs < Long.MAX_VALUE) {
+    if (isAnimated && data.frameDurationMs < Long.MAX_VALUE) {
         LaunchedEffect(data) {
             while (true) {
                 delay(data.frameDurationMs)
