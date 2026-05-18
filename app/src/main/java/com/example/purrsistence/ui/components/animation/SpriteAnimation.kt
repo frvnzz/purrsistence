@@ -39,6 +39,23 @@ fun SpriteAnimation(
         val frameWidth = bitmap.width / data.columns
         val frameHeight = bitmap.height / data.rows
 
+        val frameAspectRatio = frameWidth.toFloat() / frameHeight.toFloat()
+        val canvasAspectRatio = size.width / size.height
+
+        val drawWidth: Float
+        val drawHeight: Float
+
+        if (frameAspectRatio > canvasAspectRatio) {
+            drawWidth = size.width
+            drawHeight = size.width / frameAspectRatio
+        } else {
+            drawHeight = size.height
+            drawWidth = size.height * frameAspectRatio
+        }
+
+        val xOffset = (size.width - drawWidth) / 2f
+        val yOffset = (size.height - drawHeight) / 2f
+
         val col = currentFrame % data.columns
         val row = currentFrame / data.columns
 
@@ -46,7 +63,8 @@ fun SpriteAnimation(
             image = bitmap,
             srcOffset = IntOffset(col * frameWidth, row * frameHeight),
             srcSize = IntSize(frameWidth, frameHeight),
-            dstSize = IntSize(size.width.toInt(), size.height.toInt())
+            dstOffset = IntOffset(xOffset.toInt(), yOffset.toInt()),
+            dstSize = IntSize(drawWidth.toInt(), drawHeight.toInt())
         )
     }
 }
