@@ -29,7 +29,7 @@ fun RoomView(
     spots: List<RoomSpot>,
     modifier: Modifier = Modifier
 ) {
-    val painter = painterResource(R.drawable.room_ph)
+    val painter = painterResource(R.drawable.home_room1)
     val imageSize = painter.intrinsicSize
 
     BoxWithConstraints(
@@ -88,7 +88,7 @@ fun RoomView(
                     CatImage(
                         catId = placedCat.catId,
                         isMirrored = placedCat.isMirrored,
-                        modifier = Modifier.size(100.dp)
+                        modifier = Modifier.size(82.dp)
                     )
                 }
             }
