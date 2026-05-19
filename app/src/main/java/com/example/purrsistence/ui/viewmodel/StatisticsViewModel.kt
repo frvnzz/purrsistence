@@ -60,4 +60,9 @@ class StatisticsViewModel(
     fun nextWeek() {
         loadStats(_uiState.value.weekOffset + 1)
     }
+
+    // Jump directly to the current week (offset = 0).
+    fun jumpToThisWeek() {
+        loadStats(0)
+    }
 }

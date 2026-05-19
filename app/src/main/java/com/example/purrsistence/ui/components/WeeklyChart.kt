@@ -31,6 +31,14 @@ import java.time.format.TextStyle
 import java.util.Locale
 import androidx.compose.ui.text.TextStyle as ComposeTextStyle
 
+private fun formatYAxisLabel(hours: Double): String {
+    return if (hours < 1.0) {
+        "${(hours * 60).toInt()}m"
+    } else {
+        "${hours.toInt()}h"
+    }
+}
+
 @Composable
 fun WeeklyChart(dailyStats: List<DailyStat>) {
 
@@ -102,8 +110,7 @@ fun WeeklyChart(dailyStats: List<DailyStat>) {
                         guideline = null,
                         label = axisLabelComponent,
                         valueFormatter = { _, y, _ ->
-                            // Format Y-axis to show hours
-                            "${y.toInt()}h"
+                            formatYAxisLabel(y)
                         }
                     ),
                     bottomAxis = HorizontalAxis.rememberBottom(
