@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,15 +79,32 @@ fun WeekSelector(
             }
         }
 
-        // Next week button
-        IconButton(
-            enabled = state.weekOffset < 0,
-            onClick = { viewModel.nextWeek() }
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Next week"
-            )
+        // Right-side controls: optional "Back to this week" and the next-week arrow
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (state.weekOffset < 0) {
+                // Show a compact action to quickly return to the current week when viewing past weeks
+                TextButton(
+                    onClick = { viewModel.jumpToThisWeek() },
+                    modifier = Modifier.padding(end = if (compact) 4.dp else 8.dp)
+                ) {
+                    Text(
+                        text = "Back to this week",
+                        style = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            // Next week button (used to step forward, disabled when already at current week)
+            IconButton(
+                enabled = state.weekOffset < 0,
+                onClick = { viewModel.nextWeek() }
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Next week"
+                )
+            }
         }
     }
 }
