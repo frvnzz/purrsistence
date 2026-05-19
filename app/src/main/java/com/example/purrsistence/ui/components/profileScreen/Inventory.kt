@@ -18,13 +18,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.domain.model.ShopItem
+import com.example.purrsistence.ui.components.homeScreen.CatImage
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 
@@ -100,9 +100,9 @@ fun CatInventoryCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            androidx.compose.foundation.Image(
-                painter = painterResource(id = cat.imageRes),
-                contentDescription = cat.name,
+            CatImage(
+                cat = cat,
+                isAnimated = false,
                 modifier = Modifier
                     .size(60.dp)
                     .clip(Shapes.cards)
