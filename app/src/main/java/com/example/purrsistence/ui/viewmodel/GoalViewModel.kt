@@ -7,14 +7,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.service.GoalService
-import com.example.purrsistence.service.SupabaseSyncService
+import com.example.purrsistence.service.TrackingSyncService
 import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
 
 class GoalViewModel(
     private val goalService: GoalService,
     private val sharedPreferences: SharedPreferences,
-    private val supabaseSyncService: SupabaseSyncService
+    private val supabaseSyncService: TrackingSyncService
 ) : ViewModel() {
 
     // Goal Selection state (HomeScreen goal picker)

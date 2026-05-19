@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import com.example.purrsistence.data.local.repository.GoalRepository
 import com.example.purrsistence.domain.time.TimeProvider
 import com.example.purrsistence.service.GoalService
+import com.example.purrsistence.domain.service.fakes.FakeSupabaseSyncService
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -54,6 +55,8 @@ private class FakeGoalRepository : GoalRepository {
     override suspend fun updateGoal(goal: com.example.purrsistence.domain.model.Goal) {}
     override fun searchGoals(userId: Int, query: String) = kotlinx.coroutines.flow.flowOf<List<com.example.purrsistence.domain.model.GoalWithSessions>>(emptyList())
     override suspend fun getInactiveGoals(): List<com.example.purrsistence.domain.model.Goal> = emptyList()
+    override suspend fun getGoalsForSync(userId: Int): List<com.example.purrsistence.domain.model.Goal> = emptyList()
+    override suspend fun replaceGoalsFromRemoteSync(userId: Int, goals: List<com.example.purrsistence.domain.model.Goal>) {}
 }
 
 private class FakeTimeProvider : TimeProvider { override fun now(): Instant = Instant.EPOCH }
@@ -64,8 +67,9 @@ class GoalViewModelTest {
     fun `init loads saved selected goal id from prefs`() {
         val prefs = FakeSharedPreferences(mapOf("selected_goal_id" to 5))
         val goalService = GoalService(FakeGoalRepository(), FakeTimeProvider())
+        val syncService = FakeSupabaseSyncService()
 
-        val vm = GoalViewModel(goalService, prefs)
+        val vm = GoalViewModel(goalService, prefs, syncService)
 
         assertEquals(5, vm.selectedGoalId)
     }
@@ -74,8 +78,9 @@ class GoalViewModelTest {
     fun `selectGoal updates state and saves to prefs`() = runBlocking {
         val prefs = FakeSharedPreferences()
         val goalService = GoalService(FakeGoalRepository(), FakeTimeProvider())
+        val syncService = FakeSupabaseSyncService()
 
-        val vm = GoalViewModel(goalService, prefs)
+        val vm = GoalViewModel(goalService, prefs, syncService)
         vm.selectGoal(12)
 
         assertEquals(12, vm.selectedGoalId)
@@ -87,7 +92,8 @@ class GoalViewModelTest {
     fun `onSearchQueryChange updates searchQuery`() {
         val prefs = FakeSharedPreferences()
         val goalService = GoalService(FakeGoalRepository(), FakeTimeProvider())
-        val vm = GoalViewModel(goalService, prefs)
+        val syncService = FakeSupabaseSyncService()
+        val vm = GoalViewModel(goalService, prefs, syncService)
 
         vm.onSearchQueryChange("read")
         assertEquals("read", vm.searchQuery)
