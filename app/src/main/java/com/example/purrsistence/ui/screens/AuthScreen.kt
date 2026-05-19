@@ -63,6 +63,47 @@ fun AuthScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    var usernameError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+
+    fun isValidEmail(email: String): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
+    fun validateInputs(): Boolean {
+        var isValid = true
+
+        if (!isLoginMode && username.isBlank()) {
+            usernameError = "Username cannot be empty"
+            isValid = false
+        } else {
+            usernameError = null
+        }
+
+        if (email.isBlank()) {
+            emailError = "Email cannot be empty"
+            isValid = false
+        } else if (!isValidEmail(email)) {
+            emailError = "Invalid email format"
+            isValid = false
+        } else {
+            emailError = null
+        }
+
+        if (password.isBlank()) {
+            passwordError = "Password cannot be empty"
+            isValid = false
+        } else if (password.length < 6) {
+            passwordError = "Password must be at least 6 characters"
+            isValid = false
+        } else {
+            passwordError = null
+        }
+
+        return isValid
+    }
+
     // Collect Auth states as LaunchedEffect
     LaunchedEffect(isSignedIn) {
         if (isSignedIn) {
@@ -113,9 +154,18 @@ fun AuthScreen(
                 if (!isLoginMode) {
                     OutlinedTextField(
                         value = username,
-                        onValueChange = { username = it },
+                        onValueChange = { 
+                            username = it
+                            usernameError = null
+                        },
                         label = { Text("Username") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = usernameError != null,
+                        supportingText = {
+                            if (usernameError != null) {
+                                Text(text = usernameError!!)
+                            }
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(Spacing.md))
@@ -123,19 +173,37 @@ fun AuthScreen(
 
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = { 
+                        email = it
+                        emailError = null
+                    },
                     label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = emailError != null,
+                    supportingText = {
+                        if (emailError != null) {
+                            Text(text = emailError!!)
+                        }
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(Spacing.md))
 
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { 
+                        password = it
+                        passwordError = null
+                    },
                     label = { Text("Password") },
                     visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = passwordError != null,
+                    supportingText = {
+                        if (passwordError != null) {
+                            Text(text = passwordError!!)
+                        }
+                    }
                 )
             }
         }
@@ -148,21 +216,14 @@ fun AuthScreen(
                 // TODO: Complete validation input (no spaces possible, password confirmation etc...)
                 Button(
                     onClick = {
+                        if (!validateInputs()) return@Button
+                        
                         if (isLoginMode) {
-                            if (email.isBlank() || password.isBlank()) return@Button
                             userViewModel.signInWithSupabase(
                                 email = email,
                                 password = password
                             )
                         } else {
-                            // validate user input
-                            if (
-                                username.isBlank() ||
-                                email.isBlank() ||
-                                password.isBlank()
-                            ) {
-                                return@Button
-                            }
                             // sign up
                             userViewModel.signUpWithSupabase(
                                 email = email,
@@ -188,6 +249,9 @@ fun AuthScreen(
                     onClick = {
                         isLoginMode = !isLoginMode
                         userViewModel.clearSupabaseError()
+                        usernameError = null
+                        emailError = null
+                        passwordError = null
                     }
                 ) {
                     Text(
