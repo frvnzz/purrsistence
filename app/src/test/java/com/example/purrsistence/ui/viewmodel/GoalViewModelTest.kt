@@ -50,6 +50,7 @@ private class FakeGoalRepository : GoalRepository {
     override suspend fun insertGoal(goal: com.example.purrsistence.domain.model.Goal) {}
     override suspend fun deleteGoal(goalId: Int) {}
     override fun getGoal(goalId: Int?) = kotlinx.coroutines.flow.flowOf<com.example.purrsistence.domain.model.Goal?>(null)
+    override fun getGoalWithSessions(goalId: Int?) = kotlinx.coroutines.flow.flowOf<com.example.purrsistence.domain.model.GoalWithSessions?>(null)
     override suspend fun updateGoal(goal: com.example.purrsistence.domain.model.Goal) {}
     override fun searchGoals(userId: Int, query: String) = kotlinx.coroutines.flow.flowOf<List<com.example.purrsistence.domain.model.GoalWithSessions>>(emptyList())
     override suspend fun getInactiveGoals(): List<com.example.purrsistence.domain.model.Goal> = emptyList()
