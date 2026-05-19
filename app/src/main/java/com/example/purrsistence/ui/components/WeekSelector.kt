@@ -80,31 +80,40 @@ fun WeekSelector(
         }
 
         // Right-side controls: optional "Back to this week" and the next-week arrow
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (state.weekOffset < 0) {
-                // Show a compact action to quickly return to the current week when viewing past weeks
-                TextButton(
-                    onClick = { viewModel.jumpToThisWeek() },
-                    modifier = Modifier.padding(end = if (compact) 4.dp else 8.dp)
-                ) {
-                    Text(
-                        text = "Back to this week",
-                        style = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+        WeekRightControls(viewModel = viewModel, state = state, compact = compact)
+    }
+}
 
-            // Next week button (used to step forward, disabled when already at current week)
-            IconButton(
-                enabled = state.weekOffset < 0,
-                onClick = { viewModel.nextWeek() }
+@Composable
+private fun WeekRightControls(
+    viewModel: StatisticsViewModel,
+    state: StatisticsUiState,
+    compact: Boolean
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (state.weekOffset < 0) {
+            // Show a compact action to quickly return to the current week when viewing past weeks
+            TextButton(
+                onClick = { viewModel.jumpToThisWeek() },
+                modifier = Modifier.padding(end = if (compact) 4.dp else 8.dp)
             ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Next week"
+                Text(
+                    text = "Back to this week",
+                    style = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
+        }
+
+        // Next week button (used to step forward, disabled when already at current week)
+        IconButton(
+            enabled = state.weekOffset < 0,
+            onClick = { viewModel.nextWeek() }
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = "Next week"
+            )
         }
     }
 }
