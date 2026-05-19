@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.domain.focus.FocusBlocker
 import com.example.purrsistence.domain.time.TimeProvider
+import com.example.purrsistence.service.SupabaseSyncService
 import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.service.TrackingService
+import com.example.purrsistence.service.TrackingSyncService
 import com.example.purrsistence.ui.navigation.TrackingEvent
 import com.example.purrsistence.ui.state.TrackingUiState
 import kotlinx.coroutines.Job
@@ -23,7 +25,8 @@ class TrackingViewModel(
     private val trackingService: TrackingService,
     private val rewardService: RewardService,
     private val timeProvider: TimeProvider,
-    private val focusBlocker: FocusBlocker
+    private val focusBlocker: FocusBlocker,
+    private val supabaseSyncService: TrackingSyncService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TrackingUiState())
@@ -97,6 +100,7 @@ class TrackingViewModel(
             )
 
             _events.emit(TrackingEvent.NavigateToRewardsScreen)
+            supabaseSyncService.syncAfterLocalTrackingSessionChanged()
         }
     }
 
@@ -128,7 +132,7 @@ class TrackingViewModel(
                 } else {
                     (trackedMinutes % 15) / 15f
                 }
-            
+
             val resetWarning = if (session.hasLongPause(now)) "Multiplier reset due to long pause" else null
 
             _uiState.value = TrackingUiState(
@@ -174,7 +178,7 @@ class TrackingViewModel(
             while (coroutineContext.isActive) {
                 val state = _uiState.value
                 val session = trackingService.getActiveTrackingSession()
-                
+
                 if (session != null) {
                     val now = timeProvider.now()
                     val totalElapsedDuration = Duration.between(startTime, now).toMillis()
@@ -183,7 +187,7 @@ class TrackingViewModel(
 
                     val trackedMinutesSinceReset = session.getEffectiveMinutesSinceLastReset(now)
                     val liveMultiplier = rewardService.calculateRewardMultiplier(trackedMinutesSinceReset)
-                    
+
                     val progressToNextMultiplier =
                         if (liveMultiplier >= 2.0) {
                             1f
@@ -192,7 +196,7 @@ class TrackingViewModel(
                         }
 
                     val currentPauseDuration = if (state.isPaused) Duration.between(state.currentPauseStart!!, now).toMinutes() else 0L
-                    
+
                     val isResetByCurrentPause = currentPauseDuration >= 15 //if 15 min limit is reached
                     val finalMultiplier = if (isResetByCurrentPause) 1.0 else liveMultiplier //if reset occurred set to 1 otherwise set to current
                     val finalProgress = if (isResetByCurrentPause) 0f else progressToNextMultiplier //set progress to 0 if reset
@@ -246,7 +250,7 @@ class TrackingViewModel(
                 val newTotalPaused = session?.getTotalPausedMillis(now) ?: state.totalPausedMillis
                 val isReset = session?.hasLongPause(now) == true
                 val resetWarning = if (isReset) "Multiplier reset due to long pause" else null
-                
+
                 //reset multiplier and progress if it was a long pause
                 val newMultiplier = if (isReset) 1.0 else state.liveMultiplier
                 val newProgress = if (isReset) 0f else state.multiplierProgress

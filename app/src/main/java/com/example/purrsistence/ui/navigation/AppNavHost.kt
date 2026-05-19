@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.screens.AddGoalScreen
+import com.example.purrsistence.ui.screens.AuthScreen
 import com.example.purrsistence.ui.screens.EditGoalScreen
 import com.example.purrsistence.ui.screens.GoalDetailsScreen
 import com.example.purrsistence.ui.screens.GoalsScreen
@@ -34,7 +35,7 @@ fun AppNavHost(
     trackingViewModel: TrackingViewModel,
     statisticsViewModel: StatisticsViewModel,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState,
+    snackbarHostState: SnackbarHostState
 ) {
     LaunchedEffect(Unit) {
         trackingViewModel.events.collect { event ->
@@ -176,7 +177,14 @@ fun AppNavHost(
                 userViewModel = userViewModel,
                 setTopBar = setTopBar,
                 onNavigateToSettings = { navController.navigate("settings") },
-                onNavigateToFriends = { navController.navigate("friends") }
+                // navigate to friendsScreen or authScreen depending on the remote user state (signed out or in)
+                onNavigateToFriends = {
+                    if (userViewModel.isSupabaseSignedIn.value) {
+                        navController.navigate("friends")
+                    } else {
+                        navController.navigate("auth")
+                    }
+                }
             )
         }
         // SETTINGS
@@ -191,6 +199,22 @@ fun AppNavHost(
             FriendsScreen(
                 onBack = { navController.popBackStack() },
                 setTopBar = setTopBar
+            )
+        }
+        composable("auth") {
+            AuthScreen(
+                userViewModel = userViewModel,
+                setTopBar = setTopBar,
+                onAuthSuccess = {
+                    navController.navigate("friends") {
+                        popUpTo("auth") {
+                            inclusive = true
+                        }
+                    }
+                },
+                onBack = {
+                    navController.popBackStack()
+                }
             )
         }
     }

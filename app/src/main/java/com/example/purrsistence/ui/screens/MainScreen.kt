@@ -7,6 +7,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -32,6 +33,13 @@ fun MainScreen(
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val topBarState = remember { mutableStateOf(TopBarState()) }
+
+    // Check the user state (remote supabase signed in or out)
+    LaunchedEffect(Unit) {
+        if (userViewModel.isSupabaseSignedIn.value) {
+            userViewModel.syncFromSupabase()
+        }
+    }
 
     val currentRoute = navController
         .currentBackStackEntryAsState()

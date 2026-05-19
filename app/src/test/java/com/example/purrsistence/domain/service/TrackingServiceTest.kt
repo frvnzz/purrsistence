@@ -69,7 +69,10 @@ class TrackingServiceTest {
                 selectedCatIds =  emptyList(),
                 profileImageUrl = URL("https://example.com/profile.png"),
                 isSupabaseLinked = true,
-                supabaseUserId = "supabase-123"
+                supabaseUserId = "supabase-123",
+                localUpdatedAt = null,
+                lastSyncedAt = null,
+                hasPendingLocalChanges = false
             )
         )
 
@@ -142,7 +145,10 @@ class TrackingServiceTest {
                 selectedCatIds =  emptyList(),
                 profileImageUrl = URL("https://example.com/profile.png"),
                 isSupabaseLinked = true,
-                supabaseUserId = "supabase-123"
+                supabaseUserId = "supabase-123",
+                localUpdatedAt = null,
+                lastSyncedAt = null,
+                hasPendingLocalChanges = false
             )
         )
 
@@ -192,7 +198,10 @@ class TrackingServiceTest {
                 selectedCatIds =  emptyList(),
                 profileImageUrl = URL("https://example.com/profile.png"),
                 isSupabaseLinked = true,
-                supabaseUserId = "supabase-123"
+                supabaseUserId = "supabase-123",
+                localUpdatedAt = null,
+                lastSyncedAt = null,
+                hasPendingLocalChanges = false
             )
         )
 
@@ -242,7 +251,10 @@ class TrackingServiceTest {
                 selectedCatIds =  emptyList(),
                 profileImageUrl = URL("https://example.com/profile.png"),
                 isSupabaseLinked = true,
-                supabaseUserId = "supabase-123"
+                supabaseUserId = "supabase-123",
+                localUpdatedAt = null,
+                lastSyncedAt = null,
+                hasPendingLocalChanges = false
             )
         )
 
@@ -349,7 +361,20 @@ class TrackingServiceTest {
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(0L))
         val rewardService = RewardService()
 
-        userRepository.insertUser(User(id = 1, username = "User", balance = 0, friends = emptyList(), collectedCatsIds = emptyList(), selectedCatIds = emptyList(), profileImageUrl = URL("https://example.com/p.png"), isSupabaseLinked = false, supabaseUserId = null))
+        userRepository.insertUser(User(
+            id = 1,
+            username = "User",
+            balance = 0,
+            friends = emptyList(),
+            collectedCatsIds = emptyList(),
+            selectedCatIds = emptyList(),
+            profileImageUrl = URL("https://example.com/p.png"),
+            isSupabaseLinked = false,
+            supabaseUserId = null,
+            localUpdatedAt = null,
+            lastSyncedAt = null,
+            hasPendingLocalChanges = false
+        ))
 
         val service = TrackingServiceImpl(
             trackingRepository = trackingRepository,

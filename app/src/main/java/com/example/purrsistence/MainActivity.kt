@@ -17,6 +17,24 @@ import com.example.purrsistence.data.local.repository.TrackingRepository
 import com.example.purrsistence.data.local.repository.TrackingRepositoryImpl
 import com.example.purrsistence.data.local.repository.UserRepository
 import com.example.purrsistence.data.local.repository.UserRepositoryImpl
+import com.example.purrsistence.data.remote.supabase.SupabaseClientProvider
+import com.example.purrsistence.data.remote.supabase.datasource.SupabaseAuthRemoteDataSource
+import com.example.purrsistence.data.remote.supabase.datasource.SupabaseCatRemoteDataSource
+import com.example.purrsistence.data.remote.supabase.datasource.SupabaseFriendshipRemoteDataSource
+import com.example.purrsistence.data.remote.supabase.datasource.SupabaseGoalTrackingRemoteDataSource
+import com.example.purrsistence.data.remote.supabase.datasource.SupabaseProfileRemoteDataSource
+import com.example.purrsistence.data.remote.supabase.repository.AuthRepository
+import com.example.purrsistence.data.remote.supabase.repository.AuthRepositoryImpl
+import com.example.purrsistence.data.remote.supabase.repository.CatCollectionRepository
+import com.example.purrsistence.data.remote.supabase.repository.CatCollectionRepositoryImpl
+import com.example.purrsistence.data.remote.supabase.repository.FriendshipRepository
+import com.example.purrsistence.data.remote.supabase.repository.FriendshipRepositoryImpl
+import com.example.purrsistence.data.remote.supabase.repository.GoalTrackingRepository
+import com.example.purrsistence.data.remote.supabase.repository.GoalTrackingRepositoryImpl
+import com.example.purrsistence.data.remote.supabase.repository.ProfileRepository
+import com.example.purrsistence.data.remote.supabase.repository.ProfileRepositoryImpl
+import com.example.purrsistence.data.remote.supabase.repository.SyncSnapshotRepository
+import com.example.purrsistence.data.remote.supabase.repository.SyncSnapshotRepositoryImpl
 import com.example.purrsistence.domain.preferences.SharedPrefCleanupPreferences
 import com.example.purrsistence.domain.time.SystemTimeProvider
 import com.example.purrsistence.focus.DeepFocusConfig
@@ -26,6 +44,7 @@ import com.example.purrsistence.service.ProfileService
 import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.service.ShopService
 import com.example.purrsistence.service.StatisticsService
+import com.example.purrsistence.service.SupabaseSyncService
 import com.example.purrsistence.service.TrackingCleanupService
 import com.example.purrsistence.service.TrackingServiceImpl
 import com.example.purrsistence.ui.screens.MainScreen
@@ -57,9 +76,9 @@ class MainActivity : ComponentActivity() {
         val userDao = db.userDao()
 
         // REPOSITORIES
-        val userRepo : UserRepository = UserRepositoryImpl(userDao)
-        val goalRepo : GoalRepository = GoalRepositoryImpl(goalsDao) // replace with goalDao when it's implemented
         val timeProvider = SystemTimeProvider()
+        val userRepo : UserRepository = UserRepositoryImpl(userDao, timeProvider)
+        val goalRepo : GoalRepository = GoalRepositoryImpl(goalsDao)
         val trackingRepo : TrackingRepository = TrackingRepositoryImpl(trackingDao)
         val statisticsRepo : StatisticsRepository= StatisticsRepositoryImpl(goalsDao, trackingDao)
 
@@ -68,7 +87,7 @@ class MainActivity : ComponentActivity() {
         val rewardService = RewardService()
         val trackingService = TrackingServiceImpl(trackingRepo, userRepo, goalRepo, goalService, rewardService, timeProvider)
         val shopService = ShopService(userRepo)
-        val profileService = ProfileService(this, userRepo)
+        val profileService = ProfileService(this, userRepo, timeProvider, null)
         val statisticsService = StatisticsService(statisticsRepo)
         val trackingCleanupService = TrackingCleanupService(goalRepo,trackingRepo, timeProvider)
 
@@ -77,9 +96,60 @@ class MainActivity : ComponentActivity() {
         val focusBlocker = SharedPrefsFocusBlocker(focusPrefs)
         val cleanupPrefs = SharedPrefCleanupPreferences(getSharedPreferences("app_prefs", MODE_PRIVATE))
 
+        val supabase = SupabaseClientProvider.create(this)
+
+        val supabaseAuthRemoteDataSource =
+            SupabaseAuthRemoteDataSource(supabase)
+
+        val supabaseProfileRemoteDataSource =
+            SupabaseProfileRemoteDataSource(supabase)
+
+        val supabaseCatRemoteDataSource =
+            SupabaseCatRemoteDataSource(supabase)
+
+        val supabaseFriendshipRemoteDataSource =
+            SupabaseFriendshipRemoteDataSource(supabase)
+
+        val supabaseGoalTrackingRemoteDataSource =
+            SupabaseGoalTrackingRemoteDataSource(supabase)
+
+        val supabaseAuthRepository: AuthRepository =
+            AuthRepositoryImpl(remoteDataSource = supabaseAuthRemoteDataSource)
+
+        val supabaseProfileRepository: ProfileRepository =
+            ProfileRepositoryImpl(remoteDataSource = supabaseProfileRemoteDataSource)
+
+        val supabaseCatRepository: CatCollectionRepository =
+            CatCollectionRepositoryImpl(catRemoteDataSource = supabaseCatRemoteDataSource)
+
+        val supabaseFriendshipRepository: FriendshipRepository =
+            FriendshipRepositoryImpl(friendshipRemoteDataSource = supabaseFriendshipRemoteDataSource)
+
+        val supabaseGoalTrackingRepository: GoalTrackingRepository =
+            GoalTrackingRepositoryImpl(remoteDataSource = supabaseGoalTrackingRemoteDataSource)
+
+        val supabaseSyncSnapshotRepository: SyncSnapshotRepository =
+            SyncSnapshotRepositoryImpl(
+                profileRepository = supabaseProfileRepository,
+                catRepository = supabaseCatRepository,
+                goalTrackingRepository = supabaseGoalTrackingRepository
+            )
+
+
+        val supabaseSyncService = SupabaseSyncService(
+            userRepository = userRepo,
+            goalRepository = goalRepo,
+            trackingRepository = trackingRepo,
+            authRepository = supabaseAuthRepository,
+            profileRepository = supabaseProfileRepository,
+            catRepository = supabaseCatRepository,
+            friendshipRepository = supabaseFriendshipRepository,
+            syncSnapshotRepository = supabaseSyncSnapshotRepository
+        )
+
         // create ViewModel instances for this activity
-        userViewModel = UserViewModel(shopService, profileService)
-        goalViewModel = GoalViewModel(goalService, focusPrefs)
+        userViewModel = UserViewModel(shopService, supabaseSyncService, profileService)
+        goalViewModel = GoalViewModel(goalService,focusPrefs, supabaseSyncService)
         // Factory for TrackingViewModel to preserve states across configuration changes
         trackingViewModel = ViewModelProvider(
             this,
@@ -87,7 +157,8 @@ class MainActivity : ComponentActivity() {
                 trackingService = trackingService,
                 rewardService = rewardService,
                 timeProvider = timeProvider,
-                focusBlocker = focusBlocker
+                focusBlocker = focusBlocker,
+                supabaseSyncService= supabaseSyncService
             )
         )[TrackingViewModel::class.java]
         // Use factory for StatisticsViewModel to preserve week offset across configuration changes
@@ -122,6 +193,9 @@ class MainActivity : ComponentActivity() {
             //    now = ZonedDateTime.now()
             //)
             cleanupScheduler.runIfDue()
+//            if (supabaseSyncService.isSignedIn()) {
+//                supabaseSyncService.checkAndSyncIfNeeded()
+//            }
         }
 
         setContent {

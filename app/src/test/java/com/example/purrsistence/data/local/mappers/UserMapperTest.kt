@@ -48,7 +48,10 @@ class UserMapperTest {
             selectedCatIds = listOf("cat_grey", "cat_lucky"),
             profileImageUrl = URL("https://example.com/profile.png"),
             isSupabaseLinked = true,
-            supabaseUserId = "supabase-123"
+            supabaseUserId = "supabase-123",
+            localUpdatedAt = null,
+            lastSyncedAt = null,
+            hasPendingLocalChanges = false
         )
 
         val entity = domain.toEntity()
@@ -75,7 +78,10 @@ class UserMapperTest {
             selectedCatIds = emptyList(),
             profileImageUrl = null,
             isSupabaseLinked = false,
-            supabaseUserId = null
+            supabaseUserId = null,
+            localUpdatedAt = null,
+            lastSyncedAt = null,
+            hasPendingLocalChanges = false
         )
 
         val entity = domain.toEntity()
@@ -94,7 +100,10 @@ class UserMapperTest {
             selectedCatIds = emptyList(),
             profileImageUrl = null,
             isSupabaseLinked = false,
-            supabaseUserId = null
+            supabaseUserId = null,
+            localUpdatedAt = null,
+            lastSyncedAt = null,
+            hasPendingLocalChanges = false
         )
 
         val domain = entity.toDomain()

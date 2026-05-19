@@ -18,6 +18,11 @@ interface GoalRepository {
     suspend fun updateGoal(goal: Goal)
     fun searchGoals(userId: Int, query: String): Flow<List<GoalWithSessions>>
     suspend fun getInactiveGoals(): List<Goal>
+    suspend fun getGoalsForSync(userId: Int): List<Goal>
+    suspend fun replaceGoalsFromRemoteSync(
+        userId: Int,
+        goals: List<Goal>
+    )
 }
 
 class GoalRepositoryImpl(
@@ -86,5 +91,24 @@ class GoalRepositoryImpl(
     override suspend fun getInactiveGoals(): List<Goal> {
         return dao.getInactiveGoals().map { it.toDomain() }
     }
+
+    override suspend fun getGoalsForSync(userId: Int): List<Goal> {
+        return dao
+            .getGoalEntitiesForUser(userId)
+            .map { it.toDomain() }
+    }
+
+    override suspend fun replaceGoalsFromRemoteSync(
+        userId: Int,
+        goals: List<Goal>
+    ) {
+        dao.replaceGoalsForUser(
+            userId = userId,
+            goals = goals.map { goal ->
+                goal.copy(userId = userId).toEntity()
+            }
+        )
+    }
+
 }
 

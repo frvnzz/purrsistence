@@ -29,7 +29,10 @@ class ShopServiceTest {
                 selectedCatIds = emptyList(),
                 profileImageUrl = URL("https://example.com/profile.png"),
                 isSupabaseLinked = true,
-                supabaseUserId = "supabase-123"
+                supabaseUserId = "supabase-123",
+                localUpdatedAt = null,
+                lastSyncedAt = null,
+                hasPendingLocalChanges = false
             )
         )
 
@@ -55,7 +58,10 @@ class ShopServiceTest {
                 selectedCatIds = listOf("cat_lucky"),
                 profileImageUrl = URL("https://example.com/profile.png"),
                 isSupabaseLinked = true,
-                supabaseUserId = "supabase-123"
+                supabaseUserId = "supabase-123",
+                localUpdatedAt = null,
+                lastSyncedAt = null,
+                hasPendingLocalChanges = false
             )
         )
 
@@ -81,7 +87,10 @@ class ShopServiceTest {
                 selectedCatIds = emptyList(),
                 profileImageUrl = URL("https://example.com/profile.png"),
                 isSupabaseLinked = true,
-                supabaseUserId = "supabase-123"
+                supabaseUserId = "supabase-123",
+                localUpdatedAt = null,
+                lastSyncedAt = null,
+                hasPendingLocalChanges = false
             )
         )
 
@@ -122,7 +131,10 @@ class ShopServiceTest {
                 selectedCatIds = emptyList(),
                 profileImageUrl = URL("https://example.com/profile.png"),
                 isSupabaseLinked = true,
-                supabaseUserId = "supabase-123"
+                supabaseUserId = "supabase-123",
+                localUpdatedAt = null,
+                lastSyncedAt = null,
+                hasPendingLocalChanges = false
             )
         )
 

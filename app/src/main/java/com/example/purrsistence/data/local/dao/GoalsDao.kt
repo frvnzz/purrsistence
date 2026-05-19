@@ -2,6 +2,7 @@ package com.example.purrsistence.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.example.purrsistence.data.local.entity.GoalEntity
@@ -83,4 +84,36 @@ interface GoalsDao {
     @Query("SELECT * FROM GoalEntity WHERE inactive = 1")
     suspend fun getInactiveGoals(): List<GoalEntity>
 
+    @Query(
+        """
+    SELECT *
+    FROM GoalEntity
+    WHERE userId = :userId
+    """
+    )
+    suspend fun getGoalEntitiesForUser(userId: Int): List<GoalEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertGoalEntities(
+        goals: List<GoalEntity>
+    )
+
+    @Query(
+        """
+        DELETE FROM GoalEntity
+        WHERE userId = :userId
+        """
+    )
+    suspend fun deleteGoalsForUser(
+        userId: Int
+    )
+
+    @Transaction
+    suspend fun replaceGoalsForUser(
+        userId: Int,
+        goals: List<GoalEntity>
+    ) {
+        deleteGoalsForUser(userId)
+        upsertGoalEntities(goals)
+    }
 }

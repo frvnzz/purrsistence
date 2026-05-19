@@ -2,6 +2,7 @@ package com.example.purrsistence.ui.viewmodel
 
 import com.example.purrsistence.data.local.repository.FakeUserRepository
 import com.example.purrsistence.domain.model.User
+import com.example.purrsistence.domain.service.fakes.FakeSupabaseSyncService
 import com.example.purrsistence.service.ShopService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,6 +20,7 @@ import java.net.URL
 class UserViewModelProfileTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private val fakeSupabaseSyncService = FakeSupabaseSyncService()
 
     @Before
     fun setup() {
@@ -61,7 +63,10 @@ class UserViewModelProfileTest {
             isSupabaseLinked = false,
             supabaseUserId = null,
             collectedCatsIds = emptyList(),
-            selectedCatIds = emptyList()
+            selectedCatIds = emptyList(),
+            localUpdatedAt = null,
+            lastSyncedAt = null,
+            hasPendingLocalChanges = false
         )
 
         fakeRepo.insertUser(initialUser)
@@ -74,7 +79,10 @@ class UserViewModelProfileTest {
 
         // Create the ViewModel with the real shop service and without a real profile service.
         // We'll call the spy methods directly to simulate correctness of the ViewModel's calls.
-        val viewModel = UserViewModel(shopService, profileService = null)
+        val viewModel = UserViewModel(
+            shopService, profileService = null,
+            supabaseSyncService = fakeSupabaseSyncService
+        )
 
         // Instead of relying on the viewModel to call our spy (requires wiring), test the underlying
         // behavior: calling viewModel.updateUsername should attempt to update via profileService.
@@ -106,14 +114,19 @@ class UserViewModelProfileTest {
             isSupabaseLinked = false,
             supabaseUserId = null,
             collectedCatsIds = emptyList(),
-            selectedCatIds = emptyList()
+            selectedCatIds = emptyList(),
+            localUpdatedAt = null,
+            lastSyncedAt = null,
+            hasPendingLocalChanges = false
         )
 
         fakeRepo.insertUser(initialUser)
 
         val shopService = ShopService(fakeRepo)
         val spy = SpyProfileService()
-        val viewModel = UserViewModel(shopService, profileService = null)
+        val viewModel = UserViewModel(shopService, profileService = null,
+            supabaseSyncService = fakeSupabaseSyncService
+        )
 
         // simulate updating profile image
         val newImage = "https://example.com/new.png"

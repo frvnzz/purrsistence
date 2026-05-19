@@ -2,28 +2,32 @@ package com.example.purrsistence.service
 
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toUri
 import com.example.purrsistence.data.local.repository.FriendshipRepository
 import com.example.purrsistence.data.local.repository.UserRepository
 import com.example.purrsistence.domain.model.FriendProfile
 import com.example.purrsistence.domain.model.User
 import com.example.purrsistence.domain.model.UserProfile
+import com.example.purrsistence.domain.time.TimeProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
-import androidx.core.net.toUri
 import java.io.File
 import java.net.URL
 
 class ProfileService(
     private val context: Context,
     private val userRepository: UserRepository,
+    private val timeProvider: TimeProvider,
     private val friendshipRepository: FriendshipRepository? = null
 ) {
 
     fun getProfile(userId: Int): Flow<UserProfile?> {
         val userFlow = userRepository.getUser(userId)
-        val friendsFlow = friendshipRepository?.getFriends(userId) ?: flowOf(emptyList())
+
+        val friendsFlow: Flow<List<User>> =
+            friendshipRepository?.getFriends(userId) ?: flowOf(emptyList())
 
         return combine(userFlow, friendsFlow) { user, friends ->
             user?.toProfile(friends)
@@ -35,46 +39,33 @@ class ProfileService(
         username: String,
         profileImageUrl: URL?
     ) {
-        val currentUser = userRepository.getUser(userId).firstOrNull() ?: return
+        val currentUser =
+            userRepository.getUser(userId).firstOrNull() ?: return
 
-        val updatedUser = User(
-            id = currentUser.id,
+        val updatedUser = currentUser.copy(
             username = username,
-            profileImageUrl = profileImageUrl,
-            balance = currentUser.balance,
-            friends = currentUser.friends,
-            isSupabaseLinked = currentUser.isSupabaseLinked,
-            supabaseUserId = currentUser.supabaseUserId,
-            collectedCatsIds = currentUser.collectedCatsIds,
-            selectedCatIds = currentUser.selectedCatIds
+            profileImageUrl = profileImageUrl
         )
 
-        userRepository.updateUser(updatedUser)
+        userRepository.updateUserFromLocalAction(updatedUser)
     }
 
     suspend fun updateProfilePicture(
         userId: Int,
         profileImageUrl: String?
     ) {
-        val currentUser = userRepository.getUser(userId).firstOrNull() ?: return
+        val currentUser =
+            userRepository.getUser(userId).firstOrNull() ?: return
 
         val urlObject = profileImageUrl
             ?.takeIf { it.isNotBlank() }
             ?.let { persistProfileImageReference(it) }
 
-        val updatedUser = User(
-            id = currentUser.id,
-            username = currentUser.username,
-            profileImageUrl = urlObject,
-            balance = currentUser.balance,
-            friends = currentUser.friends,
-            isSupabaseLinked = currentUser.isSupabaseLinked,
-            supabaseUserId = currentUser.supabaseUserId,
-            collectedCatsIds = currentUser.collectedCatsIds,
-            selectedCatIds = currentUser.selectedCatIds
+        val updatedUser = currentUser.copy(
+            profileImageUrl = urlObject
         )
 
-        userRepository.updateUser(updatedUser)
+        userRepository.updateUserFromLocalAction(updatedUser)
     }
 
     private fun User.toProfile(friends: List<User>): UserProfile {
@@ -84,11 +75,11 @@ class ProfileService(
             username = username,
             profileImageUrl = profileImageUrl?.toString(),
             balance = balance,
-            friends = friends.map {
+            friends = friends.map { friend ->
                 FriendProfile(
-                    userId = it.id,
-                    username = it.username,
-                    profileImageUrl = it.profileImageUrl?.toString()
+                    id = friend.id.toString(),
+                    username = friend.username,
+                    avatarPath = friend.profileImageUrl?.toString()
                 )
             },
             collectedCatIds = collectedCatsIds,
@@ -96,18 +87,42 @@ class ProfileService(
         )
     }
 
-    private fun persistProfileImageReference(profileImageReference: String): URL? {
+    private fun persistProfileImageReference(
+        profileImageReference: String
+    ): URL? {
         val uri = profileImageReference.toUri()
 
         return when (uri.scheme?.lowercase()) {
-            "content" -> copyContentUriToCache(uri)?.toURI()?.toURL()
-            else -> runCatching { URL(profileImageReference) }.getOrNull()
+            "content" -> copyContentUriToCache(uri)
+                ?.toURI()
+                ?.toURL()
+
+            "file" -> runCatching {
+                File(requireNotNull(uri.path)).toURI().toURL()
+            }.getOrNull()
+
+            "http", "https" -> runCatching {
+                URL(profileImageReference)
+            }.getOrNull()
+
+            else -> runCatching {
+                URL(profileImageReference)
+            }.getOrNull()
         }
     }
 
     private fun copyContentUriToCache(uri: Uri): File? {
-        val imageDir = File(context.cacheDir, "profile-images").apply { mkdirs() }
-        val targetFile = File(imageDir, "profile-${System.currentTimeMillis()}.jpg")
+        val imageDir = File(
+            context.cacheDir,
+            "profile-images"
+        ).apply {
+            mkdirs()
+        }
+
+        val targetFile = File(
+            imageDir,
+            "profile-${timeProvider.now().toEpochMilli()}.jpg"
+        )
 
         return runCatching {
             context.contentResolver.openInputStream(uri)?.use { input ->

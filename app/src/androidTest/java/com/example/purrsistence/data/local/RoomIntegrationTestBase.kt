@@ -14,6 +14,8 @@ import com.example.purrsistence.data.local.repository.TrackingRepository
 import com.example.purrsistence.data.local.repository.TrackingRepositoryImpl
 import com.example.purrsistence.data.local.repository.UserRepository
 import com.example.purrsistence.data.local.repository.UserRepositoryImpl
+import com.example.purrsistence.domain.time.FakeTimeProvider
+import com.example.purrsistence.domain.time.TimeProvider
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -29,6 +31,7 @@ abstract class RoomIntegrationTestBase {
     protected lateinit var userRepository: UserRepository
     protected lateinit var goalRepository: GoalRepository
     protected lateinit var trackingRepository: TrackingRepository
+    protected val timeProvider : TimeProvider = FakeTimeProvider()
 
     @Before
     fun setupDatabase() {
@@ -43,7 +46,7 @@ abstract class RoomIntegrationTestBase {
         goalsDao = db.goalsDao()
         trackingDao = db.trackingDao()
 
-        userRepository = UserRepositoryImpl(userDao)
+        userRepository = UserRepositoryImpl(userDao, timeProvider = timeProvider )
         goalRepository = GoalRepositoryImpl(goalsDao)
         trackingRepository = TrackingRepositoryImpl(trackingDao)
     }

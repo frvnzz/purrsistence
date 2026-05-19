@@ -10,9 +10,3 @@ data class UserProfile(
     val collectedCatIds: List<String>,
     val isSupabaseLinked: Boolean
 )
-
-data class FriendProfile(
-    val userId: Int,
-    val username: String,
-    val profileImageUrl: String?
-)

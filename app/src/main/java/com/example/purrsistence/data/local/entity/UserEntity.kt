@@ -14,5 +14,8 @@ data class UserEntity(
     val supabaseUserId: String?,
     val friends: List<String>,
     val collectedCatsIds: List<String>,
-    val selectedCatIds: List<String>
+    val selectedCatIds: List<String>,
+    val localUpdatedAt: Long? = null,
+    val lastSyncedAt: Long? = null,
+    val hasPendingLocalChanges: Boolean = false
 )

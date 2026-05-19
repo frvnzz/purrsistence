@@ -70,6 +70,17 @@ class FakeTrackingRepository : TrackingRepository {
         }
     }
 
+    override suspend fun getTrackingSessionsForSync(userId: Int): List<TrackingSession> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun replaceTrackingSessionsFromRemoteSync(
+        userId: Int,
+        sessions: List<TrackingSession>
+    ) {
+        TODO("Not yet implemented")
+    }
+
     fun seedSession(session: TrackingSession) {
         sessions.add(session)
         nextId = maxOf(nextId, session.id + 1)

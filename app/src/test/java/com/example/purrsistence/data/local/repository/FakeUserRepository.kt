@@ -19,7 +19,7 @@ class FakeUserRepository : UserRepository {
         userFlows[user.id] = MutableStateFlow(user)
     }
 
-    override suspend fun updateUser(user: User) {
+    override suspend fun updateUserFromLocalAction(user: User) {
         users[user.id] = user
         userFlows.getOrPut(user.id) { MutableStateFlow(null) }.value = user
     }
@@ -29,5 +29,13 @@ class FakeUserRepository : UserRepository {
         val updated = user.copy(balance = user.balance + amount)
         users[userId] = updated
         userFlows.getOrPut(userId) { MutableStateFlow(null) }.value = updated
+    }
+
+    override suspend fun updateUserFromRemoteSync(user: User) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun markUserSynced(userId: Int) {
+        TODO("Not yet implemented")
     }
 }
