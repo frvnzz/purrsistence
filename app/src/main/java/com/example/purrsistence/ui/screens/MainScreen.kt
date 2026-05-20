@@ -21,6 +21,7 @@ import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
+import com.example.purrsistence.ui.viewmodel.FriendViewModel
 
 @Composable
 fun MainScreen(
@@ -28,6 +29,7 @@ fun MainScreen(
     goalViewModel: GoalViewModel,
     trackingViewModel: TrackingViewModel,
     statisticsViewModel: StatisticsViewModel,
+    friendViewModel: FriendViewModel
 ) {
     // remember states
     val navController = rememberNavController()
@@ -87,6 +89,7 @@ fun MainScreen(
             goalViewModel = goalViewModel,
             trackingViewModel = trackingViewModel,
             statisticsViewModel = statisticsViewModel,
+            friendViewModel = friendViewModel,
             modifier = Modifier.padding(padding),
             snackbarHostState = snackbarHostState
         )

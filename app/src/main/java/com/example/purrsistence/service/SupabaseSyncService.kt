@@ -66,6 +66,8 @@ interface TrackingSyncService {
 
     suspend fun getOutgoingFriendRequests(): List<Friendship>
 
+    suspend fun searchProfiles(query: String): List<FriendProfile>
+
     suspend fun sendFriendRequest(
         addresseeId: String
     )
@@ -446,6 +448,10 @@ class SupabaseSyncService(
         return friendshipRepository.getOutgoingRequests(
             userId = requireSupabaseUserId()
         )
+    }
+
+    override suspend fun searchProfiles(query: String): List<FriendProfile> {
+        return profileRepository.searchProfiles(query)
     }
 
     override suspend fun sendFriendRequest(

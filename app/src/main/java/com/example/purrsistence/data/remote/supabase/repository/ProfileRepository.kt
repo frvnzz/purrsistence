@@ -11,6 +11,7 @@ interface ProfileRepository {
     suspend fun updateUsername(userId: String, username: String)
     suspend fun updateAvatarPath(userId: String, avatarPath: String?)
     suspend fun getRemoteUpdatedAt(userId: String): Instant
+    suspend fun searchProfiles(query: String): List<FriendProfile>
 }
 
 class ProfileRepositoryImpl(
@@ -23,6 +24,12 @@ class ProfileRepositoryImpl(
         return remoteDataSource
             .fetchProfile(userId)
             .toDomain()
+    }
+
+    override suspend fun searchProfiles(query: String): List<FriendProfile> {
+        return remoteDataSource
+            .searchProfiles(query)
+            .map { it.toDomain() }
     }
 
     override suspend fun updateUsername(

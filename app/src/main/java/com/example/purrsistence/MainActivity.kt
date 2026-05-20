@@ -55,6 +55,8 @@ import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModelFactory
 import com.example.purrsistence.ui.viewmodel.UserViewModel
+import com.example.purrsistence.ui.viewmodel.FriendViewModel
+import com.example.purrsistence.ui.viewmodel.FriendViewModelFactory
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
@@ -64,6 +66,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var goalViewModel: GoalViewModel
     private lateinit var trackingViewModel: TrackingViewModel
     private lateinit var statisticsViewModel: StatisticsViewModel
+    private lateinit var friendViewModel: FriendViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -167,6 +170,11 @@ class MainActivity : ComponentActivity() {
             StatisticsViewModelFactory(statisticsService)
         )[StatisticsViewModel::class.java]
 
+        friendViewModel = ViewModelProvider(
+            this,
+            FriendViewModelFactory(supabaseSyncService)
+        )[FriendViewModel::class.java]
+
         val cleanupScheduler = CleanupScheduler(cleanupPrefs, timeProvider, trackingCleanupService)
 
         lifecycleScope.launch {
@@ -206,6 +214,7 @@ class MainActivity : ComponentActivity() {
                     goalViewModel = goalViewModel,
                     trackingViewModel = trackingViewModel,
                     statisticsViewModel = statisticsViewModel,
+                    friendViewModel = friendViewModel
                 )
             }
         }

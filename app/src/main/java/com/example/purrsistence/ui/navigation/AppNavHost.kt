@@ -20,11 +20,13 @@ import com.example.purrsistence.ui.screens.StatisticsScreen
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.screens.SettingsScreen
 import com.example.purrsistence.ui.screens.FriendsScreen
+import com.example.purrsistence.ui.screens.FriendSearchScreen
 import com.example.purrsistence.ui.screens.RewardsScreen
 import com.example.purrsistence.ui.screens.TrackingScreen
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
+import com.example.purrsistence.ui.viewmodel.FriendViewModel
 
 @Composable
 fun AppNavHost(
@@ -34,6 +36,7 @@ fun AppNavHost(
     goalViewModel: GoalViewModel,
     trackingViewModel: TrackingViewModel,
     statisticsViewModel: StatisticsViewModel,
+    friendViewModel: FriendViewModel,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState
 ) {
@@ -197,6 +200,17 @@ fun AppNavHost(
         // FRIENDS
         composable("friends") {
             FriendsScreen(
+                viewModel = friendViewModel,
+                onAddFriendClick = {
+                    navController.navigate("friend_search")
+                },
+                onBack = { navController.popBackStack() },
+                setTopBar = setTopBar
+            )
+        }
+        composable("friend_search") {
+            FriendSearchScreen(
+                viewModel = friendViewModel,
                 onBack = { navController.popBackStack() },
                 setTopBar = setTopBar
             )

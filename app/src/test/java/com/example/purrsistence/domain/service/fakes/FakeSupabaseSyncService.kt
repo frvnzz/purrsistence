@@ -24,6 +24,7 @@ class FakeSupabaseSyncService(
     var getFriendsCalls = 0
     var getIncomingFriendRequestsCalls = 0
     var getOutgoingFriendRequestsCalls = 0
+    var searchProfilesCalls = 0
     var sendFriendRequestCalls = 0
     var acceptFriendRequestCalls = 0
     var declineFriendRequestCalls = 0
@@ -35,6 +36,7 @@ class FakeSupabaseSyncService(
     var lastCatId: String? = null
     var lastAvatarPath: String? = null
     var lastAddresseeId: String? = null
+    var lastSearchQuery: String? = null
     var lastAcceptedFriendshipId: Long? = null
     var lastDeclinedFriendshipId: Long? = null
     var lastDeletedFriendshipId: Long? = null
@@ -48,6 +50,7 @@ class FakeSupabaseSyncService(
     var friends: List<FriendProfile> = emptyList()
     var incomingFriendRequests: List<Friendship> = emptyList()
     var outgoingFriendRequests: List<Friendship> = emptyList()
+    var searchProfilesResult: List<FriendProfile> = emptyList()
 
     override fun isSignedIn(): Boolean {
         return signedIn
@@ -173,6 +176,12 @@ class FakeSupabaseSyncService(
     override suspend fun getOutgoingFriendRequests(): List<Friendship> {
         getOutgoingFriendRequestsCalls++
         return outgoingFriendRequests
+    }
+
+    override suspend fun searchProfiles(query: String): List<FriendProfile> {
+        searchProfilesCalls++
+        lastSearchQuery = query
+        return searchProfilesResult
     }
 
     override suspend fun sendFriendRequest(
