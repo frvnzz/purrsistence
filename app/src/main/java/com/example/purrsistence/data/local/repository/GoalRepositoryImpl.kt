@@ -6,6 +6,7 @@ import com.example.purrsistence.data.local.mapping.toEntity
 import com.example.purrsistence.domain.model.Goal
 import com.example.purrsistence.domain.model.GoalWithSessions
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 interface GoalRepository {
@@ -51,7 +52,7 @@ class GoalRepositoryImpl(
 
     override fun getGoal(goalId: Int?): Flow<Goal?> {
         return if (goalId == null) {
-            kotlinx.coroutines.flow.flowOf(null)
+            flowOf(null)
         } else {
             dao.getGoal(goalId).map { entity ->
                 entity?.toDomain()
@@ -61,7 +62,7 @@ class GoalRepositoryImpl(
 
     override fun getGoalWithSessions(goalId: Int?): Flow<GoalWithSessions?> {
         return if (goalId == null) {
-            kotlinx.coroutines.flow.flowOf(null)
+            flowOf(null)
         } else {
             dao.getGoalWithSessions(goalId).map { entity ->
                 entity?.toDomain()

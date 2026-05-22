@@ -1,5 +1,6 @@
 package com.example.purrsistence.ui.components.profileScreen
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.model.User
 import com.example.purrsistence.ui.theme.Shapes
@@ -48,7 +50,7 @@ fun ProfileHeaderSection(
     user: User?,
     username: String,
     isEditing: Boolean,
-    profileImageUri: android.net.Uri?,
+    profileImageUri: Uri?,
     usernameFocusRequester: FocusRequester,
     callbacks: ProfileHeaderCallbacks,
     modifier: Modifier = Modifier
@@ -146,7 +148,7 @@ fun ProfileHeaderSection(
                         text = user?.username ?: "Username",
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
 

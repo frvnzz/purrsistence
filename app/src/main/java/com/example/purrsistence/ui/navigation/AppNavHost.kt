@@ -190,6 +190,8 @@ fun AppNavHost(
         // SETTINGS
         composable("settings") {
             SettingsScreen(
+                userViewModel = userViewModel,
+                onNavigateToAuth = { navController.navigate("auth") },
                 onBack = { navController.popBackStack() },
                 setTopBar = setTopBar
             )

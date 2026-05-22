@@ -3,6 +3,7 @@ package com.example.purrsistence.ui.theme
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes as MaterialShapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -70,7 +71,7 @@ fun PurrsistenceTheme(
         typography = Typography,
         content = content,
         // corner radius -> shapes
-        shapes = androidx.compose.material3.Shapes(
+        shapes = MaterialShapes(
             small = Shapes.inputs,
             medium = Shapes.buttons,
             large = Shapes.cards

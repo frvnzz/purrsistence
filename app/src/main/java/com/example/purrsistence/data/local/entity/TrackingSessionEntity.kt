@@ -1,19 +1,21 @@
 package com.example.purrsistence.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 //INFO if this is updated, check if tests are still running (if not, update them accordingly)
 @Entity(
     foreignKeys = [
-        androidx.room.ForeignKey(
+        ForeignKey(
             entity = GoalEntity::class,
             parentColumns = ["goalId"],
             childColumns = ["goalId"],
-            onDelete = androidx.room.ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [androidx.room.Index(value = ["goalId"])]
+    indices = [Index(value = ["goalId"])]
 )
 
 data class TrackingSessionEntity(
