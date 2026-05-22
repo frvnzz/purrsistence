@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ProfileDto(
+data class ProfileSearchResultDto(
     val id: String,
     val username: String,
 
@@ -12,8 +12,5 @@ data class ProfileDto(
     val displayName: String? = null,
 
     @SerialName("avatar_path")
-    val avatarPath: String? = null,
-
-    @SerialName("updated_at")
-    val updatedAt: String? = null
+    val avatarPath: String? = null
 )

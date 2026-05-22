@@ -5,11 +5,38 @@ import com.example.purrsistence.data.remote.supabase.dto.UserCatDto
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 
+interface CatRemoteDataSource {
+    suspend fun fetchCollectedCatIds(userId: String): List<String>
+
+    suspend fun fetchVisibleCollectedCatIds(userId: String): List<String>
+
+    suspend fun addCollectedCat(
+        userId: String,
+        catId: String
+    )
+
+    suspend fun uploadLocalCollectedCats(
+        userId: String,
+        catIds: List<String>
+    )
+
+    suspend fun fetchSelectedCatIds(userId: String): List<String>
+
+    suspend fun fetchSelectedCatRows(userId: String): List<SelectedCatDto>
+
+    suspend fun fetchVisibleSelectedCatIds(userId: String): List<String>
+
+    suspend fun replaceSelectedCats(
+        userId: String,
+        selectedCatIds: List<String>
+    )
+}
+
 class SupabaseCatRemoteDataSource(
     private val supabase: SupabaseClient
-) {
+) : CatRemoteDataSource{
 
-    suspend fun fetchCollectedCatIds(userId: String): List<String> {
+    override suspend fun fetchCollectedCatIds(userId: String): List<String> {
         return supabase
             .from("user_cats")
             .select {
@@ -21,7 +48,7 @@ class SupabaseCatRemoteDataSource(
             .map { it.catId }
     }
 
-    suspend fun addCollectedCat(
+    override suspend fun addCollectedCat(
         userId: String,
         catId: String
     ) {
@@ -38,7 +65,7 @@ class SupabaseCatRemoteDataSource(
             }
     }
 
-    suspend fun uploadLocalCollectedCats(
+    override suspend fun uploadLocalCollectedCats(
         userId: String,
         catIds: List<String>
     ) {
@@ -50,13 +77,13 @@ class SupabaseCatRemoteDataSource(
         }
     }
 
-    suspend fun fetchSelectedCatIds(userId: String): List<String> {
+    override suspend fun fetchSelectedCatIds(userId: String): List<String> {
         return fetchSelectedCatRows(userId)
             .sortedBy { it.slot }
             .map { it.catId }
     }
 
-    suspend fun fetchSelectedCatRows(userId: String): List<SelectedCatDto> {
+    override suspend fun fetchSelectedCatRows(userId: String): List<SelectedCatDto> {
         return supabase
             .from("selected_cats")
             .select {
@@ -67,7 +94,19 @@ class SupabaseCatRemoteDataSource(
             .decodeList<SelectedCatDto>()
     }
 
-    suspend fun replaceSelectedCats(
+    override suspend fun fetchVisibleCollectedCatIds(
+        userId: String
+    ): List<String> {
+        return fetchCollectedCatIds(userId)
+    }
+
+    override suspend fun fetchVisibleSelectedCatIds(
+        userId: String
+    ): List<String> {
+        return fetchSelectedCatIds(userId)
+    }
+
+    override suspend fun replaceSelectedCats(
         userId: String,
         selectedCatIds: List<String>
     ) {

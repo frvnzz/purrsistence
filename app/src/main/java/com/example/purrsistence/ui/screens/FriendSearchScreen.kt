@@ -20,9 +20,13 @@ fun FriendSearchScreen(
     onBack: () -> Unit,
     setTopBar: (TopBarState) -> Unit
 ) {
-    var searchQuery by remember { mutableStateOf("") }
+    var searchQuery by remember {
+        mutableStateOf("")
+    }
+
     val searchResults by viewModel.searchResults.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     LaunchedEffect(Unit) {
         setTopBar(
@@ -40,30 +44,79 @@ fun FriendSearchScreen(
     ) {
         OutlinedTextField(
             value = searchQuery,
-            onValueChange = {
-                searchQuery = it
-                viewModel.searchProfiles(it)
+            onValueChange = { value ->
+                searchQuery = value
+                viewModel.searchProfiles(value)
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search by username") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            placeholder = {
+                Text("Search by username")
+            },
+            leadingIcon = {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = null
+                )
+            },
             singleLine = true
         )
 
-        Spacer(modifier = Modifier.height(Spacing.md))
+        Spacer(
+            modifier = Modifier.height(Spacing.md)
+        )
 
-        if (isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = Spacing.sm)
-            ) {
-                items(searchResults) { profile ->
-                    SearchResultItem(
-                        profile = profile,
-                        onAddClick = { viewModel.sendFriendRequest(profile.id) }
+        if (error != null) {
+            Text(
+                text = error ?: "",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Spacer(
+                modifier = Modifier.height(Spacing.sm)
+            )
+        }
+
+        when {
+            isLoading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(
+                        Alignment.CenterHorizontally
                     )
+                )
+            }
+
+            searchQuery.trim().length < 2 -> {
+                Text(
+                    text = "Enter at least 2 characters.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            searchResults.isEmpty() -> {
+                Text(
+                    text = "No users found.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        vertical = Spacing.sm
+                    )
+                ) {
+                    items(searchResults) { profile ->
+                        SearchResultItem(
+                            profile = profile,
+                            onAddClick = {
+                                viewModel.sendFriendRequest(profile.id)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -87,11 +140,22 @@ fun SearchResultItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = profile.username,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Button(onClick = onAddClick) {
+            Column {
+                Text(
+                    text = profile.username,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Text(
+                    text = "Send friend request",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Button(
+                onClick = onAddClick
+            ) {
                 Text("Add")
             }
         }

@@ -1,6 +1,8 @@
 package com.example.purrsistence.data.remote.supabase.repository
 
 import com.example.purrsistence.data.local.mapping.toDomain
+import com.example.purrsistence.data.local.mapping.toFriendProfile
+import com.example.purrsistence.data.local.mapping.toFriendship
 import com.example.purrsistence.data.remote.supabase.datasource.AuthRemoteDataSource
 import com.example.purrsistence.data.remote.supabase.datasource.FriendshipRemoteDataSource
 import com.example.purrsistence.domain.model.FriendProfile
@@ -30,7 +32,7 @@ class FriendshipRepositoryImpl(
     ): List<FriendProfile> {
         return friendshipRemoteDataSource
             .fetchAcceptedFriendProfiles(userId)
-            .map { profileDto -> profileDto.toDomain() }
+            .map { profileDto -> profileDto.toFriendProfile() }
     }
 
     override suspend fun getIncomingRequests(
@@ -38,7 +40,7 @@ class FriendshipRepositoryImpl(
     ): List<Friendship> {
         return friendshipRemoteDataSource
             .fetchIncomingRequests(userId)
-            .map { friendshipDto -> friendshipDto.toDomain() }
+            .map { friendshipDto -> friendshipDto.toFriendship() }
     }
 
     override suspend fun getOutgoingRequests(
@@ -46,7 +48,7 @@ class FriendshipRepositoryImpl(
     ): List<Friendship> {
         return friendshipRemoteDataSource
             .fetchOutgoingRequests(userId)
-            .map { friendshipDto -> friendshipDto.toDomain() }
+            .map { friendshipDto -> friendshipDto.toFriendship() }
     }
 
     override suspend fun sendFriendRequest(

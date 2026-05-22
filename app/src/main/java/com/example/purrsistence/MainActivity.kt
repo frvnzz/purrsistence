@@ -170,10 +170,13 @@ class MainActivity : ComponentActivity() {
             StatisticsViewModelFactory(statisticsService)
         )[StatisticsViewModel::class.java]
 
-        friendViewModel = ViewModelProvider(
-            this,
-            FriendViewModelFactory(supabaseSyncService)
-        )[FriendViewModel::class.java]
+        friendViewModel =
+            ViewModelProvider(
+                this,
+                FriendViewModelFactory(
+                    supabaseSyncService = supabaseSyncService
+                )
+            )[FriendViewModel::class.java]
 
         val cleanupScheduler = CleanupScheduler(cleanupPrefs, timeProvider, trackingCleanupService)
 

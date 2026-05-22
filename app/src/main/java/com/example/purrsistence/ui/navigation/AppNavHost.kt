@@ -11,6 +11,7 @@ import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.screens.AddGoalScreen
 import com.example.purrsistence.ui.screens.AuthScreen
 import com.example.purrsistence.ui.screens.EditGoalScreen
+import com.example.purrsistence.ui.screens.FriendProfileScreen
 import com.example.purrsistence.ui.screens.GoalDetailsScreen
 import com.example.purrsistence.ui.screens.GoalsScreen
 import com.example.purrsistence.ui.screens.HomeScreen
@@ -204,7 +205,12 @@ fun AppNavHost(
                 onAddFriendClick = {
                     navController.navigate("friend_search")
                 },
-                onBack = { navController.popBackStack() },
+                onFriendClick = { friendUserId ->
+                    navController.navigate("friend_profile/$friendUserId")
+                },
+                onBack = {
+                    navController.popBackStack()
+                },
                 setTopBar = setTopBar
             )
         }
@@ -215,6 +221,23 @@ fun AppNavHost(
                 setTopBar = setTopBar
             )
         }
+        composable("friend_profile/{friendUserId}") { backStackEntry ->
+            val friendUserId = backStackEntry.arguments
+                ?.getString("friendUserId")
+
+            if (friendUserId != null) {
+                FriendProfileScreen(
+                    viewModel = friendViewModel,
+                    friendUserId = friendUserId,
+                    onBack = {
+                        friendViewModel.clearSelectedFriendProfile()
+                        navController.popBackStack()
+                    },
+                    setTopBar = setTopBar
+                )
+            }
+        }
+
         composable("auth") {
             AuthScreen(
                 userViewModel = userViewModel,

@@ -1,8 +1,8 @@
 package com.example.purrsistence.ui.viewmodel
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.domain.model.FriendProfile
+import com.example.purrsistence.domain.model.FriendProfileDetails
 import com.example.purrsistence.domain.model.Friendship
 import com.example.purrsistence.service.TrackingSyncService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,47 +10,48 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class FriendViewModel(
-    private val supabaseSyncService: TrackingSyncService
+    private val trackingSyncService: TrackingSyncService
 ) : ViewModel() {
 
-    private val _friends = MutableStateFlow<List<FriendProfile>>(emptyList())
+    private val _friends =
+        MutableStateFlow<List<FriendProfile>>(emptyList())
     val friends: StateFlow<List<FriendProfile>> = _friends
 
-    private val _incomingRequests = MutableStateFlow<List<Friendship>>(emptyList())
+    private val _incomingRequests =
+        MutableStateFlow<List<Friendship>>(emptyList())
     val incomingRequests: StateFlow<List<Friendship>> = _incomingRequests
 
-    private val _outgoingRequests = MutableStateFlow<List<Friendship>>(emptyList())
+    private val _outgoingRequests =
+        MutableStateFlow<List<Friendship>>(emptyList())
     val outgoingRequests: StateFlow<List<Friendship>> = _outgoingRequests
 
-    private val _searchResults = MutableStateFlow<List<FriendProfile>>(emptyList())
+    private val _searchResults =
+        MutableStateFlow<List<FriendProfile>>(emptyList())
     val searchResults: StateFlow<List<FriendProfile>> = _searchResults
 
-    private val _isLoading = MutableStateFlow(false)
+    private val _selectedFriendProfile =
+        MutableStateFlow<FriendProfileDetails?>(null)
+    val selectedFriendProfile: StateFlow<FriendProfileDetails?> =
+        _selectedFriendProfile
+
+    private val _isLoading =
+        MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _error = MutableStateFlow<String?>(null)
+    private val _error =
+        MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
     fun loadFriendsData() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
-            try {
-                if (supabaseSyncService.isSignedIn()) {
-                    _friends.value = supabaseSyncService.getFriends()
-                    _incomingRequests.value = supabaseSyncService.getIncomingFriendRequests()
-                    _outgoingRequests.value = supabaseSyncService.getOutgoingFriendRequests()
-                }
-            } catch (e: Exception) {
-                _error.value = e.message
-            } finally {
-                _isLoading.value = false
-            }
+            loadFriendsDataInternal(showLoading = true)
         }
     }
 
     fun searchProfiles(query: String) {
-        if (query.isBlank()) {
+        val trimmedQuery = query.trim()
+
+        if (trimmedQuery.length < 2) {
             _searchResults.value = emptyList()
             return
         }
@@ -58,30 +59,81 @@ class FriendViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
+
             try {
-                val currentUserId = supabaseSyncService.currentSupabaseUserId()
-                val results = supabaseSyncService.searchProfiles(query)
-                // Filter out the current user and existing friends
-                val filteredResults = results.filter { profile ->
-                    profile.id != currentUserId && _friends.value.none { it.id == profile.id }
+                if (!trackingSyncService.isSignedIn()) {
+                    _searchResults.value = emptyList()
+                    return@launch
                 }
-                _searchResults.value = filteredResults
-            } catch (e: Exception) {
-                _error.value = e.message
+
+                val currentUserId =
+                    trackingSyncService.currentSupabaseUserId()
+
+                val results =
+                    trackingSyncService.searchProfiles(trimmedQuery)
+
+                val existingFriendIds =
+                    _friends.value.map { friend -> friend.id }.toSet()
+
+                val outgoingRequestIds =
+                    _outgoingRequests.value
+                        .map { request -> request.addresseeId }
+                        .toSet()
+
+                _searchResults.value = results.filter { profile ->
+                    profile.id != currentUserId &&
+                            profile.id !in existingFriendIds &&
+                            profile.id !in outgoingRequestIds
+                }
+            } catch (exception: Exception) {
+                _error.value = exception.message
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
+    fun loadFriendProfile(friendUserId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            try {
+                if (!trackingSyncService.isSignedIn()) {
+                    _selectedFriendProfile.value = null
+                    return@launch
+                }
+
+                _selectedFriendProfile.value =
+                    trackingSyncService.getFriendProfileDetails(friendUserId)
+            } catch (exception: Exception) {
+                _error.value = exception.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun clearSelectedFriendProfile() {
+        _selectedFriendProfile.value = null
+    }
+
     fun sendFriendRequest(addresseeId: String) {
         viewModelScope.launch {
             _isLoading.value = true
+            _error.value = null
+
             try {
-                supabaseSyncService.sendFriendRequest(addresseeId)
-                loadFriendsData() //refresh outgoing requests
-            } catch (e: Exception) {
-                _error.value = e.message
+                trackingSyncService.sendFriendRequest(addresseeId)
+
+                loadFriendsDataInternal(showLoading = false)
+
+                _searchResults.value =
+                    _searchResults.value.filter { profile ->
+                        profile.id != addresseeId
+                    }
+            } catch (exception: Exception) {
+                _error.value = exception.message
             } finally {
                 _isLoading.value = false
             }
@@ -91,11 +143,13 @@ class FriendViewModel(
     fun acceptFriendRequest(friendshipId: Long) {
         viewModelScope.launch {
             _isLoading.value = true
+            _error.value = null
+
             try {
-                supabaseSyncService.acceptFriendRequest(friendshipId)
-                loadFriendsData() //refresh friends and incoming requests
-            } catch (e: Exception) {
-                _error.value = e.message
+                trackingSyncService.acceptFriendRequest(friendshipId)
+                loadFriendsDataInternal(showLoading = false)
+            } catch (exception: Exception) {
+                _error.value = exception.message
             } finally {
                 _isLoading.value = false
             }
@@ -105,11 +159,13 @@ class FriendViewModel(
     fun declineFriendRequest(friendshipId: Long) {
         viewModelScope.launch {
             _isLoading.value = true
+            _error.value = null
+
             try {
-                supabaseSyncService.declineFriendRequest(friendshipId)
-                loadFriendsData() //refresh incoming requests
-            } catch (e: Exception) {
-                _error.value = e.message
+                trackingSyncService.declineFriendRequest(friendshipId)
+                loadFriendsDataInternal(showLoading = false)
+            } catch (exception: Exception) {
+                _error.value = exception.message
             } finally {
                 _isLoading.value = false
             }
@@ -119,11 +175,13 @@ class FriendViewModel(
     fun deleteFriendship(friendshipId: Long) {
         viewModelScope.launch {
             _isLoading.value = true
+            _error.value = null
+
             try {
-                supabaseSyncService.deleteFriendship(friendshipId)
-                loadFriendsData() //refresh friends
-            } catch (e: Exception) {
-                _error.value = e.message
+                trackingSyncService.deleteFriendship(friendshipId)
+                loadFriendsDataInternal(showLoading = false)
+            } catch (exception: Exception) {
+                _error.value = exception.message
             } finally {
                 _isLoading.value = false
             }
@@ -132,5 +190,39 @@ class FriendViewModel(
 
     fun clearError() {
         _error.value = null
+    }
+
+    private suspend fun loadFriendsDataInternal(
+        showLoading: Boolean
+    ) {
+        if (showLoading) {
+            _isLoading.value = true
+        }
+
+        _error.value = null
+
+        try {
+            if (!trackingSyncService.isSignedIn()) {
+                _friends.value = emptyList()
+                _incomingRequests.value = emptyList()
+                _outgoingRequests.value = emptyList()
+                return
+            }
+
+            _friends.value =
+                trackingSyncService.getFriends()
+
+            _incomingRequests.value =
+                trackingSyncService.getIncomingFriendRequests()
+
+            _outgoingRequests.value =
+                trackingSyncService.getOutgoingFriendRequests()
+        } catch (exception: Exception) {
+            _error.value = exception.message
+        } finally {
+            if (showLoading) {
+                _isLoading.value = false
+            }
+        }
     }
 }

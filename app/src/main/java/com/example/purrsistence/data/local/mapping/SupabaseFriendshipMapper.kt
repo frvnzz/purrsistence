@@ -4,7 +4,7 @@ import com.example.purrsistence.data.remote.supabase.dto.FriendshipDto
 import com.example.purrsistence.domain.model.Friendship
 import com.example.purrsistence.domain.model.types.FriendshipStatus
 
-fun FriendshipDto.toDomain(): Friendship {
+fun FriendshipDto.toFriendship(): Friendship {
     return Friendship(
         id = id,
         requesterId = requesterId,

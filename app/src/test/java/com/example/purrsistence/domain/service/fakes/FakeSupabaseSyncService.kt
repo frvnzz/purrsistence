@@ -1,6 +1,7 @@
 package com.example.purrsistence.domain.service.fakes
 
 import com.example.purrsistence.domain.model.FriendProfile
+import com.example.purrsistence.domain.model.FriendProfileDetails
 import com.example.purrsistence.domain.model.Friendship
 import com.example.purrsistence.domain.model.types.SyncStatus
 import com.example.purrsistence.service.TrackingSyncService
@@ -204,6 +205,20 @@ class FakeSupabaseSyncService(
         declineFriendRequestCalls++
         lastDeclinedFriendshipId = friendshipId
     }
+
+    override suspend fun getFriendProfileDetails(
+        friendUserId: String
+    ): FriendProfileDetails {
+        return FriendProfileDetails(
+            profile = FriendProfile(
+                id = friendUserId,
+                username = ""
+            ),
+            collectedCatIds = emptyList(),
+            selectedCatIds = emptyList()
+        )
+    }
+
 
     override suspend fun deleteFriendship(
         friendshipId: Long
