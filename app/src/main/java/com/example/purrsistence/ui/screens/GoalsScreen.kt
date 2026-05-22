@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.purrsistence.ui.components.goalsScreen.DeleteGoalDialog
 import com.example.purrsistence.ui.components.goalsScreen.DeleteGoalsButton
@@ -39,6 +40,7 @@ import com.example.purrsistence.ui.components.goalsScreen.GoalCard
 import com.example.purrsistence.ui.components.goalsScreen.GoalSearchBar
 import com.example.purrsistence.ui.components.goalsScreen.GoalsEmptyState
 import com.example.purrsistence.ui.components.goalsScreen.GoalsSortMenu
+import com.example.purrsistence.ui.components.goalsScreen.SortOption
 import com.example.purrsistence.ui.components.goalsScreen.sortGoals
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Elevation
@@ -66,14 +68,14 @@ fun GoalsScreen(
     var isDeleteMode by remember { mutableStateOf(false) }
     var selectedGoals by remember { mutableStateOf(setOf<Int>()) }
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var selectedSort by remember { mutableStateOf(com.example.purrsistence.ui.components.goalsScreen.SortOption.LAST_TRACKED) }
+    var selectedSort by remember { mutableStateOf(SortOption.LAST_TRACKED) }
     val listState = rememberLazyListState()
     var pendingVisibleGoalId by remember { mutableStateOf<Int?>(null) }
     var pendingVisibleScrollOffset by remember { mutableIntStateOf(0) }
 
     val scope = rememberCoroutineScope()
 
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -142,7 +144,7 @@ fun GoalsScreen(
                     .fillMaxWidth()
                     .padding(vertical = Spacing.sm),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(modifier = Modifier.weight(1f)) {
                     GoalSearchBar(

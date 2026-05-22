@@ -1,19 +1,21 @@
 package com.example.purrsistence.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.Instant
 
 @Entity(
     foreignKeys = [
-        androidx.room.ForeignKey(
+        ForeignKey(
             entity = UserEntity::class,
             parentColumns = ["userId"],
             childColumns = ["userId"],
-            onDelete = androidx.room.ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [androidx.room.Index(value = ["userId"])]
+    indices = [Index(value = ["userId"])]
 )
 
 // TODO: refactor entity + add "canonical Goal" :)

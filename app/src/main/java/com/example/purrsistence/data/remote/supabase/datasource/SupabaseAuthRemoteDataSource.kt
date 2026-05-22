@@ -1,5 +1,6 @@
 package com.example.purrsistence.data.remote.supabase.datasource
 
+import android.util.Log
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -48,7 +49,7 @@ class SupabaseAuthRemoteDataSource(
     override fun currentUserId(): String? {
         val user = supabase.auth.currentUserOrNull()
 
-        android.util.Log.d(
+        Log.d(
             "SUPABASE_AUTH",
             "Current user = ${user?.id}"
         )

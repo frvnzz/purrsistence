@@ -2,6 +2,7 @@ package com.example.purrsistence.ui.components.profileScreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,13 +27,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.domain.model.ShopItem
+import com.example.purrsistence.domain.model.User
 import com.example.purrsistence.ui.components.homeScreen.CatImage
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 
 @Composable
 fun InventorySection(
-    user: com.example.purrsistence.domain.model.User?,
+    user: User?,
     modifier: Modifier = Modifier,
     maxGridHeight: Dp
 ) {
@@ -42,8 +46,8 @@ fun InventorySection(
         )
 
         if (user != null && user.collectedCatsIds.isNotEmpty()) {
-            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = maxGridHeight),
@@ -60,7 +64,7 @@ fun InventorySection(
                 }
             }
         } else {
-            androidx.compose.foundation.layout.Box(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)

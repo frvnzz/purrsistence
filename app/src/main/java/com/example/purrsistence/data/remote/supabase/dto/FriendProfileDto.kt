@@ -1,6 +1,8 @@
 package com.example.purrsistence.data.remote.supabase.dto
 
-@kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class FriendProfileDto(
     val id: String,
     val username: String,

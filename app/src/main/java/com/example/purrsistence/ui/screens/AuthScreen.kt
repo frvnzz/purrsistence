@@ -1,5 +1,6 @@
 package com.example.purrsistence.ui.screens
 
+import android.util.Patterns
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -82,7 +83,7 @@ fun AuthScreen(
     var passwordError by remember { mutableStateOf<String?>(null) }
 
     fun isValidEmail(email: String): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
     fun validateInputs(): Boolean {
