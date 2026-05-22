@@ -75,6 +75,20 @@ class TrackingViewModel(
     }
 
     fun stopTracking() {
+        val state = _uiState.value
+        //if tracked less than a minute, show warning because no reward would be given
+        if (state.elapsedMillis < 60_000L) {
+            _uiState.value = state.copy(showStopWarning = true)
+        } else {
+            confirmStopTracking()
+        }
+    }
+
+    fun dismissStopWarning() {
+        _uiState.value = _uiState.value.copy(showStopWarning = false)
+    }
+
+    fun confirmStopTracking() {
         viewModelScope.launch {
             val state = _uiState.value
             val trackingId = state.trackingId ?: return@launch
@@ -96,7 +110,8 @@ class TrackingViewModel(
                 sessionDurationMillis = stopResult.sessionDurationMillis,
                 elapsedMillis = stopResult.sessionDurationMillis,
                 goalCompletionReward = stopResult.goalCompletionReward,  //show goal completion reward in UI if applicable
-                pauseAutoStopWarning = null
+                pauseAutoStopWarning = null,
+                showStopWarning = false
             )
 
             _events.emit(TrackingEvent.NavigateToRewardsScreen)
@@ -282,7 +297,7 @@ class TrackingViewModel(
             )
 
             delay(5 * 60 * 1000) // 5 minutes (Total 60 min)
-            stopTracking()  // Auto-stop
+            confirmStopTracking()  // Auto-stop
         }
     }
 }

@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.components.tracking.FocusTimerProgress
 import com.example.purrsistence.ui.components.tracking.TrackingActionButton
+import com.example.purrsistence.ui.components.tracking.TrackingStopWarningDialog
 import com.example.purrsistence.ui.theme.DarkTertiary
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
@@ -52,6 +53,13 @@ fun TrackingScreen(
         state.multiplierResetWarning?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         }
+    }
+
+    if (state.showStopWarning) {
+        TrackingStopWarningDialog(
+            onDismiss = viewModel::dismissStopWarning,
+            onConfirm = viewModel::confirmStopTracking
+        )
     }
 
     if (isLandscape) {
