@@ -33,7 +33,6 @@ object SupabaseClientProvider {
             supabaseKey = publishableKey
         ) {
             defaultSerializer = KotlinXSerializer(Json { //TODO look over implementation
-                encodeDefaults = true
                 ignoreUnknownKeys = true
                 explicitNulls = true // Explicitly send null values to Supabase
             })
