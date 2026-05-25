@@ -86,4 +86,16 @@ class SupabaseGoalTrackingRemoteDataSource(
                 }
             }
     }
+
+    suspend fun deleteTrackingSessions(
+        supabaseUserId: String
+    ) {
+        supabase
+            .from("tracking_sessions")
+            .delete {
+                filter {
+                    eq("user_id", supabaseUserId)
+                }
+            }
+    }
 }

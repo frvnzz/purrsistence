@@ -20,6 +20,7 @@ interface GoalRepository {
     fun searchGoals(userId: Int, query: String): Flow<List<GoalWithSessions>>
     suspend fun getInactiveGoals(): List<Goal>
     suspend fun getGoalsForSync(userId: Int): List<Goal>
+    suspend fun resetGoalsStatus(userId: Int)
     suspend fun replaceGoalsFromRemoteSync(
         userId: Int,
         goals: List<Goal>
@@ -97,6 +98,10 @@ class GoalRepositoryImpl(
         return dao
             .getGoalEntitiesForUser(userId)
             .map { it.toDomain() }
+    }
+
+    override suspend fun resetGoalsStatus(userId: Int) {
+        dao.resetGoalsStatusForUser(userId)
     }
 
     override suspend fun replaceGoalsFromRemoteSync(
