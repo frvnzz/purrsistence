@@ -5,6 +5,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import com.example.purrsistence.ui.theme.Shapes
 
 @Composable
 fun TrackingStopWarningDialog(
@@ -20,12 +21,18 @@ fun TrackingStopWarningDialog(
             )
         },
         confirmButton = {
-            Button(onClick = onConfirm) {
+            Button(
+                onClick = onConfirm,
+                shape = Shapes.buttons
+            ) {
                 Text("Stop Anyway")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                shape = Shapes.buttons
+            ) {
                 Text("Keep Tracking")
             }
         }
