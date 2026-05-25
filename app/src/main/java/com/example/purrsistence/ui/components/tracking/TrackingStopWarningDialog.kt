@@ -16,7 +16,7 @@ fun TrackingStopWarningDialog(
         title = { Text("Stop Tracking?") },
         text = {
             Text(
-                "You have been tracking for less than a minute. If you stop now, you will not receive any coins for this session."
+                "You have been tracking for less than a minute. If you stop now, you will not receive any rewards for this session."
             )
         },
         confirmButton = {
