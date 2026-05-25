@@ -28,12 +28,12 @@ fun CurrencyBadge(balance: Int) {
         ) {
             Image(
                 // TODO: replace with actual currency icon later
-                painter = painterResource(id = R.drawable.coin_64),
+                painter = painterResource(id = R.drawable.fish_blue2_24),
                 contentDescription = "Currency",
                 modifier = Modifier.size(24.dp)
             )
 
-            Spacer(modifier = Modifier.width(Spacing.xs))
+            Spacer(modifier = Modifier.width(Spacing.sm))
 
             Text(
                 text = balance.toString(),

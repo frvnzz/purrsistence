@@ -74,13 +74,13 @@ fun ShopItemCard(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
 
                 Image(
-                    painter = painterResource(R.drawable.coin_64),
+                    painter = painterResource(R.drawable.fish_blue2_24),
                     contentDescription = "Currency",
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(24.dp)
                 )
 
                 Text(
