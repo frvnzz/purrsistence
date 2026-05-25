@@ -5,7 +5,6 @@ import com.example.purrsistence.domain.focus.FakeFocusBlocker
 import com.example.purrsistence.domain.service.fakes.FakeSupabaseSyncService
 import com.example.purrsistence.domain.service.fakes.FakeTrackingService
 import com.example.purrsistence.domain.time.FakeTimeProvider
-import com.example.purrsistence.service.SupabaseSyncService
 import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +60,7 @@ class TrackingViewModelDeepFocusTest {
         assertEquals(1, trackingService.lastStartedUserId)
         assertEquals(1, trackingService.startCalls)
 
-        viewModel.stopTracking()
+        viewModel.confirmStopTracking()
         runCurrent()
     }
 
@@ -89,7 +88,7 @@ class TrackingViewModelDeepFocusTest {
         assertEquals(1, trackingService.lastStartedUserId)
         assertEquals(1, trackingService.startCalls)
 
-        viewModel.stopTracking()
+        viewModel.confirmStopTracking()
         runCurrent()
     }
 
@@ -112,7 +111,7 @@ class TrackingViewModelDeepFocusTest {
         viewModel.startTrack(goalId = 9, goalTitle = "Test Goal", userId = 1, deepFocus = true)
         runCurrent()
 
-        viewModel.stopTracking()
+        viewModel.confirmStopTracking()
         runCurrent()
 
         assertEquals(1, blocker.stopCalls)
