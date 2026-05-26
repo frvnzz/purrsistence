@@ -1,6 +1,5 @@
 package com.example.purrsistence.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -21,7 +21,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -38,10 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.paneTitle
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selectableGroup
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.ui.components.DeepFocusAccessibilityDialog
@@ -301,19 +300,23 @@ fun EditGoalScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .semantics(mergeDescendants = true) {
+                        .toggleable(
+                            value = deepFocus,
+                            onValueChange = {
+                                deepFocus = it
+                                if (
+                                    requiresDeepFocusSetup(
+                                        context = context,
+                                        deepFocusEnabled = it
+                                    )
+                                ) {
+                                    showAccessibilityDialog.value = true
+                                }
+                            },
                             role = Role.Switch
-                        }
-                        .clickable {
-                            deepFocus = !deepFocus
-                            if (
-                                requiresDeepFocusSetup(
-                                    context = context,
-                                    deepFocusEnabled = deepFocus
-                                )
-                            ) {
-                                showAccessibilityDialog.value = true
-                            }
+                        )
+                        .semantics {
+                            stateDescription = if (deepFocus) "Deep Focus on" else "Deep Focus off"
                         },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -378,10 +381,14 @@ fun EditGoalScreen(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.lg)
             ) {
 
-                OutlinedButton(
+                Button(
                     onClick = onBack,
                     modifier = Modifier.weight(1f),
-                    shape = Shapes.buttons
+                    shape = Shapes.buttons,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
+                    )
                 ) {
                     Text("Cancel")
                 }

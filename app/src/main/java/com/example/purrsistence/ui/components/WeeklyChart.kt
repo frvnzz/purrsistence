@@ -13,8 +13,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.model.DailyStat
+import com.example.purrsistence.ui.util.formatMinutesForAccessibility
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
@@ -66,8 +70,27 @@ fun WeeklyChart(dailyStats: List<DailyStat>) {
     // Check if all values are zero (empty week)
     val hasData = dailyStats.any { it.totalMinutes > 0 }
 
+    val chartDescription = remember(dailyStats) {
+        if (!hasData) {
+            "No tracking data for this week"
+        } else {
+            val summary = dailyStats
+                .sortedBy { it.dayOfWeek.value }
+                .joinToString(", ") { stat ->
+                    val dayName = stat.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                    val time = formatMinutesForAccessibility(stat.totalMinutes)
+                    "$dayName: $time"
+                }
+            "Weekly tracking summary: $summary"
+        }
+    }
+
     Column {
-        Text("Tracked Time per Day", style = MaterialTheme.typography.labelLarge)
+        Text(
+            text = "Tracked Time per Day",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.semantics { heading() }
+        )
 
         if (!hasData) {
             // Show empty state message
@@ -86,6 +109,9 @@ fun WeeklyChart(dailyStats: List<DailyStat>) {
         } else {
             // Show chart only when there's data
             CartesianChartHost(
+                modifier = Modifier.semantics {
+                    contentDescription = chartDescription
+                },
                 chart = rememberCartesianChart(
                     rememberColumnCartesianLayer(
                         ColumnCartesianLayer.ColumnProvider.series(
