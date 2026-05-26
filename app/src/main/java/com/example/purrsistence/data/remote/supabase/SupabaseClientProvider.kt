@@ -8,7 +8,9 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.SettingsSessionManager
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.serializer.KotlinXSerializer
 import io.github.jan.supabase.storage.Storage
+import kotlinx.serialization.json.Json
 
 object SupabaseClientProvider {
 
@@ -30,6 +32,10 @@ object SupabaseClientProvider {
             supabaseUrl = url,
             supabaseKey = publishableKey
         ) {
+            defaultSerializer = KotlinXSerializer(Json { //TODO look over implementation
+                ignoreUnknownKeys = true
+                explicitNulls = true // Explicitly send null values to Supabase
+            })
 
             install(Auth) {
 

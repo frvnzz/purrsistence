@@ -17,6 +17,7 @@ interface TrackingRepository {
     suspend fun getAnyActiveTrackingSession(): TrackingSession?
     suspend fun deleteFinishedSessionsForGoalBefore(goalId: Int, cutoff: Instant)
     suspend fun countSessionsForGoal(goalId: Int): Int
+    suspend fun deleteAllTrackingSessions(userId: Int)
     suspend fun getTrackingSessionsForSync(userId: Int): List<TrackingSession>
     suspend fun replaceTrackingSessionsFromRemoteSync(
         userId: Int,
@@ -91,6 +92,10 @@ class TrackingRepositoryImpl(
 
     override suspend fun countSessionsForGoal(goalId: Int): Int {
         return trackingDao.countSessionsForGoal(goalId)
+    }
+
+    override suspend fun deleteAllTrackingSessions(userId: Int) {
+        trackingDao.deleteTrackingSessionsForUser(userId)
     }
 
     override suspend fun updateTrackingSession(session: TrackingSession) {

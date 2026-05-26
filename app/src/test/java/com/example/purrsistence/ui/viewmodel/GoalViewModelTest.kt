@@ -2,9 +2,9 @@ package com.example.purrsistence.ui.viewmodel
 
 import android.content.SharedPreferences
 import com.example.purrsistence.data.local.repository.GoalRepository
+import com.example.purrsistence.domain.service.fakes.FakeSupabaseSyncService
 import com.example.purrsistence.domain.time.TimeProvider
 import com.example.purrsistence.service.GoalService
-import com.example.purrsistence.domain.service.fakes.FakeSupabaseSyncService
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -56,6 +56,7 @@ private class FakeGoalRepository : GoalRepository {
     override fun searchGoals(userId: Int, query: String) = kotlinx.coroutines.flow.flowOf<List<com.example.purrsistence.domain.model.GoalWithSessions>>(emptyList())
     override suspend fun getInactiveGoals(): List<com.example.purrsistence.domain.model.Goal> = emptyList()
     override suspend fun getGoalsForSync(userId: Int): List<com.example.purrsistence.domain.model.Goal> = emptyList()
+    override suspend fun resetGoalsStatus(userId: Int) {}
     override suspend fun replaceGoalsFromRemoteSync(userId: Int, goals: List<com.example.purrsistence.domain.model.Goal>) {}
 }
 

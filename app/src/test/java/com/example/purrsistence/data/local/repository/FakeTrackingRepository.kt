@@ -63,6 +63,10 @@ class FakeTrackingRepository : TrackingRepository {
         return sessions.count { it.goalId == goalId }
     }
 
+    override suspend fun deleteAllTrackingSessions(userId: Int) {
+        sessions.removeAll { it.userId == userId }
+    }
+
     override suspend fun updateTrackingSession(session: TrackingSession) {
         val index = sessions.indexOfFirst { it.id == session.id }
         if (index != -1) {

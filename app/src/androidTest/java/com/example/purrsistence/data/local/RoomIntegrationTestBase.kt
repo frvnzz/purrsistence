@@ -91,7 +91,8 @@ abstract class RoomIntegrationTestBase {
         deepFocus: Boolean = false,
         inactive: Boolean = false,
         createdAt: Long = 1_700_000_000_000L,
-        isCompleted: Boolean = false
+        isCompleted: Boolean = false,
+        lastCompletedAt: Long? = null
     ) = runBlocking {
         goalsDao.insertGoal(
             GoalEntity(
@@ -104,7 +105,7 @@ abstract class RoomIntegrationTestBase {
                 inactive = inactive,
                 createdAt = createdAt,
                 isCompleted = isCompleted,
-                lastCompletedAt = null
+                lastCompletedAt = lastCompletedAt
             )
         )
     }
