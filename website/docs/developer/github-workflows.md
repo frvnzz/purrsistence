@@ -19,8 +19,7 @@ This page explains the automations in `.github/workflows` for our project.
 
 ### When it runs
 
-- On push to any branch (`branches: ['**']`) with some paths ignored (`**.md`, `website/**`,
-  `.gitignore`, `LICENSE`).
+- On push to any branch (`branches: ['**']`).
 - On pull requests targeting `main`.
 - On manual trigger (`workflow_dispatch`).
 
