@@ -35,6 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -140,6 +142,7 @@ fun AuthScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .semantics { paneTitle = "Account Screen" }
             .verticalScroll(rememberScrollState())
             .padding(Spacing.lg),
         contentAlignment = Alignment.Center

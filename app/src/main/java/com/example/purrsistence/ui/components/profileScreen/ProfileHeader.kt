@@ -21,15 +21,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -82,7 +84,7 @@ fun ProfileHeaderSection(
         ) {
             if (isEditing) {
                 // Edit mode
-                TextField(
+                OutlinedTextField(
                     value = username,
                     onValueChange = callbacks.onUsernameChange,
                     singleLine = true,
@@ -91,9 +93,13 @@ fun ProfileHeaderSection(
                         .fillMaxWidth()
                         .focusRequester(usernameFocusRequester),
                     shape = Shapes.inputs,
-                    colors = TextFieldDefaults.colors(
+                    colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                     ),
                     textStyle = MaterialTheme.typography.titleMedium,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -149,7 +155,11 @@ fun ProfileHeaderSection(
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .semantics {
+                                contentDescription = "Username: ${user?.username ?: "Username"}"
+                            },
                     )
 
                     IconButton(
@@ -172,7 +182,10 @@ fun ProfileHeaderSection(
                     Text(
                         text = "${user?.collectedCatsIds?.size ?: 0} Cats",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.semantics{
+                            contentDescription = "Number of collected cats by User is ${user?.collectedCatsIds?.size ?: 0}"
+                        }
                     )
 
                     if (user?.isSupabaseLinked == true) {

@@ -5,19 +5,40 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import com.example.purrsistence.domain.model.GoalWithSessions
@@ -49,10 +70,21 @@ fun GoalBottomDrawer(
 
     val height = lerp(collapsedHeight, expandedHeight, progress)
 
+    val isExpanded = progress > 0.5f
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
+            .semantics {
+                contentDescription = "Goal selection drawer"
+                role = Role.Button
+                stateDescription = if (isExpanded) "Expanded" else "Collapsed"
+                onClick(label = if (isExpanded) "Collapse goal list" else "Expand goal list") {
+                    progress = if (isExpanded) 0f else 1f
+                    true
+                }
+            }
             .background(
                 MaterialTheme.colorScheme.secondary,
                 shape = RoundedCornerShape(
@@ -96,8 +128,15 @@ fun GoalBottomDrawer(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        progress = if (progress > 0f) 0f else 1f
+                    .clickable(
+                        onClickLabel = if (isExpanded) "Collapse goal list" else "Expand goal list",
+                        onClick = {
+                            progress = if (isExpanded) 0f else 1f
+                        }
+                    )
+                    .semantics {
+                        role = Role.Button
+                        stateDescription = if (isExpanded) "Expanded Goal Selection" else "Collapsed Goal Selection"
                     }
                     .padding(horizontal = Spacing.lg),
                 verticalAlignment = Alignment.CenterVertically

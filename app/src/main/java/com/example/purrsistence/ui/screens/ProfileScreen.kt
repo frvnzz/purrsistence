@@ -24,6 +24,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.example.purrsistence.ui.components.profileScreen.InventorySection
@@ -115,6 +117,7 @@ fun ProfileScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
+                .semantics { paneTitle = "Profile Screen" }
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = { focusManager.clearFocus() })
                 }
@@ -155,6 +158,7 @@ fun ProfileScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .semantics { paneTitle = "Profile Screen" }
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = { focusManager.clearFocus() })
                 },

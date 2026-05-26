@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -93,7 +95,10 @@ fun CatInventoryCard(
     Surface(
         modifier = modifier
             .aspectRatio(1f)
-            .clip(Shapes.cards),
+            .clip(Shapes.cards)
+            .clearAndSetSemantics {
+                contentDescription = "Cat: ${cat.name}"
+            },
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp
     ) {

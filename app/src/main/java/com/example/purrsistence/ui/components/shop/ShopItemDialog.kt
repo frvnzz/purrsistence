@@ -24,6 +24,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.R
@@ -70,6 +72,9 @@ fun ShopItemDialog(
             ) {
                 // Cat Shop Item Card (with price)
                 Card(
+                    modifier = Modifier.clearAndSetSemantics { 
+                        contentDescription = "${item.name}, ${item.price} fish" 
+                    },
                     shape = Shapes.cards,
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.background,
@@ -105,7 +110,7 @@ fun ShopItemDialog(
                             Spacer(modifier = Modifier.width(Spacing.xs))
 
                             Text(
-                                item.price.toString(),
+                                text = item.price.toString(),
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }

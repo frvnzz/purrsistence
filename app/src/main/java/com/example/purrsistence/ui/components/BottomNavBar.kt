@@ -50,8 +50,8 @@ fun BottomNavBar(navController: NavController) {
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     selectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedIconColor = MaterialTheme.colorScheme.surfaceDim,
-                    unselectedTextColor = MaterialTheme.colorScheme.surfaceDim,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     // pill highlight for selected tab
                     indicatorColor = MaterialTheme.colorScheme.tertiary
                 ),

@@ -1,23 +1,40 @@
 package com.example.purrsistence.ui.components.goalsScreen
 
-import java.time.ZonedDateTime
-import java.util.Locale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.*
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.model.GoalWithSessions
 import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
+import java.time.ZonedDateTime
+import java.util.Locale
 
 @Composable
 fun GoalCard(
@@ -54,6 +71,15 @@ fun GoalCard(
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
+            .clearAndSetSemantics {
+                val selectionStatus = if (isDeleteMode) {
+                    if (isSelected) ", selected" else ", not selected"
+                } else ""
+                val completionStatus = if (goal.isCompleted) ", completed" else ", ${(progress * 100).toInt()}% progress"
+                
+                contentDescription = "${goal.title}, $formattedDuration $formattedType$completionStatus$selectionStatus"
+                role = Role.Button
+            }
             .then(
                 if (isDeleteMode) {
                     Modifier.clickable { onCheckedChange(!isSelected) }
