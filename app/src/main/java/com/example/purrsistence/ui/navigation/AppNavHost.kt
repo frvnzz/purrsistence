@@ -23,6 +23,7 @@ import com.example.purrsistence.ui.screens.FriendsScreen
 import com.example.purrsistence.ui.screens.RewardsScreen
 import com.example.purrsistence.ui.screens.TrackingScreen
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.util.SoundManager
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 
@@ -35,7 +36,8 @@ fun AppNavHost(
     trackingViewModel: TrackingViewModel,
     statisticsViewModel: StatisticsViewModel,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
+    soundManager: SoundManager
 ) {
     LaunchedEffect(Unit) {
         trackingViewModel.events.collect { event ->
@@ -77,7 +79,8 @@ fun AppNavHost(
                         deepFocus = deepFocus
                     )
                 },
-                setTopBar = setTopBar
+                setTopBar = setTopBar,
+                soundManager = soundManager
         ) }
         // GOALS
         composable("goals") {
@@ -168,7 +171,8 @@ fun AppNavHost(
         composable("shop") {
             ShopScreen(
                 userViewModel = userViewModel,
-                setTopBar = setTopBar
+                setTopBar = setTopBar,
+                soundManager = soundManager
             )
         }
         // PROFILE

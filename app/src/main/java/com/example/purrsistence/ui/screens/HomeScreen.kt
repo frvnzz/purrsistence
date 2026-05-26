@@ -1,32 +1,43 @@
 package com.example.purrsistence.ui.screens
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.example.purrsistence.ui.viewmodel.GoalViewModel
-import com.example.purrsistence.ui.components.DeepFocusAccessibilityDialog
-import com.example.purrsistence.ui.components.CurrencyBadge
-import com.example.purrsistence.ui.components.homeScreen.GoalBottomDrawer
-import com.example.purrsistence.ui.util.handleStartTrackingClick
-import com.example.purrsistence.ui.util.openAccessibilitySettings
-import com.example.purrsistence.ui.viewmodel.UserViewModel
-import com.example.purrsistence.service.RoomService
-import com.example.purrsistence.ui.components.homeScreen.RoomView
-import com.example.purrsistence.ui.components.homeScreen.CatSelectionDialog
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import com.example.purrsistence.service.RoomService
+import com.example.purrsistence.ui.components.CurrencyBadge
+import com.example.purrsistence.ui.components.DeepFocusAccessibilityDialog
+import com.example.purrsistence.ui.components.homeScreen.CatSelectionDialog
+import com.example.purrsistence.ui.components.homeScreen.GoalBottomDrawer
+import com.example.purrsistence.ui.components.homeScreen.RoomView
 import com.example.purrsistence.ui.components.homeScreen.SelectCatsButton
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.SoundManager
+import com.example.purrsistence.ui.util.handleStartTrackingClick
+import com.example.purrsistence.ui.util.openAccessibilitySettings
+import com.example.purrsistence.ui.viewmodel.GoalViewModel
+import com.example.purrsistence.ui.viewmodel.UserViewModel
 
 @Composable
 fun HomeScreen(
     userViewModel: UserViewModel,
     goalViewModel: GoalViewModel,
     onStartTracking: (Int, String, Int, Boolean) -> Unit,
-    setTopBar: (TopBarState) -> Unit
+    setTopBar: (TopBarState) -> Unit,
+    soundManager: SoundManager
 ) {
 
     val context = LocalContext.current
@@ -102,7 +113,8 @@ fun HomeScreen(
                 ) {
                     RoomView(
                         placedCats = placedCats,
-                        spots = spots
+                        spots = spots,
+                        onCatTap = { soundManager.playMeow() }
                     )
                 }
             }

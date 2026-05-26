@@ -27,7 +27,8 @@ import com.example.purrsistence.domain.model.RoomSpot
 fun RoomView(
     placedCats: List<PlacedCat>,
     spots: List<RoomSpot>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCatTap: () -> Unit = {}
 ) {
     val painter = painterResource(R.drawable.room_ph)
     val imageSize = painter.intrinsicSize
@@ -84,6 +85,11 @@ fun RoomView(
                             y = (actualHeight * spot.yPercent) - 100.dp
                         )
                         .zIndex(spot.yPercent)
+                        .pointerInput(Unit) {
+                            detectTapGestures {
+                                onCatTap()
+                            }
+                        }
                 ) {
                     CatImage(
                         catId = placedCat.catId,
