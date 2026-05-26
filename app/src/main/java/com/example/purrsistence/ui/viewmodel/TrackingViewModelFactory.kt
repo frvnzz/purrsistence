@@ -2,6 +2,7 @@ package com.example.purrsistence.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.purrsistence.controller.TrackingNotificationController
 import com.example.purrsistence.domain.focus.FocusBlocker
 import com.example.purrsistence.domain.time.TimeProvider
 import com.example.purrsistence.service.RewardService
@@ -13,7 +14,8 @@ class TrackingViewModelFactory(
     private val rewardService: RewardService,
     private val timeProvider: TimeProvider,
     private val focusBlocker: FocusBlocker,
-    private val supabaseSyncService: SupabaseSyncService
+    private val supabaseSyncService: SupabaseSyncService,
+    private val trackingNotificationController: TrackingNotificationController
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -25,7 +27,8 @@ class TrackingViewModelFactory(
                 rewardService = rewardService,
                 timeProvider = timeProvider,
                 focusBlocker = focusBlocker,
-                supabaseSyncService
+                trackingNotificationController = trackingNotificationController,
+                supabaseSyncService = supabaseSyncService
             ) as T
         }
 

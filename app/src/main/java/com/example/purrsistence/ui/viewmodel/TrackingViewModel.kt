@@ -1,11 +1,14 @@
 package com.example.purrsistence.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.purrsistence.controller.TrackingNotificationController
 import com.example.purrsistence.domain.focus.FocusBlocker
 import com.example.purrsistence.domain.time.TimeProvider
 import com.example.purrsistence.service.SupabaseSyncService
 import com.example.purrsistence.service.RewardService
+import com.example.purrsistence.service.TrackingForegroundService
 import com.example.purrsistence.service.TrackingService
 import com.example.purrsistence.service.TrackingSyncService
 import com.example.purrsistence.ui.navigation.TrackingEvent
@@ -26,7 +29,8 @@ class TrackingViewModel(
     private val rewardService: RewardService,
     private val timeProvider: TimeProvider,
     private val focusBlocker: FocusBlocker,
-    private val supabaseSyncService: TrackingSyncService
+    private val supabaseSyncService: TrackingSyncService,
+    private val trackingNotificationController: TrackingNotificationController
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TrackingUiState())
@@ -69,6 +73,12 @@ class TrackingViewModel(
                 isTracking = true
             )
 
+            trackingNotificationController.startTrackingNotification(
+                trackingId = session.id,
+                goalTitle = goalTitle,
+                startTimeMillis = session.startTime.toEpochMilli()
+            )
+
             startTicker(session.startTime)
             _events.emit(TrackingEvent.NavigateToTrackingScreen)
         }
@@ -98,6 +108,8 @@ class TrackingViewModel(
                 goalCompletionReward = stopResult.goalCompletionReward,  //show goal completion reward in UI if applicable
                 pauseAutoStopWarning = null
             )
+
+            trackingNotificationController.stopTrackingNotification()
 
             _events.emit(TrackingEvent.NavigateToRewardsScreen)
             supabaseSyncService.syncAfterLocalTrackingSessionChanged()
