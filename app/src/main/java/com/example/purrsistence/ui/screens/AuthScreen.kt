@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -16,13 +18,12 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 
@@ -138,6 +140,7 @@ fun AuthScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(Spacing.lg),
         contentAlignment = Alignment.Center
     ) {
@@ -160,12 +163,12 @@ fun AuthScreen(
 
             Spacer(modifier = Modifier.height(Spacing.xl))
 
-            Card(
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                shape = Shapes.cards,
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 1.dp,
+                shadowElevation = 0.5.dp
             ) {
                 Column(
                     modifier = Modifier
@@ -185,6 +188,7 @@ fun AuthScreen(
                                 Icon(Icons.Default.Person, contentDescription = null)
                             },
                             modifier = Modifier.fillMaxWidth(),
+                            shape = Shapes.inputs,
                             isError = usernameError != null,
                             supportingText = {
                                 if (usernameError != null) {
@@ -208,6 +212,7 @@ fun AuthScreen(
                             Icon(Icons.Default.Email, contentDescription = null)
                         },
                         modifier = Modifier.fillMaxWidth(),
+                        shape = Shapes.inputs,
                         isError = emailError != null,
                         supportingText = {
                             if (emailError != null) {
@@ -239,6 +244,7 @@ fun AuthScreen(
                         },
                         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
+                        shape = Shapes.inputs,
                         isError = passwordError != null,
                         supportingText = {
                             if (passwordError != null) {
@@ -268,7 +274,7 @@ fun AuthScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium
+                        shape = Shapes.buttons
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(
@@ -290,7 +296,8 @@ fun AuthScreen(
                             usernameError = null
                             emailError = null
                             passwordError = null
-                        }
+                        },
+                        shape = Shapes.buttons
                     ) {
                         Text(
                             if (isLoginMode) {

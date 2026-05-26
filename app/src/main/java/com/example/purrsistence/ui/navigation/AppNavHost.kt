@@ -7,22 +7,22 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.screens.AddGoalScreen
 import com.example.purrsistence.ui.screens.AuthScreen
 import com.example.purrsistence.ui.screens.EditGoalScreen
+import com.example.purrsistence.ui.screens.FriendsScreen
 import com.example.purrsistence.ui.screens.GoalDetailsScreen
 import com.example.purrsistence.ui.screens.GoalsScreen
 import com.example.purrsistence.ui.screens.HomeScreen
 import com.example.purrsistence.ui.screens.ProfileScreen
+import com.example.purrsistence.ui.screens.RewardsScreen
+import com.example.purrsistence.ui.screens.SettingsScreen
 import com.example.purrsistence.ui.screens.ShopScreen
 import com.example.purrsistence.ui.screens.StatisticsScreen
-import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
-import com.example.purrsistence.ui.screens.SettingsScreen
-import com.example.purrsistence.ui.screens.FriendsScreen
-import com.example.purrsistence.ui.screens.RewardsScreen
 import com.example.purrsistence.ui.screens.TrackingScreen
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.viewmodel.GoalViewModel
+import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 
@@ -182,7 +182,7 @@ fun AppNavHost(
                     if (userViewModel.isSupabaseSignedIn.value) {
                         navController.navigate("friends")
                     } else {
-                        navController.navigate("auth")
+                        navController.navigate("auth?redirect=friends")
                     }
                 }
             )
@@ -203,15 +203,20 @@ fun AppNavHost(
                 setTopBar = setTopBar
             )
         }
-        composable("auth") {
+        composable("auth?redirect={redirect}") { backStackEntry ->
+            val redirect = backStackEntry.arguments?.getString("redirect")
             AuthScreen(
                 userViewModel = userViewModel,
                 setTopBar = setTopBar,
                 onAuthSuccess = {
-                    navController.navigate("friends") {
-                        popUpTo("auth") {
-                            inclusive = true
+                    if (redirect != null) {
+                        navController.navigate(redirect) {
+                            popUpTo("auth?redirect={redirect}") {
+                                inclusive = true
+                            }
                         }
+                    } else {
+                        navController.popBackStack()
                     }
                 },
                 onBack = {
