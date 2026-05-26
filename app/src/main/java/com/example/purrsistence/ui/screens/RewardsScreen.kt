@@ -15,6 +15,8 @@ import com.example.purrsistence.ui.components.tracking.TrackingActionButton
 import com.example.purrsistence.ui.theme.DarkTertiary
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.util.formatDuration
+import com.example.purrsistence.ui.util.formatLocalizedDecimal
+import com.example.purrsistence.ui.util.formatLocalizedInteger
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 
 @Composable
@@ -54,7 +56,7 @@ fun RewardsScreen(
                 Spacer(modifier = Modifier.height(Spacing.xxl))
 
                 Text(
-                    text = "+${state.rewardedCurrency} coins",
+                    text = "+${formatLocalizedInteger(state.rewardedCurrency ?: 0)} coins",
                     style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -71,7 +73,7 @@ fun RewardsScreen(
                 Spacer(modifier = Modifier.height(Spacing.sm))
 
                 Text(
-                    text = "Multiplier x${"%.2f".format(state.multiplier ?: 1.0)}",
+                    text = "Multiplier x${formatLocalizedDecimal(state.multiplier ?: 1.0, 2)}",
                     style = MaterialTheme.typography.bodyLarge
                 )
 
@@ -88,7 +90,7 @@ fun RewardsScreen(
                     Spacer(modifier = Modifier.height(Spacing.sm))
 
                     Text(
-                        text = "+${state.goalCompletionReward} bonus coins",
+                        text = "+${formatLocalizedInteger(state.goalCompletionReward ?: 0)} bonus coins",
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -127,7 +129,7 @@ fun RewardsScreen(
                 Spacer(modifier = Modifier.height(Spacing.xxl))
 
                 Text(
-                    text = "+${state.rewardedCurrency} coins",
+                    text = "+${formatLocalizedInteger(state.rewardedCurrency ?: 0)} coins",
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -144,7 +146,7 @@ fun RewardsScreen(
                 Spacer(modifier = Modifier.height(Spacing.sm))
 
                 Text(
-                    text = "Multiplier x${"%.2f".format(state.multiplier ?: 1.0)}",
+                    text = "Multiplier x${formatLocalizedDecimal(state.multiplier ?: 1.0, 2)}",
                     style = MaterialTheme.typography.bodyLarge
                 )
 
@@ -161,7 +163,7 @@ fun RewardsScreen(
                     Spacer(modifier = Modifier.height(Spacing.sm))
 
                     Text(
-                        text = "+${state.goalCompletionReward} bonus coins",
+                        text = "+${formatLocalizedInteger(state.goalCompletionReward ?: 0)} bonus coins",
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
