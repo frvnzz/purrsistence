@@ -188,7 +188,7 @@ class MainActivity : ComponentActivity() {
             }
 
             //reset completed goals for new time window/cycle
-            //TODO: update somewhere else, because this is to infrequent and only happens when app is opened
+            //TODO: update somewhere else, because this is to infrequent and only happens when app is opened.
             //goalService.resetCompletedGoalsIfNewCycle(
             //    userId = 1,
             //    now = ZonedDateTime.now()
