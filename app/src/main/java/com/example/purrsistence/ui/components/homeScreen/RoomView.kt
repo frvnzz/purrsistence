@@ -42,7 +42,7 @@ fun RoomView(
     modifier: Modifier = Modifier,
     onCatTap: () -> Unit = {}
 ) {
-    val painter = painterResource(R.drawable.room_ph)
+    val painter = painterResource(R.drawable.home_room1)
     val imageSize = painter.intrinsicSize
 
     val activeBursts = remember { mutableStateListOf<HeartBurstState>() }
@@ -115,7 +115,7 @@ fun RoomView(
                     CatImage(
                         catId = placedCat.catId,
                         isMirrored = placedCat.isMirrored,
-                        modifier = Modifier.size(100.dp)
+                        modifier = Modifier.size(82.dp)
                     )
                 }
             }

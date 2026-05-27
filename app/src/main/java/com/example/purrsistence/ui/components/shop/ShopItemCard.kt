@@ -124,6 +124,7 @@ fun ShopItemCard(
                             else -> Icons.Outlined.Sell
                         },
                         contentDescription = null,
+                        modifier = Modifier.size(24.dp),
                         tint = if (canAfford && !isOwned) {
                             MaterialTheme.colorScheme.onPrimary
                         } else {
@@ -135,6 +136,7 @@ fun ShopItemCard(
 
                     Text(
                         text = buttonText,
+                        style = MaterialTheme.typography.labelLarge,
                         color = if (canAfford && !isOwned) {
                             MaterialTheme.colorScheme.onPrimary
                         } else {

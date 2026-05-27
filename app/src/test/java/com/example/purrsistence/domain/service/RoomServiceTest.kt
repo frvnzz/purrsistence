@@ -16,14 +16,14 @@ class RoomServiceTest {
 
         assertEquals(5, spots.size)
 
-        assertEquals("floor_center", spots[0].id)
-        assertEquals(0.498f, spots[0].xPercent, 0.0001f)
-        assertEquals(0.757f, spots[0].yPercent, 0.0001f)
+        assertEquals("cat_tree_left", spots[0].id)
+        assertEquals(0.221f, spots[0].xPercent, 0.0001f)
+        assertEquals(0.445f, spots[0].yPercent, 0.0001f)
 
-        assertEquals("floor_left", spots[1].id)
-        assertEquals("floor_right", spots[2].id)
-        assertEquals("floor_front", spots[3].id)
-        assertEquals("floor_back", spots[4].id)
+        assertEquals("bed_back", spots[1].id)
+        assertEquals("floor_center", spots[2].id)
+        assertEquals("floor_right", spots[3].id)
+        assertEquals("floor_front", spots[4].id)
     }
 
     @Test
@@ -73,8 +73,8 @@ class RoomServiceTest {
         )
 
         val spots = listOf(
-            RoomSpot("spot_a", 0.1f, 0.1f),
-            RoomSpot("spot_b", 0.2f, 0.2f)
+            RoomSpot("spot_a", 0.1f, 0.1f, isMirrored = false),
+            RoomSpot("spot_b", 0.2f, 0.2f, isMirrored = true)
         )
 
         val result = service.assignCatsToSpots(
