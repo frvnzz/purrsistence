@@ -72,11 +72,13 @@ fun TrackingScreen(
     }
 
     LaunchedEffect(state.isPaused) {
-        val message = if (state.isPaused) "Tracking paused" else "Tracking resumed"
-        val event = AccessibilityEvent.obtain()
-        event.eventType = AccessibilityEvent.TYPE_ANNOUNCEMENT
-        event.text.add(message)
-        accessibilityManager.sendAccessibilityEvent(event)
+        if (accessibilityManager.isEnabled) {
+            val message = if (state.isPaused) "Tracking paused" else "Tracking resumed"
+            val event = AccessibilityEvent.obtain()
+            event.eventType = AccessibilityEvent.TYPE_ANNOUNCEMENT
+            event.text.add(message)
+            accessibilityManager.sendAccessibilityEvent(event)
+        }
     }
 
     if (isLandscape) {
