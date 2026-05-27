@@ -1,7 +1,9 @@
 package com.example.purrsistence.ui.tracking
 
 
+import com.example.purrsistence.domain.controller.FakeTrackingNotificationController
 import com.example.purrsistence.domain.focus.FakeFocusBlocker
+import com.example.purrsistence.domain.notifications.FakeSessionReminderScheduler
 import com.example.purrsistence.domain.service.fakes.FakeSupabaseSyncService
 import com.example.purrsistence.domain.service.fakes.FakeTrackingService
 import com.example.purrsistence.domain.time.FakeTimeProvider
@@ -44,13 +46,17 @@ class TrackingViewModelDeepFocusTest {
         val blocker = FakeFocusBlocker()
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1_000L))
         val trackingSyncService = FakeSupabaseSyncService()
+        val notificationController = FakeTrackingNotificationController()
+        val reminderScheduler = FakeSessionReminderScheduler()
 
         val viewModel = TrackingViewModel(
             trackingService = trackingService,
             rewardService = rewardService,
             timeProvider = timeProvider,
             focusBlocker = blocker,
-            supabaseSyncService = trackingSyncService
+            supabaseSyncService = trackingSyncService,
+            trackingNotificationController = notificationController,
+            sessionReminderScheduler = reminderScheduler,
         )
 
         viewModel.startTrack(goalId = 9, goalTitle = "Test Goal", userId = 1, deepFocus = true)
@@ -65,21 +71,25 @@ class TrackingViewModelDeepFocusTest {
         runCurrent()
     }
 
-    @Test
-    fun startTrack_withoutDeepFocus_doesNotStartBlocking() = runTest {
-        val trackingService = FakeTrackingService()
-        val rewardService = RewardService()
-        val blocker = FakeFocusBlocker()
-        val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1_000L))
-        val trackingSyncService = FakeSupabaseSyncService()
+        @Test
+        fun startTrack_withoutDeepFocus_doesNotStartBlocking() = runTest {
+            val trackingService = FakeTrackingService()
+            val rewardService = RewardService()
+            val blocker = FakeFocusBlocker()
+            val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1_000L))
+            val trackingSyncService = FakeSupabaseSyncService()
+            val notificationController = FakeTrackingNotificationController()
+            val reminderScheduler = FakeSessionReminderScheduler()
 
-        val viewModel = TrackingViewModel(
-            trackingService = trackingService,
-            rewardService = rewardService,
-            timeProvider = timeProvider,
-            focusBlocker = blocker,
-            supabaseSyncService = trackingSyncService
-        )
+            val viewModel = TrackingViewModel(
+                trackingService = trackingService,
+                rewardService = rewardService,
+                timeProvider = timeProvider,
+                focusBlocker = blocker,
+                supabaseSyncService = trackingSyncService,
+                trackingNotificationController = notificationController,
+                sessionReminderScheduler = reminderScheduler,
+            )
 
         viewModel.startTrack(goalId = 9, goalTitle = "Test Goal", userId = 1, deepFocus = false)
         runCurrent()
@@ -100,13 +110,17 @@ class TrackingViewModelDeepFocusTest {
         val blocker = FakeFocusBlocker()
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(1_000L))
         val trackingSyncService = FakeSupabaseSyncService()
+        val notificationController = FakeTrackingNotificationController()
+        val reminderScheduler = FakeSessionReminderScheduler()
 
         val viewModel = TrackingViewModel(
             trackingService = trackingService,
             rewardService = rewardService,
             timeProvider = timeProvider,
             focusBlocker = blocker,
-            supabaseSyncService = trackingSyncService
+            supabaseSyncService = trackingSyncService,
+            trackingNotificationController = notificationController,
+            sessionReminderScheduler = reminderScheduler,
         )
 
         viewModel.startTrack(goalId = 9, goalTitle = "Test Goal", userId = 1, deepFocus = true)

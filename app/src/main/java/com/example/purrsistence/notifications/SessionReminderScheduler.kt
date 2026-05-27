@@ -7,12 +7,22 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
 
-class SessionReminderScheduler(
-    private val context: Context
-) {
-
+interface SessionReminderScheduler {
     fun scheduleReminder(
         delayMinutes: Long = 180,
+        title: String,
+        message: String
+    )
+
+    fun cancelReminder()
+}
+
+class SessionReminderSchedulerImpl(
+    private val context: Context
+) : SessionReminderScheduler{
+
+    override fun scheduleReminder(
+        delayMinutes: Long,
         title: String,
         message: String
     ) {
@@ -33,7 +43,7 @@ class SessionReminderScheduler(
         )
     }
 
-    fun cancelReminder() {
+    override fun cancelReminder() {
         WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_REMINDER_WORK)
     }
 

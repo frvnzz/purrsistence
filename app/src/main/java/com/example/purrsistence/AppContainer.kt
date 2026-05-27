@@ -46,6 +46,7 @@ import com.example.purrsistence.service.TrackingServiceImpl
 import com.example.purrsistence.controller.TrackingNotificationController
 import com.example.purrsistence.controller.TrackingNotificationControllerImpl
 import com.example.purrsistence.notifications.SessionReminderScheduler
+import com.example.purrsistence.notifications.SessionReminderSchedulerImpl
 
 class AppContainer(
     private val context: Context
@@ -140,7 +141,7 @@ class AppContainer(
     }
 
     val sessionReminderScheduler: SessionReminderScheduler by lazy {
-        SessionReminderScheduler(context)
+        SessionReminderSchedulerImpl(context)
     }
 
     // Supabase
