@@ -1,5 +1,6 @@
 package com.example.purrsistence.ui.screens
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -66,6 +69,8 @@ fun GoalsScreen(
 
     val query = goalViewModel.searchQuery
     val isSearching = query.isNotBlank()
+
+    val focusManager = LocalFocusManager.current
 
     var isDeleteMode by remember { mutableStateOf(false) }
     var selectedGoals by remember { mutableStateOf(setOf<Int>()) }
@@ -131,6 +136,9 @@ fun GoalsScreen(
         modifier = Modifier
             .fillMaxSize()
             .semantics { paneTitle = "Your Goals Screen" }
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            }
     ) {
         Column(
             modifier = Modifier
