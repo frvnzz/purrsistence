@@ -1,5 +1,6 @@
 package com.example.purrsistence.ui.screens
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
@@ -41,6 +43,9 @@ fun HomeScreen(
     setTopBar: (TopBarState) -> Unit,
     soundManager: SoundManager
 ) {
+    val configuration = LocalConfiguration.current
+    val isLandscape =
+        configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val context = LocalContext.current
     var showAccessibilityDialog by remember { mutableStateOf(false) }
@@ -75,7 +80,7 @@ fun HomeScreen(
     // set TopBar content (header & CurrencyBadge)
     setTopBar(
         TopBarState(
-            title = "Your Cats",
+            title = "Home",
             actions = { CurrencyBadge(balance = balance) }
         )
     )
@@ -87,13 +92,10 @@ fun HomeScreen(
     ) {
 
         // MAIN CONTENT
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
+        if (!isLandscape) {
             Column(
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxSize()
                     .padding(
                         start = Spacing.lg,
                         top = Spacing.lg,
@@ -125,6 +127,7 @@ fun HomeScreen(
 
         // GOAL PICKER / DRAWER OVERLAY
         GoalBottomDrawer(
+            modifier = Modifier.align(Alignment.BottomCenter),
             goals = goals,
             selectedGoalId = selectedGoalId,
             onGoalSelected = { goalViewModel.selectGoal(it) },
@@ -136,7 +139,7 @@ fun HomeScreen(
                     onNeedsAccessibilitySetup = { showAccessibilityDialog = true }
                 )
             },
-            modifier = Modifier.align(Alignment.BottomCenter)
+            alwaysExpanded = isLandscape
         )
 
         if (showAccessibilityDialog) {
