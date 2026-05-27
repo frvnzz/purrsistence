@@ -4,20 +4,20 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 
-class TrackingNotificationManager(
+class ReminderNotificationManager(
     private val context: Context
 ) {
 
     fun createChannels() {
-        val channel = NotificationChannel(
-            NotificationChannels.TRACKING,
-            "Tracking session",
-            NotificationManager.IMPORTANCE_LOW
+        val reminderChannel = NotificationChannel(
+            NotificationChannels.REMINDERS,
+            "Reminders",
+            NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Shows the current tracking session timer"
+            description = "Gentle reminders to return and track sessions"
         }
 
         val manager = context.getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(channel)
+        manager.createNotificationChannel(reminderChannel)
     }
 }

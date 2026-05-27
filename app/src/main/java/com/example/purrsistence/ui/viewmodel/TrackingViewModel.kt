@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.controller.TrackingNotificationController
 import com.example.purrsistence.domain.focus.FocusBlocker
 import com.example.purrsistence.domain.time.TimeProvider
+import com.example.purrsistence.notifications.SessionReminderScheduler
+import com.example.purrsistence.notifications.SessionReminderWorker
+import com.example.purrsistence.service.CleanupScheduler
 import com.example.purrsistence.service.SupabaseSyncService
 import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.service.TrackingForegroundService
@@ -30,7 +33,8 @@ class TrackingViewModel(
     private val timeProvider: TimeProvider,
     private val focusBlocker: FocusBlocker,
     private val supabaseSyncService: TrackingSyncService,
-    private val trackingNotificationController: TrackingNotificationController
+    private val trackingNotificationController: TrackingNotificationController,
+    private val sessionReminderScheduler: SessionReminderScheduler
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TrackingUiState())
@@ -79,6 +83,8 @@ class TrackingViewModel(
                 startTimeMillis = session.startTime.toEpochMilli()
             )
 
+            sessionReminderScheduler.cancelReminder()
+
             startTicker(session.startTime)
             _events.emit(TrackingEvent.NavigateToTrackingScreen)
         }
@@ -107,6 +113,12 @@ class TrackingViewModel(
                 elapsedMillis = stopResult.sessionDurationMillis,
                 goalCompletionReward = stopResult.goalCompletionReward,  //show goal completion reward in UI if applicable
                 pauseAutoStopWarning = null
+            )
+
+            sessionReminderScheduler.scheduleReminder(
+                delayMinutes = 1200,
+                title = "The cats are pretending not to worry",
+                message = "The cats have checked the doorway twice and are trying to stay brave."
             )
 
             trackingNotificationController.stopTrackingNotification()

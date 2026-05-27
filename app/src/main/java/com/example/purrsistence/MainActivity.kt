@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.purrsistence.data.local.entity.UserEntity
+import com.example.purrsistence.notifications.ReminderNotificationManager
 import com.example.purrsistence.notifications.TrackingNotificationManager
 import com.example.purrsistence.ui.screens.MainScreen
 import com.example.purrsistence.ui.theme.PurrsistenceTheme
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         TrackingNotificationManager(this).createChannels()
+        ReminderNotificationManager(this).createChannels()
 
 
         val appContainer = (application as PurrsistenceApplication).appContainer
@@ -58,6 +60,7 @@ class MainActivity : ComponentActivity() {
                 timeProvider = appContainer.timeProvider,
                 focusBlocker = appContainer.focusBlocker,
                 trackingNotificationController = appContainer.trackingNotificationController,
+                sessionReminderScheduler = appContainer.sessionReminderScheduler,
                 supabaseSyncService = appContainer.supabaseSyncService
             )
         )[TrackingViewModel::class.java]
