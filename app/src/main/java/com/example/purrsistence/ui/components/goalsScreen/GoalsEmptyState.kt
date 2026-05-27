@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 
 @Composable
@@ -74,7 +75,10 @@ fun GoalsEmptyState(
 
                 Spacer(modifier = Modifier.height(Spacing.lg))
 
-                Button(onClick = onAddGoalClick) {
+                Button(
+                    onClick = onAddGoalClick,
+                    shape = Shapes.buttons
+                ) {
                     Text("Add goal")
                 }
             }

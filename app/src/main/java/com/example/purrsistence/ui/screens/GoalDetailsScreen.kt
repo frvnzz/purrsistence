@@ -1,13 +1,33 @@
 package com.example.purrsistence.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,11 +35,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.formatMinutesForAccessibility
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import java.time.ZonedDateTime
 import java.util.Locale
@@ -75,6 +101,8 @@ fun GoalDetailsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .semantics { paneTitle = "Goal Details Screen" }
+            .verticalScroll(rememberScrollState())
             .padding(Spacing.lg),
         verticalArrangement = Arrangement.spacedBy(Spacing.xl)
     ) {
@@ -97,6 +125,9 @@ fun GoalDetailsScreen(
             ) {
 
                 Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics(mergeDescendants = true) {},
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
@@ -118,7 +149,7 @@ fun GoalDetailsScreen(
 
                             Icon(
                                 imageVector = Icons.Default.Visibility,
-                                contentDescription = "Deep Focus",
+                                contentDescription = "Deep Focus enabled",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(Spacing.sm)
                             )
@@ -134,17 +165,24 @@ fun GoalDetailsScreen(
 
                     Text(
                         text = "Goal Information",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.semantics { heading() }
                     )
 
                     Text(
                         text = "Target Duration: $formattedDuration",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Target Duration: ${formatMinutesForAccessibility(totalMinutesDuration.toInt())}"
+                        }
                     )
 
                     Text(
                         text = "Cycle: $formattedType",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Goal Cycle: $formattedType"
+                        }
                     )
 
                     Text(
@@ -160,14 +198,25 @@ fun GoalDetailsScreen(
                 HorizontalDivider()
 
                 Column(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
                     Text(
                         text = "Current Progress",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.semantics { heading() }
                     )
 
                     Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clearAndSetSemantics {
+                                contentDescription = if (currentGoal.isCompleted) {
+                                    "Progress: Completed"
+                                } else {
+                                    "Progress: ${(progress * 100).toInt()}%"
+                                }
+                            },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
@@ -191,7 +240,7 @@ fun GoalDetailsScreen(
                         if (currentGoal.isCompleted) {
                             Icon(
                                 imageVector = Icons.Default.Check,
-                                contentDescription = "Completed",
+                                contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         } else {

@@ -7,6 +7,7 @@ import com.example.purrsistence.data.remote.supabase.model.SupabaseRemoteUserDat
 import com.example.purrsistence.data.remote.supabase.repository.AuthRepository
 import com.example.purrsistence.data.remote.supabase.repository.CatCollectionRepository
 import com.example.purrsistence.data.remote.supabase.repository.FriendshipRepository
+import com.example.purrsistence.data.remote.supabase.repository.GoalTrackingRepository
 import com.example.purrsistence.data.remote.supabase.repository.ProfileRepository
 import com.example.purrsistence.data.remote.supabase.repository.SyncSnapshotRepository
 import com.example.purrsistence.domain.model.FriendProfile
@@ -60,6 +61,10 @@ interface TrackingSyncService {
         avatarPath: String?
     )
 
+    suspend fun resetTrackingSessions(
+        userId: Int
+    )
+
     suspend fun getFriends(): List<FriendProfile>
 
     suspend fun getIncomingFriendRequests(): List<Friendship>
@@ -93,6 +98,7 @@ class SupabaseSyncService(
     private val catRepository: CatCollectionRepository,
     private val friendshipRepository: FriendshipRepository,
     private val syncSnapshotRepository: SyncSnapshotRepository,
+    private val goalTrackingRepository: GoalTrackingRepository,
     private val localUserId: Int = 1
 ) : TrackingSyncService {
 
@@ -428,6 +434,32 @@ class SupabaseSyncService(
                 supabaseUserId = supabaseUserId
             )
         )
+    }
+
+    override suspend fun resetTrackingSessions(userId: Int) {
+        //Delete local tracking sessions
+        trackingRepository.deleteAllTrackingSessions(userId)
+
+        //Reset local goal statuses
+        goalRepository.resetGoalsStatus(userId)
+
+        //mark user as having pending local changes to ensure sync picks up the reset goals
+        val localUser = requireLocalUser()
+        userRepository.updateUserFromLocalAction(localUser)
+
+        //Handle remote sync if signed in
+        if (isSignedIn()) {
+            val supabaseUserId = requireSupabaseUserId()
+
+            //delete remote tracking sessions
+            goalTrackingRepository.deleteTrackingSessions(supabaseUserId)
+
+            //update remote goals with the reset status
+            val localGoals = goalRepository.getGoalsForSync(userId)
+            goalTrackingRepository.upsertGoals(supabaseUserId, localGoals)
+
+            userRepository.markUserSynced(userId)
+        }
     }
 
     override suspend fun getFriends(): List<FriendProfile> {

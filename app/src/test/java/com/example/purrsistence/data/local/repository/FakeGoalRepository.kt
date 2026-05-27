@@ -73,6 +73,19 @@ class FakeGoalRepository : GoalRepository {
         return goals.filter { it.inactive }
     }
 
+    override suspend fun resetGoalsStatus(userId: Int) {
+        val updatedGoals = goals.map {
+            if (it.userId == userId) {
+                it.copy(isCompleted = false, lastCompletedAt = null)
+            } else {
+                it
+            }
+        }
+        goals.clear()
+        goals.addAll(updatedGoals)
+        goalsFlow.value = goals.toList()
+    }
+
     override suspend fun getGoalsForSync(userId: Int): List<Goal> {
         TODO("Not yet implemented")
     }

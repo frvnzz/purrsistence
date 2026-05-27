@@ -6,7 +6,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -45,7 +50,7 @@ fun DeleteGoalsButton(
         ) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = null
+                contentDescription = "Enter Delete Mode"
             )
         }
 
@@ -94,7 +99,7 @@ fun DeleteGoalsButton(
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = null
+                    contentDescription = if (selectedGoalsCount > 0) "Delete ${selectedGoalsCount} selected goals" else "Delete"
                 )
 
                 if (selectedGoalsCount > 0) {

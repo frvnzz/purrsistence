@@ -1,9 +1,9 @@
 package com.example.purrsistence.ui.components.shop
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,17 +13,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Sell
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.R
 import com.example.purrsistence.domain.model.ShopItem
@@ -41,9 +44,23 @@ fun ShopItemCard(
 ) {
     val canAfford = balance >= item.price
 
+    val buttonText = when {
+        isOwned -> "Owned"
+        !canAfford -> "No Funds"
+        else -> "Adopt"
+    }
+
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clearAndSetSemantics {
+                contentDescription = "${item.name}, ${item.price} fish, $buttonText"
+                role = Role.Button
+            }
+            .clickable(
+                enabled = canAfford && !isOwned,
+                onClick = onBuy
+            ),
         shape = Shapes.cards,
         elevation = CardDefaults.cardElevation(
             defaultElevation = Elevation.Lvl2
@@ -60,7 +77,6 @@ fun ShopItemCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-
             CatImage(
                 cat = item,
                 isAnimated = false,
@@ -74,13 +90,13 @@ fun ShopItemCard(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
 
                 Image(
-                    painter = painterResource(R.drawable.coin_64),
-                    contentDescription = "Currency",
-                    modifier = Modifier.size(18.dp)
+                    painter = painterResource(R.drawable.fish_blue2_24),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
                 )
 
                 Text(
@@ -89,39 +105,43 @@ fun ShopItemCard(
                 )
             }
 
-            Button(
-                onClick = onBuy,
-                enabled = canAfford && !isOwned,
-
+            Surface(
                 shape = Shapes.buttons,
-                elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = Elevation.None // no elevation because button is on card
-                ),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.45f),
-                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                ),
-                contentPadding = PaddingValues(vertical = Spacing.sm, horizontal = Spacing.xl)
+                color = if (canAfford && !isOwned) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.secondary.copy(alpha = 0.45f)
+                },
+                modifier = Modifier.clearAndSetSemantics { }
             ) {
+                Row(
+                    modifier = Modifier.padding(vertical = Spacing.sm, horizontal = Spacing.xl),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = when {
+                            isOwned -> Icons.Outlined.Check
+                            else -> Icons.Outlined.Sell
+                        },
+                        contentDescription = null,
+                        tint = if (canAfford && !isOwned) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                        }
+                    )
 
-                Icon(
-                    imageVector = when {
-                        isOwned -> Icons.Outlined.Check
-                        else -> Icons.Outlined.Sell
-                    },
-                    contentDescription = null
-                )
+                    Spacer(modifier = Modifier.width(Spacing.sm))
 
-                Spacer(modifier = Modifier.width(Spacing.sm))
-
-                Text(
-                    when {
-                        isOwned -> "Owned"
-                        !canAfford -> "No Funds"
-                        else -> "Adopt"
-                    }
-                )
+                    Text(
+                        text = buttonText,
+                        color = if (canAfford && !isOwned) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
+                        }
+                    )
+                }
             }
         }
     }

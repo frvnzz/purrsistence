@@ -9,6 +9,7 @@ import com.example.purrsistence.domain.model.TrackingSession
 interface GoalTrackingRepository {
     suspend fun getGoals(supabaseUserId: String, localUserId: Int): List<Goal>
     suspend fun getTrackingSessions(supabaseUserId: String, localUserId: Int): List<TrackingSession>
+    suspend fun deleteTrackingSessions(supabaseUserId: String)
     suspend fun upsertGoals(supabaseUserId: String, goals: List<Goal>)
     suspend fun upsertTrackingSessions(supabaseUserId: String, sessions: List<TrackingSession>)
 }
@@ -37,6 +38,10 @@ class GoalTrackingRepositoryImpl(
             .map { trackingSessionDto ->
                 trackingSessionDto.toDomain(localUserId)
             }
+    }
+
+    override suspend fun deleteTrackingSessions(supabaseUserId: String) {
+        remoteDataSource.deleteTrackingSessions(supabaseUserId)
     }
 
     override suspend fun upsertGoals(

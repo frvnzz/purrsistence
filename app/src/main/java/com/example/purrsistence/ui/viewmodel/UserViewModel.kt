@@ -213,6 +213,21 @@ class UserViewModel(
         }
     }
 
+    fun resetTrackingSessions() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isSupabaseLoading.value = true
+            _supabaseError.value = null
+
+            try {
+                supabaseSyncService.resetTrackingSessions(currentUserId)
+            } catch (exception: Exception) {
+                _supabaseError.value = exception.message
+            } finally {
+                _isSupabaseLoading.value = false
+            }
+        }
+    }
+
     fun clearSupabaseError() {
         _supabaseError.value = null
     }

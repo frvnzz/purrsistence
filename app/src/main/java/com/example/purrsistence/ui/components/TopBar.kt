@@ -1,5 +1,6 @@
 package com.example.purrsistence.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -19,6 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.theme.Spacing
 
@@ -29,14 +34,21 @@ fun TopBar(
     onBackClick: (() -> Unit)? = null,
     actions: @Composable (() -> Unit)? = null
 ) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    val verticalPadding = if (isLandscape) 0.dp else Spacing.md
+    val minHeight = if (isLandscape) 48.dp else 56.dp
+
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .heightIn(min = minHeight)
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .statusBarsPadding()
             .padding(
                 horizontal = Spacing.lg,
-                vertical = Spacing.md
+                vertical = verticalPadding
             ),
 
         verticalAlignment = Alignment.CenterVertically
@@ -68,7 +80,8 @@ fun TopBar(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.semantics { heading() }
             )
         }
 

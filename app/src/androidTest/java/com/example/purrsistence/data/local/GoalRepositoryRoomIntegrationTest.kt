@@ -8,6 +8,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -144,5 +145,49 @@ class GoalRepositoryRoomIntegrationTest : RoomIntegrationTestBase() {
         assertNotNull(result)
         assertEquals(1, result!!.goal.id)
         assertEquals(2, result.sessions.size)
+    }
+
+    @Test
+    fun resetGoalsStatus_clearsCompletionForUser() = runBlocking {
+        seedUserEntity(userId = 1)
+        seedGoalEntity(
+            goalId = 1,
+            userId = 1,
+            title = "Goal 1",
+            type = "DAILY",
+            targetDuration = 60,
+            deepFocus = false,
+            inactive = false,
+            createdAt = 1000L,
+            isCompleted = true,
+            lastCompletedAt = 5000L
+        )
+
+        seedUserEntity(userId = 2)
+        seedGoalEntity(
+            goalId = 2,
+            userId = 2,
+            title = "Goal 2",
+            type = "DAILY",
+            targetDuration = 60,
+            deepFocus = false,
+            inactive = false,
+            createdAt = 1000L,
+            isCompleted = true,
+            lastCompletedAt = 5000L
+        )
+
+        goalRepository.resetGoalsStatus(1)
+
+        val goal1 = goalRepository.getGoal(1).first()
+        val goal2 = goalRepository.getGoal(2).first()
+
+        assertNotNull(goal1)
+        assertFalse(goal1!!.isCompleted)
+        assertNull(goal1.lastCompletedAt)
+
+        assertNotNull(goal2)
+        assertTrue(goal2!!.isCompleted)
+        assertEquals(5000L, goal2.lastCompletedAt?.toEpochMilli())
     }
 }

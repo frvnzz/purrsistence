@@ -5,13 +5,18 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,6 +29,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.example.purrsistence.ui.components.profileScreen.InventorySection
@@ -31,6 +38,7 @@ import com.example.purrsistence.ui.components.profileScreen.ProfileActionButtons
 import com.example.purrsistence.ui.components.profileScreen.ProfileHeaderCallbacks
 import com.example.purrsistence.ui.components.profileScreen.ProfileHeaderSection
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 
@@ -115,46 +123,55 @@ fun ProfileScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
+                .semantics { paneTitle = "Profile Screen" }
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = { focusManager.clearFocus() })
                 }
                 .padding(Spacing.lg),
             horizontalArrangement = Arrangement.spacedBy(Spacing.lg)
         ) {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(Spacing.xl),
-                contentPadding = PaddingValues(bottom = Spacing.lg)
+            Column(
+                modifier = Modifier
+                    .weight(0.32f)
+                    .fillMaxHeight()
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = Shapes.cards
+                    )
+                    .padding(Spacing.md),
+                verticalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
-                item {
-                    ProfileHeaderSection(
-                        user = user,
-                        username = editedUsername,
-                        isEditing = isEditingName,
-                        profileImageUri = selectedProfileImageUri,
-                        usernameFocusRequester = usernameFocusRequester,
-                        callbacks = headerCallbacks
-                    )
-                }
+                ProfileHeaderSection(
+                    user = user,
+                    username = editedUsername,
+                    isEditing = isEditingName,
+                    profileImageUri = selectedProfileImageUri,
+                    usernameFocusRequester = usernameFocusRequester,
+                    callbacks = headerCallbacks,
+                    isLandscape = true
+                )
 
-                item {
-                    ProfileActionButtons(
-                        onNavigateToSettings = onNavigateToSettings,
-                        onNavigateToFriends = onNavigateToFriends
-                    )
-                }
+                Spacer(modifier = Modifier.weight(1f))
+
+                ProfileActionButtons(
+                    onNavigateToSettings = onNavigateToSettings,
+                    onNavigateToFriends = onNavigateToFriends,
+                    isLandscape = true
+                )
             }
 
             InventorySection(
                 user = user,
-                modifier = Modifier.weight(1f),
-                maxGridHeight = 650.dp
+                modifier = Modifier.weight(0.68f),
+                maxGridHeight = 1000.dp,
+                isLandscape = true
             )
         }
     } else {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .semantics { paneTitle = "Profile Screen" }
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = { focusManager.clearFocus() })
                 },

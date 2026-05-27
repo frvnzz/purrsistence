@@ -16,6 +16,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.domain.model.ShopItem
 import com.example.purrsistence.ui.components.CurrencyBadge
@@ -60,6 +62,7 @@ fun ShopScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .semantics { paneTitle = "Cat Shop Screen" }
             .padding(horizontal = Spacing.lg)
     ) {
         // Shop Grid that holds all ShopItemCards (cats)

@@ -1,5 +1,9 @@
 package com.example.purrsistence.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -7,20 +11,18 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.screens.AddGoalScreen
 import com.example.purrsistence.ui.screens.AuthScreen
 import com.example.purrsistence.ui.screens.EditGoalScreen
+import com.example.purrsistence.ui.screens.FriendsScreen
 import com.example.purrsistence.ui.screens.GoalDetailsScreen
 import com.example.purrsistence.ui.screens.GoalsScreen
 import com.example.purrsistence.ui.screens.HomeScreen
 import com.example.purrsistence.ui.screens.ProfileScreen
+import com.example.purrsistence.ui.screens.RewardsScreen
+import com.example.purrsistence.ui.screens.SettingsScreen
 import com.example.purrsistence.ui.screens.ShopScreen
 import com.example.purrsistence.ui.screens.StatisticsScreen
-import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
-import com.example.purrsistence.ui.screens.SettingsScreen
-import com.example.purrsistence.ui.screens.FriendsScreen
-import com.example.purrsistence.ui.screens.RewardsScreen
 import com.example.purrsistence.ui.screens.TrackingScreen
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.util.SoundManager
@@ -61,7 +63,11 @@ fun AppNavHost(
     NavHost(
         navController = navController,
         startDestination = "home",
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = { fadeIn(animationSpec = tween(250)) },
+        exitTransition = { fadeOut(animationSpec = tween(250)) },
+        popEnterTransition = { fadeIn(animationSpec = tween(250)) },
+        popExitTransition = { fadeOut(animationSpec = tween(250)) }
     ) {
         // all screens go here :)
         // TODO: Maybe replace with single source of truth for routes (screen model) in the future
@@ -98,7 +104,13 @@ fun AppNavHost(
             )
         }
         // -> Goal Details
-        composable("goalDetails/{goalId}") { backStackEntry ->
+        composable(
+            "goalDetails/{goalId}",
+            enterTransition = { slideIn(AnimatedContentTransitionScope.SlideDirection.Left) },
+            exitTransition = { slideOut(AnimatedContentTransitionScope.SlideDirection.Left) },
+            popEnterTransition = { slideIn(AnimatedContentTransitionScope.SlideDirection.Right) },
+            popExitTransition = { slideOut(AnimatedContentTransitionScope.SlideDirection.Right) }
+        ) { backStackEntry ->
 
             val goalId = backStackEntry.arguments
                 ?.getString("goalId")
@@ -116,7 +128,13 @@ fun AppNavHost(
         }
 
         // -> edit goal
-        composable("edit_goal/{goalId}") { backStackEntry ->
+        composable(
+            "edit_goal/{goalId}",
+            enterTransition = { slideIn(AnimatedContentTransitionScope.SlideDirection.Left) },
+            exitTransition = { slideOut(AnimatedContentTransitionScope.SlideDirection.Left) },
+            popEnterTransition = { slideIn(AnimatedContentTransitionScope.SlideDirection.Right) },
+            popExitTransition = { slideOut(AnimatedContentTransitionScope.SlideDirection.Right) }
+        ) { backStackEntry ->
             val goalId = backStackEntry.arguments
                 ?.getString("goalId")
                 ?.toInt()
@@ -129,7 +147,13 @@ fun AppNavHost(
             )
         }
         // -> add goal
-        composable("add_goal") {
+        composable(
+            "add_goal",
+            enterTransition = { slideIn(AnimatedContentTransitionScope.SlideDirection.Left) },
+            exitTransition = { slideOut(AnimatedContentTransitionScope.SlideDirection.Left) },
+            popEnterTransition = { slideIn(AnimatedContentTransitionScope.SlideDirection.Right) },
+            popExitTransition = { slideOut(AnimatedContentTransitionScope.SlideDirection.Right) }
+        ) {
             AddGoalScreen(
                 onSave = { title, type, minutes, deepFocus ->
                     goalViewModel.addGoal(
@@ -147,12 +171,20 @@ fun AppNavHost(
             )
         }
         // TRACKING
-        composable("tracking") {
+        composable(
+            "tracking",
+            enterTransition = { slideIn(AnimatedContentTransitionScope.SlideDirection.Up) },
+            exitTransition = { slideOut(AnimatedContentTransitionScope.SlideDirection.Down) }
+        ) {
             TrackingScreen(
                 viewModel = trackingViewModel
             )
         }
-        composable("rewards") {
+        composable(
+            "rewards",
+            enterTransition = { fadeIn(animationSpec = tween(500)) },
+            exitTransition = { fadeOut(animationSpec = tween(500)) }
+        ) {
             RewardsScreen(
                 viewModel = trackingViewModel,
                 onReturnHome = {
@@ -186,13 +218,31 @@ fun AppNavHost(
                     if (userViewModel.isSupabaseSignedIn.value) {
                         navController.navigate("friends")
                     } else {
-                        navController.navigate("auth")
+                        navController.navigate("auth?redirect=friends")
                     }
                 }
             )
         }
         // SETTINGS
-        composable("settings") {
+        composable(
+            "settings",
+            enterTransition = { slideIn(AnimatedContentTransitionScope.SlideDirection.Left) },
+            exitTransition = {
+                if (targetState.destination.route?.startsWith("auth") == true) {
+                    fadeOut(animationSpec = tween(300))
+                } else {
+                    slideOut(AnimatedContentTransitionScope.SlideDirection.Left)
+                }
+            },
+            popEnterTransition = {
+                if (initialState.destination.route?.startsWith("auth") == true) {
+                    fadeIn(animationSpec = tween(300))
+                } else {
+                    slideIn(AnimatedContentTransitionScope.SlideDirection.Right)
+                }
+            },
+            popExitTransition = { slideOut(AnimatedContentTransitionScope.SlideDirection.Right) }
+        ) {
             SettingsScreen(
                 userViewModel = userViewModel,
                 onNavigateToAuth = { navController.navigate("auth") },
@@ -201,21 +251,50 @@ fun AppNavHost(
             )
         }
         // FRIENDS
-        composable("friends") {
+        composable(
+            "friends",
+            enterTransition = { slideIn(AnimatedContentTransitionScope.SlideDirection.Left) },
+            exitTransition = {
+                if (targetState.destination.route?.startsWith("auth") == true) {
+                    fadeOut(animationSpec = tween(300))
+                } else {
+                    slideOut(AnimatedContentTransitionScope.SlideDirection.Left)
+                }
+            },
+            popEnterTransition = {
+                if (initialState.destination.route?.startsWith("auth") == true) {
+                    fadeIn(animationSpec = tween(300))
+                } else {
+                    slideIn(AnimatedContentTransitionScope.SlideDirection.Right)
+                }
+            },
+            popExitTransition = { slideOut(AnimatedContentTransitionScope.SlideDirection.Right) }
+        ) {
             FriendsScreen(
                 onBack = { navController.popBackStack() },
                 setTopBar = setTopBar
             )
         }
-        composable("auth") {
+        composable(
+            "auth?redirect={redirect}",
+            enterTransition = { slideIn(AnimatedContentTransitionScope.SlideDirection.Up) },
+            exitTransition = { slideOut(AnimatedContentTransitionScope.SlideDirection.Down) },
+            popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+            popExitTransition = { slideOut(AnimatedContentTransitionScope.SlideDirection.Down) }
+        ) { backStackEntry ->
+            val redirect = backStackEntry.arguments?.getString("redirect")
             AuthScreen(
                 userViewModel = userViewModel,
                 setTopBar = setTopBar,
                 onAuthSuccess = {
-                    navController.navigate("friends") {
-                        popUpTo("auth") {
-                            inclusive = true
+                    if (redirect != null) {
+                        navController.navigate(redirect) {
+                            popUpTo("auth?redirect={redirect}") {
+                                inclusive = true
+                            }
                         }
+                    } else {
+                        navController.popBackStack()
                     }
                 },
                 onBack = {
@@ -225,3 +304,18 @@ fun AppNavHost(
         }
     }
 }
+
+//helper functions common transitions
+private fun AnimatedContentTransitionScope<*>.slideIn(
+    direction: AnimatedContentTransitionScope.SlideDirection
+) = slideIntoContainer(
+    towards = direction,
+    animationSpec = tween(400)
+)
+
+private fun AnimatedContentTransitionScope<*>.slideOut(
+    direction: AnimatedContentTransitionScope.SlideDirection
+) = slideOutOfContainer(
+    towards = direction,
+    animationSpec = tween(400)
+)

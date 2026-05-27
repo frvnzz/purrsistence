@@ -1,5 +1,13 @@
 package com.example.purrsistence.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -18,8 +26,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.components.GoalStatsList
 import com.example.purrsistence.ui.components.WeekSelector
@@ -35,33 +49,85 @@ fun StatisticsScreen(
     setTopBar: (TopBarState) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    var dragAmount by remember { mutableFloatStateOf(0f) }
 
     LaunchedEffect(Unit) {
         setTopBar(TopBarState(title = "Statistics"))
     }
 
-    if (state.isLoading) {
-        LoadingState()
-        return
-    }
-
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val isLandscape = this.maxWidth > 600.dp
-        if (isLandscape) {
-            LandscapeStatistics(viewModel, state)
-        } else {
-            PortraitStatistics(viewModel, state)
-        }
-    }
-}
-
-@Composable
-private fun LoadingState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .semantics { paneTitle = "Statistics Screen" }
+            .pointerInput(state.weekOffset) {
+                detectHorizontalDragGestures(
+                    onHorizontalDrag = { _, dragAmountValue ->
+                        dragAmount += dragAmountValue
+                    },
+                    onDragEnd = {
+                        if (dragAmount > 50) {
+                            viewModel.previousWeek()
+                        } else if (dragAmount < -50) {
+                            if (state.weekOffset < 0) {
+                                viewModel.nextWeek()
+                            }
+                        }
+                        dragAmount = 0f
+                    },
+                    onDragCancel = {
+                        dragAmount = 0f
+                    }
+                )
+            }
     ) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.tertiary)
+        val isLandscape = this.maxWidth > 600.dp
+        
+
+        //sliding transition, wrap content in AnimatedContent
+        AnimatedContent(
+            targetState = state,
+            transitionSpec = {
+                when {
+                    targetState.weekOffset < initialState.weekOffset -> {
+                        //sliding to the past: Content comes from left, exits to right
+                        (slideInHorizontally { width -> -width } + fadeIn()) togetherWith
+                                (slideOutHorizontally { width -> width } + fadeOut())
+                    }
+                    targetState.weekOffset > initialState.weekOffset -> {
+                        //sliding ahead: Content comes from right, exits to left
+                        (slideInHorizontally { width -> width } + fadeIn()) togetherWith
+                                (slideOutHorizontally { width -> -width } + fadeOut())
+                    }
+                    else -> {
+                        //update within the same week -> no animation
+                        fadeIn() togetherWith fadeOut()
+                    }
+                }.using(
+                    SizeTransform(clip = false)
+                )
+            },
+            label = "WeekTransition"
+        ) { animatedState ->
+            if (isLandscape) {
+                LandscapeStatistics(viewModel, animatedState)
+            } else {
+                PortraitStatistics(viewModel, animatedState)
+            }
+        }
+        
+        //loading overlay
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(top = 100.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 3.dp
+                )
+            }
+        }
     }
 }
 

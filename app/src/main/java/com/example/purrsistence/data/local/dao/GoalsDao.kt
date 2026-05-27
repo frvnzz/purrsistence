@@ -86,6 +86,16 @@ interface GoalsDao {
 
     @Query(
         """
+    UPDATE GoalEntity
+    SET isCompleted = 0,
+        lastCompletedAt = NULL
+    WHERE userId = :userId
+    """
+    )
+    suspend fun resetGoalsStatusForUser(userId: Int)
+
+    @Query(
+        """
     SELECT *
     FROM GoalEntity
     WHERE userId = :userId

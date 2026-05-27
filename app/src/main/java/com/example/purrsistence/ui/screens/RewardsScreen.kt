@@ -1,7 +1,13 @@
 package com.example.purrsistence.ui.screens
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,7 +60,7 @@ fun RewardsScreen(
                 Spacer(modifier = Modifier.height(Spacing.xxl))
 
                 Text(
-                    text = "+${state.rewardedCurrency} coins",
+                    text = "+${state.rewardedCurrency} fish",
                     style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -88,7 +94,7 @@ fun RewardsScreen(
                     Spacer(modifier = Modifier.height(Spacing.sm))
 
                     Text(
-                        text = "+${state.goalCompletionReward} bonus coins",
+                        text = "+${state.goalCompletionReward} bonus fish",
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -127,7 +133,7 @@ fun RewardsScreen(
                 Spacer(modifier = Modifier.height(Spacing.xxl))
 
                 Text(
-                    text = "+${state.rewardedCurrency} coins",
+                    text = "+${state.rewardedCurrency} fish",
                     style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -161,7 +167,7 @@ fun RewardsScreen(
                     Spacer(modifier = Modifier.height(Spacing.sm))
 
                     Text(
-                        text = "+${state.goalCompletionReward} bonus coins",
+                        text = "+${state.goalCompletionReward} bonus fish",
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }

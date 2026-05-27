@@ -1,6 +1,10 @@
 package com.example.purrsistence.ui.components.addEditGoal
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CardDefaults
@@ -10,6 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -56,7 +62,6 @@ fun DurationBox(
                     value = value,
 
                     onValueChange = { input ->
-
                         val filtered =
                             input
                                 .filter { char -> char.isDigit() }
@@ -64,7 +69,6 @@ fun DurationBox(
 
                         if (filtered.isEmpty()) {
                             onValueChange("")
-
                         } else {
                             val number = filtered.toIntOrNull() ?: 0
 
@@ -74,6 +78,10 @@ fun DurationBox(
                                 )
                             }
                         }
+                    },
+
+                    modifier = Modifier.semantics {
+                        contentDescription = "$label input"
                     },
 
                     singleLine = true,
@@ -116,7 +124,8 @@ fun DurationBox(
 
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.semantics { contentDescription = "" }
         )
     }
 }

@@ -48,10 +48,10 @@ import com.example.purrsistence.service.SupabaseSyncService
 import com.example.purrsistence.service.TrackingCleanupService
 import com.example.purrsistence.service.TrackingServiceImpl
 import com.example.purrsistence.ui.screens.MainScreen
-import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
-import com.example.purrsistence.ui.viewmodel.StatisticsViewModelFactory
 import com.example.purrsistence.ui.theme.PurrsistenceTheme
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
+import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
+import com.example.purrsistence.ui.viewmodel.StatisticsViewModelFactory
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModelFactory
 import com.example.purrsistence.ui.viewmodel.UserViewModel
@@ -144,7 +144,8 @@ class MainActivity : ComponentActivity() {
             profileRepository = supabaseProfileRepository,
             catRepository = supabaseCatRepository,
             friendshipRepository = supabaseFriendshipRepository,
-            syncSnapshotRepository = supabaseSyncSnapshotRepository
+            syncSnapshotRepository = supabaseSyncSnapshotRepository,
+            goalTrackingRepository = supabaseGoalTrackingRepository
         )
 
         // create ViewModel instances for this activity
@@ -187,7 +188,7 @@ class MainActivity : ComponentActivity() {
             }
 
             //reset completed goals for new time window/cycle
-            //TODO: update somewhere else, because this is to infrequent and only happens when app is opened
+            //TODO: update somewhere else, because this is to infrequent and only happens when app is opened.
             //goalService.resetCompletedGoalsIfNewCycle(
             //    userId = 1,
             //    now = ZonedDateTime.now()

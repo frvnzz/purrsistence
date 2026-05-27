@@ -31,3 +31,15 @@ fun formatDuration(durationMillis: Long): String {
     return String.format("%02d:%02d:%02d", hours, minutes, seconds)
 }
 
+//format minutes into hours and minutes string for screen reader
+fun formatMinutesForAccessibility(totalMinutes: Int): String {
+    if (totalMinutes == 0) return "0 minutes"
+    val h = totalMinutes / 60
+    val m = totalMinutes % 60
+    return when {
+        h > 0 && m > 0 -> "$h hours and $m minutes"
+        h > 0 -> "$h hours"
+        else -> "$m minutes"
+    }
+}
+

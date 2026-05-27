@@ -35,6 +35,8 @@ class StatisticsViewModel(
 
         _uiState.value = _uiState.value.copy(
             weekOffset = safeOffset,
+            dailyStats = emptyList(),
+            goalStats = emptyList(),
             isLoading = true
         )
 

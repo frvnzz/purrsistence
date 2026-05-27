@@ -98,4 +98,24 @@ class TrackingRepositoryRoomIntegrationTest : RoomIntegrationTestBase() {
         assertNotNull(trackingRepository.getTrackingSessionById(active.id))
         assertEquals(2, trackingRepository.countSessionsForGoal(1))
     }
+
+    @Test
+    fun deleteAllTrackingSessions_removesAllSessionsForUser() = runBlocking {
+        seedUserEntity(userId = 1)
+        seedGoalEntity(goalId = 1, userId = 1)
+        seedTrackingSessionEntity(sessionId = 1, goalId = 1, userId = 1, duration = 1000)
+        seedTrackingSessionEntity(sessionId = 2, goalId = 1, userId = 1, duration = 2000)
+
+        seedUserEntity(userId = 2)
+        seedGoalEntity(goalId = 2, userId = 2)
+        seedTrackingSessionEntity(sessionId = 3, goalId = 2, userId = 2, duration = 3000)
+
+        assertEquals(2, trackingRepository.getTrackingSessionsForSync(1).size)
+        assertEquals(1, trackingRepository.getTrackingSessionsForSync(2).size)
+
+        trackingRepository.deleteAllTrackingSessions(1)
+
+        assertEquals(0, trackingRepository.getTrackingSessionsForSync(1).size)
+        assertEquals(1, trackingRepository.getTrackingSessionsForSync(2).size)
+    }
 }
