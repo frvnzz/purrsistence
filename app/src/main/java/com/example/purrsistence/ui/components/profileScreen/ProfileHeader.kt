@@ -55,8 +55,12 @@ fun ProfileHeaderSection(
     profileImageUri: Uri?,
     usernameFocusRequester: FocusRequester,
     callbacks: ProfileHeaderCallbacks,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isLandscape: Boolean = false
 ) {
+    val avatarSize = if (isLandscape) 80.dp else 104.dp
+    val padding = if (isLandscape) Spacing.md else Spacing.lg
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -64,7 +68,7 @@ fun ProfileHeaderSection(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = Shapes.cards
             )
-            .padding(Spacing.lg),
+            .padding(padding),
         horizontalArrangement = Arrangement.spacedBy(Spacing.md),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -72,7 +76,8 @@ fun ProfileHeaderSection(
             profileImageUri = profileImageUri,
             onPickProfileImage = callbacks.onPickProfileImage,
             onRemoveProfileImage = callbacks.onRemoveProfileImage,
-            modifier = Modifier.size(104.dp)
+            modifier = Modifier.size(avatarSize),
+            isLandscape = isLandscape
         )
 
         // Username Section

@@ -7,8 +7,10 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -124,34 +126,35 @@ fun ProfileScreen(
                 .padding(Spacing.lg),
             horizontalArrangement = Arrangement.spacedBy(Spacing.lg)
         ) {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(Spacing.xl),
-                contentPadding = PaddingValues(bottom = Spacing.lg)
+            Column(
+                modifier = Modifier
+                    .weight(0.4f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
-                item {
-                    ProfileHeaderSection(
-                        user = user,
-                        username = editedUsername,
-                        isEditing = isEditingName,
-                        profileImageUri = selectedProfileImageUri,
-                        usernameFocusRequester = usernameFocusRequester,
-                        callbacks = headerCallbacks
-                    )
-                }
+                ProfileHeaderSection(
+                    user = user,
+                    username = editedUsername,
+                    isEditing = isEditingName,
+                    profileImageUri = selectedProfileImageUri,
+                    usernameFocusRequester = usernameFocusRequester,
+                    callbacks = headerCallbacks,
+                    isLandscape = true,
+                    modifier = Modifier.weight(1f)
+                )
 
-                item {
-                    ProfileActionButtons(
-                        onNavigateToSettings = onNavigateToSettings,
-                        onNavigateToFriends = onNavigateToFriends
-                    )
-                }
+                ProfileActionButtons(
+                    onNavigateToSettings = onNavigateToSettings,
+                    onNavigateToFriends = onNavigateToFriends,
+                    isLandscape = true
+                )
             }
 
             InventorySection(
                 user = user,
-                modifier = Modifier.weight(1f),
-                maxGridHeight = 650.dp
+                modifier = Modifier.weight(0.6f),
+                maxGridHeight = 650.dp,
+                isLandscape = true
             )
         }
     } else {

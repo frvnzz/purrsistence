@@ -38,18 +38,19 @@ import com.example.purrsistence.ui.theme.Spacing
 fun InventorySection(
     user: User?,
     modifier: Modifier = Modifier,
-    maxGridHeight: Dp
+    maxGridHeight: Dp,
+    isLandscape: Boolean = false
 ) {
     Column(modifier = modifier) {
         Text(
             text = "Inventory",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = Spacing.md)
+            style = if (isLandscape) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(bottom = if (isLandscape) Spacing.sm else Spacing.md)
         )
 
         if (user != null && user.collectedCatsIds.isNotEmpty()) {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
+                columns = if (isLandscape) GridCells.Adaptive(100.dp) else GridCells.Fixed(3),
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = maxGridHeight),

@@ -29,12 +29,15 @@ import com.example.purrsistence.ui.theme.Spacing
 fun ProfileActionButtons(
     onNavigateToSettings: () -> Unit,
     onNavigateToFriends: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isLandscape: Boolean = false
 ) {
+    val height = if (isLandscape) 64.dp else 80.dp
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .height(height),
         horizontalArrangement = Arrangement.spacedBy(Spacing.md)
     ) {
         ActionButton(
