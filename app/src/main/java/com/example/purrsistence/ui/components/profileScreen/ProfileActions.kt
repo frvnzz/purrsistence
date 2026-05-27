@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.People
@@ -14,6 +16,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,26 +35,85 @@ fun ProfileActionButtons(
     modifier: Modifier = Modifier,
     isLandscape: Boolean = false
 ) {
-    val height = if (isLandscape) 64.dp else 80.dp
+    if (isLandscape) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(top = Spacing.sm),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+        ) {
+            CompactActionButton(
+                label = "Settings",
+                icon = Icons.Outlined.Settings,
+                onClick = onNavigateToSettings,
+                modifier = Modifier.weight(1f)
+            )
+            CompactActionButton(
+                label = "Friends",
+                icon = Icons.Outlined.People,
+                onClick = onNavigateToFriends,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    } else {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(80.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+        ) {
+            ActionButton(
+                label = "Settings",
+                icon = Icons.Outlined.Settings,
+                onClick = onNavigateToSettings,
+                modifier = Modifier.weight(1f)
+            )
+            ActionButton(
+                label = "Friends",
+                icon = Icons.Outlined.People,
+                onClick = onNavigateToFriends,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
 
-    Row(
+@Composable
+private fun CompactActionButton(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
         modifier = modifier
-            .fillMaxWidth()
-            .height(height),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+            .height(56.dp)
+            .clearAndSetSemantics {
+                contentDescription = label
+            },
+        shape = Shapes.buttons,
+        color = MaterialTheme.colorScheme.secondary,
+        contentColor = MaterialTheme.colorScheme.onSecondary
     ) {
-        ActionButton(
-            label = "Settings",
-            icon = Icons.Outlined.Settings,
-            onClick = onNavigateToSettings,
-            modifier = Modifier.weight(1f)
-        )
-        ActionButton(
-            label = "Friends",
-            icon = Icons.Outlined.People,
-            onClick = onNavigateToFriends,
-            modifier = Modifier.weight(1f)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = Spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterHorizontally)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1
+            )
+        }
     }
 }
 

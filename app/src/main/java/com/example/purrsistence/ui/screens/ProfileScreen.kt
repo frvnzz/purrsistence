@@ -5,15 +5,18 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +38,7 @@ import com.example.purrsistence.ui.components.profileScreen.ProfileActionButtons
 import com.example.purrsistence.ui.components.profileScreen.ProfileHeaderCallbacks
 import com.example.purrsistence.ui.components.profileScreen.ProfileHeaderSection
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 
@@ -128,9 +132,14 @@ fun ProfileScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .weight(0.4f)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                    .weight(0.32f)
+                    .fillMaxHeight()
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = Shapes.cards
+                    )
+                    .padding(Spacing.md),
+                verticalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
                 ProfileHeaderSection(
                     user = user,
@@ -139,9 +148,10 @@ fun ProfileScreen(
                     profileImageUri = selectedProfileImageUri,
                     usernameFocusRequester = usernameFocusRequester,
                     callbacks = headerCallbacks,
-                    isLandscape = true,
-                    modifier = Modifier.weight(1f)
+                    isLandscape = true
                 )
+
+                Spacer(modifier = Modifier.weight(1f))
 
                 ProfileActionButtons(
                     onNavigateToSettings = onNavigateToSettings,
@@ -152,8 +162,8 @@ fun ProfileScreen(
 
             InventorySection(
                 user = user,
-                modifier = Modifier.weight(0.6f),
-                maxGridHeight = 650.dp,
+                modifier = Modifier.weight(0.68f),
+                maxGridHeight = 1000.dp,
                 isLandscape = true
             )
         }

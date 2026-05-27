@@ -36,7 +36,7 @@ fun EditableProfileAvatar(
     val actionIconSize = if (isLandscape) 12.dp else 16.dp
 
     Box(
-        modifier = modifier,
+        modifier = if (isLandscape) Modifier.size(72.dp) else modifier,
         contentAlignment = Alignment.Center
     ) {
         Box(
