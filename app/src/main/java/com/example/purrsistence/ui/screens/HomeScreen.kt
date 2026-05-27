@@ -27,6 +27,7 @@ import com.example.purrsistence.ui.components.homeScreen.RoomView
 import com.example.purrsistence.ui.components.homeScreen.SelectCatsButton
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.SoundManager
 import com.example.purrsistence.ui.util.handleStartTrackingClick
 import com.example.purrsistence.ui.util.openAccessibilitySettings
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
@@ -37,7 +38,8 @@ fun HomeScreen(
     userViewModel: UserViewModel,
     goalViewModel: GoalViewModel,
     onStartTracking: (Int, String, Int, Boolean) -> Unit,
-    setTopBar: (TopBarState) -> Unit
+    setTopBar: (TopBarState) -> Unit,
+    soundManager: SoundManager
 ) {
 
     val context = LocalContext.current
@@ -114,7 +116,8 @@ fun HomeScreen(
                 ) {
                     RoomView(
                         placedCats = placedCats,
-                        spots = spots
+                        spots = spots,
+                        onCatTap = { soundManager.playMeow() }
                     )
                 }
             }

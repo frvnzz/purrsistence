@@ -7,16 +7,19 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.purrsistence.ui.components.BottomNavBar
 import com.example.purrsistence.ui.components.TopBar
 import com.example.purrsistence.ui.navigation.AppNavHost
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.util.SoundManager
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
@@ -33,6 +36,15 @@ fun MainScreen(
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val topBarState = remember { mutableStateOf(TopBarState()) }
+
+    val context = LocalContext.current
+    val soundManager = remember { SoundManager(context) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            soundManager.release()
+        }
+    }
 
     // Check the user state (remote supabase signed in or out)
     LaunchedEffect(Unit) {
@@ -88,7 +100,8 @@ fun MainScreen(
             trackingViewModel = trackingViewModel,
             statisticsViewModel = statisticsViewModel,
             modifier = Modifier.padding(padding),
-            snackbarHostState = snackbarHostState
+            snackbarHostState = snackbarHostState,
+            soundManager = soundManager
         )
     }
 }
