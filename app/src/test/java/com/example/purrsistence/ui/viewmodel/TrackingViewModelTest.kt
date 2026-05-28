@@ -1,9 +1,13 @@
 package com.example.purrsistence.ui.viewmodel
 
+import com.example.purrsistence.controller.TrackingNotificationController
+import com.example.purrsistence.domain.controller.FakeTrackingNotificationController
 import com.example.purrsistence.domain.focus.FakeFocusBlocker
+import com.example.purrsistence.domain.notifications.FakeSessionReminderScheduler
 import com.example.purrsistence.domain.service.fakes.FakeSupabaseSyncService
 import com.example.purrsistence.domain.service.fakes.FakeTrackingService
 import com.example.purrsistence.domain.time.FakeTimeProvider
+import com.example.purrsistence.notifications.SessionReminderScheduler
 import com.example.purrsistence.service.RewardService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +35,9 @@ class TrackingViewModelTest {
     private lateinit var timeProvider: FakeTimeProvider
     private lateinit var syncService: FakeSupabaseSyncService
     private lateinit var viewModel: TrackingViewModel
+    private lateinit var notificationController: TrackingNotificationController
+    private lateinit var reminderScheduler: SessionReminderScheduler
+
 
     @Before
     fun setup() {
@@ -40,13 +47,17 @@ class TrackingViewModelTest {
         blocker = FakeFocusBlocker()
         timeProvider = FakeTimeProvider(Instant.ofEpochMilli(0L))
         syncService = FakeSupabaseSyncService()
+        notificationController = FakeTrackingNotificationController()
+        reminderScheduler = FakeSessionReminderScheduler()
 
         viewModel = TrackingViewModel(
             trackingService = trackingService,
             rewardService = rewardService,
             timeProvider = timeProvider,
             focusBlocker = blocker,
-            supabaseSyncService = syncService
+            supabaseSyncService = syncService,
+            trackingNotificationController = notificationController,
+            sessionReminderScheduler = reminderScheduler,
         )
     }
 
@@ -91,6 +102,10 @@ class TrackingViewModelTest {
         runCurrent()
 
         viewModel.stopTracking()
+        runCurrent()
+
+        // The ViewModel shows a finish dialog - must confirm to stop the service and the ticker
+        viewModel.confirmStopTracking()
         runCurrent()
 
         assertFalse("Warning should not be shown", viewModel.uiState.value.showStopWarning)

@@ -99,7 +99,7 @@ class TrackingServiceImpl(
         return TrackingStopResult(
             rewardedCurrency = coins,
             multiplier = multiplier,
-            sessionDurationMillis = finishedSession.duration(now).toMillis(),
+            sessionDurationMillis = finishedSession.effectiveDuration(now).toMillis(),
             goalCompletionReward = goalCompletionReward,
             totalPausedMillis = finishedSession.getTotalPausedMillis(now),
             multiplierReset = hasLongPause

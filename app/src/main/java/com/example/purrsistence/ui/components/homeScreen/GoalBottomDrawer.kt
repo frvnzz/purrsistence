@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -90,29 +93,48 @@ fun GoalBottomDrawerPreview() {
 
 @Composable
 fun GoalBottomDrawer(
+    modifier: Modifier = Modifier,
     goals: List<GoalWithSessions>,
     selectedGoalId: Int?,
     onGoalSelected: (Int) -> Unit,
     onStartClick: (Int, String) -> Unit,
+    alwaysExpanded: Boolean = false
     modifier: Modifier = Modifier,
     initialProgress: Float = 0f
 ) {
-    // get all goals that are not inactive currently
+    // get all inactive = false goals
     val activeGoals = goals.filter { !it.goal.inactive }
+    // goals that are listed in the LazyColumn (all but selected goal)
+    val selectableGoals = activeGoals.filter {
+        it.goal.id != selectedGoalId
+    }
 
     val selectedGoal = activeGoals.find { it.goal.id == selectedGoalId }?.goal
     val hasSelectedGoal = selectedGoal != null
 
     // TODO: change this to be responsible (hardcoded height of the drawer)
-    val collapsedHeight = 108.dp
+    val collapsedHeight = 127.dp
     val expandedHeight = 500.dp
 
     val density = LocalDensity.current
 
-    var progress by remember { mutableFloatStateOf(initialProgress) }
-    // 0f = collapsed, 1f = expanded
+    // progress: 0f = collapsed, 1f = expanded
+    var progress by remember {
+        mutableFloatStateOf(
+            if (alwaysExpanded) 1f else 0f
+        )
+    }
+    // force expanded if HomeScreen is in landscape
+    if (alwaysExpanded) {
+        progress = 1f
+    }
 
-    val height = lerp(collapsedHeight, expandedHeight, progress)
+    val height =
+        if (alwaysExpanded) {
+            expandedHeight
+        } else {
+            lerp(collapsedHeight, expandedHeight, progress)
+        }
 
     val isExpanded = progress > 0.5f
 
@@ -122,48 +144,126 @@ fun GoalBottomDrawer(
     }
 
     Box(
-        modifier = modifier.fillMaxSize()
-    ) {
-        // SCRIM (visible when drawer is expanded)
-        if (progress > 0f) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f * progress))
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        progress = 0f // collapse drawer on click outside
-                    }
-            )
-        }
+        modifier = modifier
+            .fillMaxWidth()
+            .height(height)
+            .semantics {
+                contentDescription = "Goal selection drawer"
+                role = Role.Button
+                stateDescription = if (isExpanded) "Expanded" else "Collapsed"
 
-        val animatedHeight by animateDpAsState(
-            targetValue = height,
-            label = "DrawerHeightAnimation"
-        )
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(animatedHeight)
-                .semantics {
-                    contentDescription = "Goal selection drawer"
-                    role = Role.Button
-                    stateDescription = if (isExpanded) "Expanded" else "Collapsed"
-                    onClick(label = if (isExpanded) "Collapse goal list" else "Expand goal list") {
+                onClick(
+                    label =
+                        if (isExpanded) {
+                            "Collapse goal list"
+                        } else {
+                            "Expand goal list"
+                        }
+                ) {
+                    if (!alwaysExpanded) {
                         progress = if (isExpanded) 0f else 1f
-                        true
                     }
+                    true
                 }
-                .background(
-                    MaterialTheme.colorScheme.secondary,
-                    shape = RoundedCornerShape(
-                        topStart = 16.dp,
-                        topEnd = 16.dp
+            }
+            .background(
+                MaterialTheme.colorScheme.secondary,
+                shape = RoundedCornerShape(
+                    topStart = 16.dp,
+                    topEnd = 16.dp
+                )
+            )
+            .draggable(
+                enabled = !alwaysExpanded,
+                orientation = Orientation.Vertical,
+                state = rememberDraggableState { delta ->
+                    val heightPx = with(density) {
+                        (expandedHeight - collapsedHeight).toPx()
+                    }
+
+                    progress -= delta / heightPx
+                    progress = progress.coerceIn(0f, 1f)
+                },
+                onDragStopped = {
+                    progress = if (progress > 0.5f) 1f else 0f
+                }
+            )
+    ) {
+
+        Column(
+            modifier = Modifier.fillMaxHeight()
+        ) {
+            // drag handle
+            if (!alwaysExpanded) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = Spacing.md),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(40.dp)
+                            .height(4.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(2.dp)
+                            )
                     )
+                }
+            }
+
+            Text(
+                text = "Choose Goal to track:",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = Spacing.xl,
+                        top = Spacing.md,
+                        bottom = Spacing.sm
+                    )
+            )
+
+            // HEADER (always visible)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        enabled = !alwaysExpanded,
+                        onClickLabel =
+                            if (isExpanded) {
+                                "Collapse goal list"
+                            } else {
+                                "Expand goal list"
+                            },
+                        onClick = {
+                            progress = if (isExpanded) 0f else 1f
+                        }
+                    )
+                    .semantics {
+                        role = Role.Button
+                        stateDescription =
+                            if (isExpanded) {
+                                "Expanded Goal Selection"
+                            } else {
+                                "Collapsed Goal Selection"
+                            }
+                    }
+                    .padding(horizontal = Spacing.lg),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Selected Goal
+                GoalListItem(
+                    title = selectedGoal?.title ?: "Create or select a Goal",
+                    type = selectedGoal?.type,
+                    targetDuration = selectedGoal?.targetDuration,
+                    deepFocus = selectedGoal?.deepFocus ?: false,
+                    backgroundColor = MaterialTheme.colorScheme.background,
+                    modifier = Modifier
+                        .weight(1f),
+                    isPlaceholder = !hasSelectedGoal
                 )
                 .draggable(
                     orientation = Orientation.Vertical,
@@ -186,25 +286,11 @@ fun GoalBottomDrawer(
                         .padding(vertical = Spacing.md),
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .width(40.dp)
-                            .height(4.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                                shape = RoundedCornerShape(2.dp)
-                            )
-                    )
-                }
-
-                // HEADER (always visible)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(
-                            onClickLabel = if (isExpanded) "Collapse goal list" else "Expand goal list",
-                            onClick = {
-                                progress = if (isExpanded) 0f else 1f
+                    IconButton(
+                        modifier = Modifier.padding(Spacing.xxs),
+                        onClick = {
+                            selectedGoal?.let {
+                                onStartClick(it.id, it.title)
                             }
                         )
                         .semantics {
@@ -233,43 +319,38 @@ fun GoalBottomDrawer(
                         color = MaterialTheme.colorScheme.primary,
                         tonalElevation = Elevation.Lvl2
                     ) {
-                        IconButton(
-                            onClick = {
-                                // pass goal's id and title when the trackingSession starts
-                                selectedGoal?.let {
-                                    onStartClick(it.id, it.title)
-                                }
-                            }
-                        ) {
-                            Icon(
-                                Icons.Default.PlayArrow,
-                                contentDescription = "Start",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
+                        Icon(
+                            Icons.Default.PlayArrow,
+                            contentDescription = "Start tracking",
+                            modifier = Modifier.size(32.dp),
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 }
 
-                // CONTENT (only visible when expanded)
-                if (progress > 0.5f) {
-                    LazyColumn(
-                        contentPadding = PaddingValues(Spacing.lg),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
-                    ) {
-                        items(activeGoals) { goalWithSessions ->
-                            val goal = goalWithSessions.goal
+            // Expanded content (LazyColumn of other goals to select)
+            if (isExpanded) {
+                LazyColumn(
+                    contentPadding = PaddingValues(Spacing.lg),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                ) {
+                    items(selectableGoals) { goalWithSessions ->
+                        val goal = goalWithSessions.goal
 
-                            GoalListItem(
-                                title = goal.title,
-                                durationText = "${goal.targetDuration.toMinutes()} min",
-                                backgroundColor = MaterialTheme.colorScheme.surface,
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = {
-                                    onGoalSelected(goal.id)
-                                    progress = 0f //collapse drawer after selecting goal
+                        GoalListItem(
+                            title = goal.title,
+                            type = goal.type,
+                            targetDuration = goal.targetDuration,
+                            deepFocus = goal.deepFocus,
+                            backgroundColor = MaterialTheme.colorScheme.surface,
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = {
+                                onGoalSelected(goal.id)
+                                if (!alwaysExpanded) {
+                                    progress = 0f
                                 }
-                            )
-                        }
+                            }
+                        )
                     }
                 }
             }

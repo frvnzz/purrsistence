@@ -247,4 +247,7 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     // serialization
     implementation(libs.kotlinx.serialization.json)
+
+    //------------Notifs----------------
+    implementation("androidx.work:work-runtime-ktx:2.11.2")
 }

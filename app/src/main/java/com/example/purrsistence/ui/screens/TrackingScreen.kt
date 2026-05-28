@@ -1,9 +1,9 @@
 package com.example.purrsistence.ui.screens
 
-import android.content.Context
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,17 +20,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.purrsistence.ui.components.tracking.FocusTimerProgress
 import com.example.purrsistence.ui.components.tracking.TrackingActionButton
+import com.example.purrsistence.ui.components.tracking.FinishTrackingDialog
 import com.example.purrsistence.ui.components.tracking.TrackingStopWarningDialog
 import com.example.purrsistence.ui.theme.DarkTertiary
 import com.example.purrsistence.ui.theme.Spacing
@@ -41,16 +49,19 @@ import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 fun TrackingScreen(
     viewModel: TrackingViewModel
 ) {
-
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val accessibilityManager = remember {
-        context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-    }
+    var accessibilityAnnouncement by remember { mutableStateOf("") }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val configuration = LocalConfiguration.current
-    val isLandscape =
-        configuration.orientation == ORIENTATION_LANDSCAPE
+    val isLandscape = configuration.orientation == ORIENTATION_LANDSCAPE
+
+    // handle back navigation (show dialog to finish session)
+    BackHandler(enabled = state.isTracking) {
+        viewModel.stopTracking()
+    }
 
     LaunchedEffect(state.pauseAutoStopWarning) {
         state.pauseAutoStopWarning?.let {
@@ -58,10 +69,23 @@ fun TrackingScreen(
         }
     }
 
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refreshTrackingState()
+        }
+    }
+
     LaunchedEffect(state.multiplierResetWarning) {
         state.multiplierResetWarning?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         }
+    }
+
+    if (state.showFinishDialog) {
+        FinishTrackingDialog(
+            onDismiss = viewModel::dismissFinishDialog,
+            onConfirm = viewModel::confirmStopTracking
+        )
     }
 
     if (state.showStopWarning) {
@@ -76,8 +100,15 @@ fun TrackingScreen(
         accessibilityManager.safeAnnounce(message)
     }
 
-    if (isLandscape) {
+    // Invisible element to trigger accessibility announcements via LiveRegion
+    Box(
+        Modifier.semantics {
+            liveRegion = LiveRegionMode.Polite
+            contentDescription = accessibilityAnnouncement
+        }
+    )
 
+    if (isLandscape) {
         // LANDSCAPE MODE
         Row(
             modifier = Modifier
@@ -147,7 +178,6 @@ fun TrackingScreen(
 
                 TrackingActionButton(
                     text = "Finish",
-                    // remove containerColor if you think this color doesn't fit ???
                     containerColor = DarkTertiary,
                     onClick = viewModel::stopTracking
                 )

@@ -2,9 +2,10 @@ package com.example.purrsistence.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.purrsistence.controller.TrackingNotificationController
 import com.example.purrsistence.domain.focus.FocusBlocker
 import com.example.purrsistence.domain.time.TimeProvider
-import com.example.purrsistence.service.SupabaseSyncService
+import com.example.purrsistence.notifications.SessionReminderScheduler
 import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.service.TrackingService
 import com.example.purrsistence.service.TrackingSyncService
@@ -27,7 +28,9 @@ class TrackingViewModel(
     private val rewardService: RewardService,
     private val timeProvider: TimeProvider,
     private val focusBlocker: FocusBlocker,
-    private val supabaseSyncService: TrackingSyncService
+    private val supabaseSyncService: TrackingSyncService,
+    private val trackingNotificationController: TrackingNotificationController,
+    private val sessionReminderScheduler: SessionReminderScheduler
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TrackingUiState())
@@ -72,6 +75,14 @@ class TrackingViewModel(
                 )
             }
 
+            trackingNotificationController.startTrackingNotification(
+                trackingId = session.id,
+                goalTitle = goalTitle,
+                startTimeMillis = session.startTime.toEpochMilli()
+            )
+
+            sessionReminderScheduler.cancelReminder()
+
             startTicker(session.startTime)
             _events.emit(TrackingEvent.NavigateToTrackingScreen)
         }
@@ -79,11 +90,21 @@ class TrackingViewModel(
 
     fun stopTracking() {
         val state = _uiState.value
-        //if tracked less than a minute, show warning because no reward would be given
+
         if (state.elapsedMillis < 60_000L) {
-            _uiState.update { it.copy(showStopWarning = true) }
+            _uiState.update {
+                it.copy(showStopWarning = true)
+            }
         } else {
-            confirmStopTracking()
+            _uiState.update {
+                it.copy(showFinishDialog = true)
+            }
+        }
+    }
+
+    fun dismissFinishDialog() {
+        _uiState.update {
+            it.copy(showFinishDialog = false)
         }
     }
 
@@ -115,9 +136,18 @@ class TrackingViewModel(
                     elapsedMillis = stopResult.sessionDurationMillis,
                     goalCompletionReward = stopResult.goalCompletionReward,  //show goal completion reward in UI if applicable
                     pauseAutoStopWarning = null,
+                    showFinishDialog = false,
                     showStopWarning = false
                 )
             }
+
+            sessionReminderScheduler.scheduleReminder(
+                delayMinutes = 1200,
+                title = "The cats are pretending not to worry",
+                message = "The cats have checked the doorway twice and are trying to stay brave."
+            )
+
+            trackingNotificationController.stopTrackingNotification()
 
             _events.emit(TrackingEvent.NavigateToRewardsScreen)
             supabaseSyncService.syncAfterLocalTrackingSessionChanged()
@@ -198,11 +228,7 @@ class TrackingViewModel(
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             while (coroutineContext.isActive) {
-                val session = trackingService.getActiveTrackingSession()
-
-                if (session == null) {
-                    break // Stop ticker if no session is active
-                }
+                val session = trackingService.getActiveTrackingSession() ?: break // Stop ticker if no session is active
 
                 val now = timeProvider.now()
                 val totalElapsedDuration = Duration.between(startTime, now).toMillis()
@@ -313,6 +339,38 @@ class TrackingViewModel(
 
             delay(5 * 60 * 1000) // 5 minutes (Total 60 min)
             confirmStopTracking()  // Auto-stop
+        }
+    }
+
+    fun refreshTrackingState() {
+        viewModelScope.launch {
+            val activeSession = trackingService.getActiveTrackingSession()
+
+            if (activeSession == null) {
+                timerJob?.cancel()
+                timerJob = null
+
+                _uiState.value = TrackingUiState()
+
+                _events.emit(TrackingEvent.NavigateBackHome)
+                return@launch
+            }
+
+            val goalTitle = trackingService.getTrackingGoalTitle(activeSession.goalId)
+
+            // Update entire UI state, but keep goalTitle since that doesn't change
+            _uiState.update {
+                it.copy(
+                    trackingId = activeSession.id,
+                    goalId = activeSession.goalId,
+                    goalTitle = goalTitle,
+                    startTime = activeSession.startTime,
+                    elapsedMillis = activeSession.effectiveDuration(timeProvider.now()).toMillis(),
+                    isTracking = true
+                )
+            }
+
+            startTicker(activeSession.startTime)
         }
     }
 }

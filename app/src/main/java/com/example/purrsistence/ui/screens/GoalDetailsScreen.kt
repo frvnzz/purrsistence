@@ -1,22 +1,13 @@
 package com.example.purrsistence.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
@@ -29,24 +20,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.example.purrsistence.ui.components.DeepFocusAccessibilityDialog
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.util.formatLocalizedInteger
 import com.example.purrsistence.ui.util.formatMinutesForAccessibility
+import com.example.purrsistence.ui.util.handleStartTrackingClick
+import com.example.purrsistence.ui.util.openAccessibilitySettings
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import java.time.ZonedDateTime
 import java.util.Locale
@@ -57,8 +50,11 @@ fun GoalDetailsScreen(
     goalViewModel: GoalViewModel,
     onEditClick: (Int) -> Unit,
     onBack: () -> Unit,
-    setTopBar: (TopBarState) -> Unit
+    setTopBar: (TopBarState) -> Unit,
+    onStartTracking: (Int, String, Int, Boolean) -> Unit
 ) {
+    val context = LocalContext.current
+    var showAccessibilityDialog by remember { mutableStateOf(false) }
 
     val goalWithSessions by goalViewModel
         .getGoalWithSessions(goalId)
@@ -141,6 +137,8 @@ fun GoalDetailsScreen(
                         )
                     }
 
+                    // TODO: Refactor UI so that the edit (+ delete?) button is right next to the Title (circular buttons)
+
                     if (currentGoal.deepFocus) {
 
                         Surface(
@@ -200,7 +198,7 @@ fun GoalDetailsScreen(
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
                 ) {
                     Text(
                         text = "Current Progress",
@@ -208,6 +206,7 @@ fun GoalDetailsScreen(
                         modifier = Modifier.semantics { heading() }
                     )
 
+                    // PROGRESS BAR
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -251,10 +250,42 @@ fun GoalDetailsScreen(
                             )
                         }
                     }
+
+                    // START TRACKING BUTTON
+                    Button(
+                        onClick = {
+                            handleStartTrackingClick(
+                                goal = currentGoal,
+                                context = context,
+                                onStartTracking = onStartTracking,
+                                onNeedsAccessibilitySetup = {
+                                    showAccessibilityDialog = true
+                                }
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = Shapes.buttons,
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = Elevation.Lvl1
+                        )
+                    ) {
+
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null
+                        )
+
+                        Spacer(
+                            modifier = Modifier.width(Spacing.sm)
+                        )
+
+                        Text("Start Tracking")
+                    }
                 }
             }
         }
 
+        // EDIT BUTTON
         Button(
             onClick = {
                 onEditClick(currentGoal.id)
@@ -276,6 +307,16 @@ fun GoalDetailsScreen(
             )
 
             Text("Edit Goal")
+        }
+
+        if (showAccessibilityDialog) {
+            DeepFocusAccessibilityDialog(
+                onDismiss = { showAccessibilityDialog = false },
+                onOpenSettings = {
+                    showAccessibilityDialog = false
+                    openAccessibilitySettings(context)
+                }
+            )
         }
     }
 }

@@ -125,7 +125,15 @@ fun AppNavHost(
                     navController.navigate("edit_goal/$selectedGoalId")
                 },
                 onBack = { navController.popBackStack() },
-                setTopBar = setTopBar
+                setTopBar = setTopBar,
+                onStartTracking = { trackingGoalId, goalTitle, userId, deepFocus ->
+                    trackingViewModel.startTrack(
+                        goalId = trackingGoalId,
+                        goalTitle = goalTitle,
+                        userId = userId,
+                        deepFocus = deepFocus
+                    )
+                }
             )
         }
 

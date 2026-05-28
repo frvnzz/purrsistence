@@ -10,7 +10,7 @@ import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 
 @Composable
-fun TrackingStopWarningDialog(
+fun FinishTrackingDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -21,10 +21,12 @@ fun TrackingStopWarningDialog(
         containerColor = MaterialTheme.colorScheme.surface,
         textContentColor = MaterialTheme.colorScheme.onSurface,
 
-        title = { Text("Stop Tracking?") },
+        title = {
+            Text("Finished Tracking?")
+        },
         text = {
             Text(
-                "You have been tracking for less than a minute. If you stop now, you will not receive any rewards for this session."
+                "Your tracking session is still running. Do you want to finish and save this session?"
             )
         },
         confirmButton = {
@@ -32,7 +34,7 @@ fun TrackingStopWarningDialog(
                 onClick = onConfirm,
                 shape = Shapes.buttons
             ) {
-                Text("Stop Anyway")
+                Text("Finish Session")
             }
         },
         dismissButton = {
@@ -40,7 +42,7 @@ fun TrackingStopWarningDialog(
                 onClick = onDismiss,
                 shape = Shapes.buttons
             ) {
-                Text("Keep Tracking")
+                Text("Continue")
             }
         }
     )
