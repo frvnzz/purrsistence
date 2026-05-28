@@ -206,7 +206,7 @@ fun GoalBottomDrawer(
             ) {
                 // Selected Goal
                 GoalListItem(
-                    title = selectedGoal?.title ?: "Create and select a Goal",
+                    title = selectedGoal?.title ?: "Create or select a Goal",
                     type = selectedGoal?.type,
                     targetDuration = selectedGoal?.targetDuration,
                     deepFocus = selectedGoal?.deepFocus ?: false,
