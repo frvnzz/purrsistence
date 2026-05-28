@@ -26,5 +26,6 @@ data class TrackingUiState(
     val pauseAutoStopWarning: String? = null, //Warning when auto-stop is imminent due to prolonged pause
     val checkpointedCurrency: Int = 0, //currency earned in previous focus blocks of this session
     val minutesSinceReset: Int = 0, //minutes of focus since last multiplier reset
+    val showFinishDialog: Boolean = false, // whether to show a dialog that confirms if you want to end the tracking session
     val showStopWarning: Boolean = false // whether to show warning popup when stopping before 1 minute
 )

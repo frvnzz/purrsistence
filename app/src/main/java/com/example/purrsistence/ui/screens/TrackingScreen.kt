@@ -2,6 +2,7 @@ package com.example.purrsistence.ui.screens
 
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.purrsistence.ui.components.tracking.FocusTimerProgress
 import com.example.purrsistence.ui.components.tracking.TrackingActionButton
+import com.example.purrsistence.ui.components.tracking.FinishTrackingDialog
 import com.example.purrsistence.ui.components.tracking.TrackingStopWarningDialog
 import com.example.purrsistence.ui.theme.DarkTertiary
 import com.example.purrsistence.ui.theme.Spacing
@@ -52,8 +54,12 @@ fun TrackingScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val configuration = LocalConfiguration.current
-    val isLandscape =
-        configuration.orientation == ORIENTATION_LANDSCAPE
+    val isLandscape = configuration.orientation == ORIENTATION_LANDSCAPE
+
+    // handle back navigation (show dialog to finish session)
+    BackHandler(enabled = state.isTracking) {
+        viewModel.stopTracking()
+    }
 
     LaunchedEffect(state.pauseAutoStopWarning) {
         state.pauseAutoStopWarning?.let {
@@ -71,6 +77,13 @@ fun TrackingScreen(
         state.multiplierResetWarning?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         }
+    }
+
+    if (state.showFinishDialog) {
+        FinishTrackingDialog(
+            onDismiss = viewModel::dismissFinishDialog,
+            onConfirm = viewModel::confirmStopTracking
+        )
     }
 
     if (state.showStopWarning) {
@@ -93,7 +106,6 @@ fun TrackingScreen(
     )
 
     if (isLandscape) {
-
         // LANDSCAPE MODE
         Row(
             modifier = Modifier

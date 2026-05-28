@@ -104,6 +104,10 @@ class TrackingViewModelTest {
         viewModel.stopTracking()
         runCurrent()
 
+        // The ViewModel shows a finish dialog - must confirm to stop the service and the ticker
+        viewModel.confirmStopTracking()
+        runCurrent()
+
         assertFalse("Warning should not be shown", viewModel.uiState.value.showStopWarning)
         assertEquals("Service stop should have been called", 1, trackingService.stopCalls)
     }

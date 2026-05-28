@@ -90,11 +90,21 @@ class TrackingViewModel(
 
     fun stopTracking() {
         val state = _uiState.value
-        //if tracked less than a minute, show warning because no reward would be given
+
         if (state.elapsedMillis < 60_000L) {
-            _uiState.update { it.copy(showStopWarning = true) }
+            _uiState.update {
+                it.copy(showStopWarning = true)
+            }
         } else {
-            confirmStopTracking()
+            _uiState.update {
+                it.copy(showFinishDialog = true)
+            }
+        }
+    }
+
+    fun dismissFinishDialog() {
+        _uiState.update {
+            it.copy(showFinishDialog = false)
         }
     }
 
@@ -126,6 +136,7 @@ class TrackingViewModel(
                     elapsedMillis = stopResult.sessionDurationMillis,
                     goalCompletionReward = stopResult.goalCompletionReward,  //show goal completion reward in UI if applicable
                     pauseAutoStopWarning = null,
+                    showFinishDialog = false,
                     showStopWarning = false
                 )
             }
