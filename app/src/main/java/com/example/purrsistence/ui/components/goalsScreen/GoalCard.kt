@@ -33,6 +33,7 @@ import com.example.purrsistence.domain.model.GoalWithSessions
 import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.formatLocalizedInteger
 import java.time.ZonedDateTime
 import java.util.Locale
 
@@ -53,9 +54,9 @@ fun GoalCard(
 
     val formattedDuration =
         if (displayMinutes == 0L) {
-            "${displayHours}h"
+            "${formatLocalizedInteger(displayHours.toInt())}h"
         } else {
-            "${displayHours}h ${displayMinutes}m"
+            "${formatLocalizedInteger(displayHours.toInt())}h ${formatLocalizedInteger(displayMinutes.toInt())}m"
         }
 
     val progress = goalWithSessions.currentProgress(ZonedDateTime.now())
