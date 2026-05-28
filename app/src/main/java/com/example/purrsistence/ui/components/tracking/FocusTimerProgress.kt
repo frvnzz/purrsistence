@@ -23,6 +23,8 @@ import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.util.formatDuration
+import com.example.purrsistence.ui.util.formatLocalizedDecimal
+import com.example.purrsistence.ui.util.formatLocalizedInteger
 import kotlin.math.roundToInt
 
 @Composable
@@ -100,7 +102,7 @@ fun FocusTimerProgress(
             val totalLiveCurrency = checkpointedCurrency + potentialCurrency
 
             Text(
-                text = "Earned: $totalLiveCurrency",
+                text = "Earned: ${formatLocalizedInteger(totalLiveCurrency)}",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -109,9 +111,9 @@ fun FocusTimerProgress(
             Text(
                 text =
                     if (multiplier >= 2f) {
-                        "x2.0 Max. Multiplier"
+                        "x${formatLocalizedDecimal(2.0, 1)} Max. Multiplier"
                     } else {
-                        "x${"%.2f".format(multiplier)} Multiplier"
+                        "x${formatLocalizedDecimal(multiplier.toDouble(), 2)} Multiplier"
                     },
                 style = MaterialTheme.typography.titleMedium,
                 color =

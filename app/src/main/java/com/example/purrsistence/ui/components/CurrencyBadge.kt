@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.example.purrsistence.R
 import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.formatLocalizedInteger
 
 @Composable
 fun CurrencyBadge(balance: Int) {
@@ -47,7 +48,7 @@ fun CurrencyBadge(balance: Int) {
             Spacer(modifier = Modifier.width(Spacing.sm))
 
             Text(
-                text = balance.toString(),
+                text = formatLocalizedInteger(balance),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onTertiaryContainer
             )
