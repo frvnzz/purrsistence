@@ -309,4 +309,30 @@ class TrackingViewModel(
             stopTracking()  // Auto-stop
         }
     }
+
+    fun refreshTrackingState() {
+        viewModelScope.launch {
+            val activeSession = trackingService.getActiveTrackingSession()
+
+            if (activeSession == null) {
+                timerJob?.cancel()
+                timerJob = null
+
+                _uiState.value = TrackingUiState()
+
+                _events.emit(TrackingEvent.NavigateBackHome)
+                return@launch
+            }
+
+            _uiState.value = TrackingUiState(
+                trackingId = activeSession.id,
+                goalId = activeSession.goalId,
+                startTime = activeSession.startTime,
+                elapsedMillis = timeProvider.now().toEpochMilli() - activeSession.startTime.toEpochMilli(),
+                isTracking = true
+            )
+
+            startTicker(activeSession.startTime)
+        }
+    }
 }

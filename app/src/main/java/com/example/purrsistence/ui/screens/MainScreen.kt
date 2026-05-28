@@ -21,6 +21,7 @@ import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
+import androidx.compose.runtime.collectAsState
 
 @Composable
 fun MainScreen(
@@ -28,6 +29,9 @@ fun MainScreen(
     goalViewModel: GoalViewModel,
     trackingViewModel: TrackingViewModel,
     statisticsViewModel: StatisticsViewModel,
+    openTrackingFromNotification: Boolean,
+    onTrackingNotificationHandled: () -> Unit
+
 ) {
     // remember states
     val navController = rememberNavController()
@@ -35,9 +39,19 @@ fun MainScreen(
     val topBarState = remember { mutableStateOf(TopBarState()) }
 
     // Check the user state (remote supabase signed in or out)
-    LaunchedEffect(Unit) {
+    LaunchedEffect(userViewModel.isSupabaseSignedIn.collectAsState().value) {
         if (userViewModel.isSupabaseSignedIn.value) {
             userViewModel.syncFromSupabase()
+        }
+    }
+
+    LaunchedEffect(openTrackingFromNotification) {
+        if (openTrackingFromNotification) {
+            navController.navigate("tracking") {
+                launchSingleTop = true
+                restoreState = true
+            }
+            onTrackingNotificationHandled()
         }
     }
 

@@ -1,14 +1,19 @@
 package com.example.purrsistence
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.purrsistence.data.local.entity.UserEntity
 import com.example.purrsistence.notifications.ReminderNotificationManager
 import com.example.purrsistence.notifications.TrackingNotificationManager
+import com.example.purrsistence.service.TrackingForegroundService
 import com.example.purrsistence.ui.screens.MainScreen
 import com.example.purrsistence.ui.theme.PurrsistenceTheme
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
@@ -26,6 +31,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var goalViewModel: GoalViewModel
     private lateinit var trackingViewModel: TrackingViewModel
     private lateinit var statisticsViewModel: StatisticsViewModel
+
+    private var openTrackingFromNotification by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +77,8 @@ class MainActivity : ComponentActivity() {
             StatisticsViewModelFactory(appContainer.statisticsService)
         )[StatisticsViewModel::class.java]
 
+        handleNotificationIntent(intent)
+
         lifecycleScope.launch {
             if (appContainer.userDao.getUser(1).firstOrNull() == null) {
                 val exampleUserEntity = UserEntity(
@@ -100,9 +109,30 @@ class MainActivity : ComponentActivity() {
                     userViewModel = userViewModel,
                     goalViewModel = goalViewModel,
                     trackingViewModel = trackingViewModel,
-                    statisticsViewModel = statisticsViewModel
+                    statisticsViewModel = statisticsViewModel,
+                    openTrackingFromNotification = openTrackingFromNotification,
+                    onTrackingNotificationHandled = {
+                        openTrackingFromNotification = false
+                    }
                 )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: Intent?) {
+        if (intent?.action == TrackingForegroundService.ACTION_OPEN_TRACKING_FROM_NOTIFICATION) {
+            openTrackingFromNotification = true
+
+            intent.action = null
+            intent.removeExtra(TrackingForegroundService.EXTRA_TRACKING_ID)
+            intent.removeExtra(TrackingForegroundService.EXTRA_GOAL_TITLE)
+            intent.removeExtra(TrackingForegroundService.EXTRA_START_TIME_MILLIS)
         }
     }
 }

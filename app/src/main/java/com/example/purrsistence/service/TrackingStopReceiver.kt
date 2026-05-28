@@ -6,6 +6,7 @@ import android.content.Intent
 import com.example.purrsistence.PurrsistenceApplication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class TrackingStopReceiver : BroadcastReceiver() {
@@ -18,11 +19,31 @@ class TrackingStopReceiver : BroadcastReceiver() {
 
         if (trackingId == -1) return
 
-        val appContainer = (context.applicationContext as PurrsistenceApplication).appContainer
+        val pendingResult = goAsync()
+        val appContainer =
+            (context.applicationContext as PurrsistenceApplication).appContainer
 
-        CoroutineScope(Dispatchers.IO).launch {
-            appContainer.trackingService.stopTracking(trackingId)
-            TrackingForegroundService.stop(context)
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            try {
+                val stopResult = appContainer.trackingService.stopTracking(trackingId)
+
+                if (stopResult != null) {
+                    appContainer.focusBlocker.stopBlocking()
+
+                    appContainer.sessionReminderScheduler.scheduleReminder(
+                        delayMinutes = 60,
+                        title = "The cats have started checking the timer again",
+                        message = "A short session would reassure the entire whiskered department."
+                    )
+
+                    if (appContainer.supabaseSyncService.isSignedIn()) {
+                        appContainer.supabaseSyncService.syncAfterLocalTrackingSessionChanged()
+                    }
+                }
+            } finally {
+                TrackingForegroundService.stop(context)
+                pendingResult.finish()
+            }
         }
     }
 }

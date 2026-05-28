@@ -55,6 +55,10 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Shows an ongoing focus-session timer while a user-initiated tracking session is active" />
         </service>
+
+        <receiver
+            android:name=".service.TrackingStopReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

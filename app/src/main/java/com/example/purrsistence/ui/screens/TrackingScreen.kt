@@ -22,8 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.purrsistence.ui.components.tracking.FocusTimerProgress
 import com.example.purrsistence.ui.components.tracking.TrackingActionButton
 import com.example.purrsistence.ui.theme.DarkTertiary
@@ -38,6 +41,8 @@ fun TrackingScreen(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     val configuration = LocalConfiguration.current
     val isLandscape =
         configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -45,6 +50,12 @@ fun TrackingScreen(
     LaunchedEffect(state.pauseAutoStopWarning) {
         state.pauseAutoStopWarning?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refreshTrackingState()
         }
     }
 
