@@ -55,8 +55,9 @@ fun WeeklyChart(dailyStats: List<DailyStat>) {
     )
 
     LaunchedEffect(dailyStats) {
-        modelProducer.runTransaction {
+        if (dailyStats.isEmpty()) return@LaunchedEffect
 
+        modelProducer.runTransaction {
             val values = dailyStats
                 .sortedBy { it.dayOfWeek.value }
                 .map { it.totalMinutes / 60f } // Convert minutes to hours
