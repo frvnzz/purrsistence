@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
@@ -35,10 +34,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.purrsistence.ui.components.tracking.FinishTrackingDialog
 import com.example.purrsistence.ui.components.tracking.FocusTimerProgress
 import com.example.purrsistence.ui.components.tracking.TrackingActionButton
-import com.example.purrsistence.ui.components.tracking.FinishTrackingDialog
 import com.example.purrsistence.ui.components.tracking.TrackingStopWarningDialog
 import com.example.purrsistence.ui.theme.DarkTertiary
 import com.example.purrsistence.ui.theme.Spacing
@@ -51,6 +51,9 @@ fun TrackingScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val accessibilityManager = remember {
+        context.getSystemService(android.content.Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+    }
     var accessibilityAnnouncement by remember { mutableStateOf("") }
 
     val lifecycleOwner = LocalLifecycleOwner.current

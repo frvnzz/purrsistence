@@ -1,13 +1,11 @@
 package com.example.purrsistence.ui.components.homeScreen
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +13,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -39,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -47,49 +43,11 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
-import com.example.purrsistence.domain.model.Goal
 import com.example.purrsistence.domain.model.GoalWithSessions
-import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.ui.theme.Elevation
-import com.example.purrsistence.ui.theme.PurrsistenceTheme
 import com.example.purrsistence.ui.theme.Spacing
-import java.time.Duration
-import java.time.Instant
-
-@Preview(showBackground = true)
-@Composable
-fun GoalBottomDrawerPreview() {
-    PurrsistenceTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-            GoalBottomDrawer(
-                goals = listOf(
-                    GoalWithSessions(
-                        goal = Goal(
-                            id = 1,
-                            userId = 1,
-                            title = "Coding",
-                            type = GoalType.DAILY,
-                            targetDuration = Duration.ofMinutes(60),
-                            deepFocus = true,
-                            inactive = false,
-                            createdAt = Instant.now(),
-                            isCompleted = false,
-                            lastCompletedAt = null
-                        ),
-                        sessions = emptyList()
-                    )
-                ),
-                selectedGoalId = 1,
-                onGoalSelected = {},
-                onStartClick = { _, _ -> },
-                initialProgress = 0f
-            )
-        }
-    }
-}
 
 @Composable
 fun GoalBottomDrawer(
@@ -99,8 +57,6 @@ fun GoalBottomDrawer(
     onGoalSelected: (Int) -> Unit,
     onStartClick: (Int, String) -> Unit,
     alwaysExpanded: Boolean = false
-    modifier: Modifier = Modifier,
-    initialProgress: Float = 0f
 ) {
     // get all inactive = false goals
     val activeGoals = goals.filter { !it.goal.inactive }
@@ -262,62 +218,41 @@ fun GoalBottomDrawer(
                     deepFocus = selectedGoal?.deepFocus ?: false,
                     backgroundColor = MaterialTheme.colorScheme.background,
                     modifier = Modifier
-                        .weight(1f),
+                        .weight(1f)
+                        .draggable(
+                            orientation = Orientation.Vertical,
+                            state = rememberDraggableState { delta ->
+                                val heightPx = with(density) { (expandedHeight - collapsedHeight).toPx() }
+                                progress -= delta / heightPx
+                                progress = progress.coerceIn(0f, 1f)
+                            },
+                            onDragStopped = {
+                                progress = if (progress > 0.5f) 1f else 0f
+                            }
+                        ),
                     isPlaceholder = !hasSelectedGoal
                 )
-                .draggable(
-                    orientation = Orientation.Vertical,
-                    state = rememberDraggableState { delta ->
-                        val heightPx = with(density) { (expandedHeight - collapsedHeight).toPx() }
 
-                        progress -= delta / heightPx
-                        progress = progress.coerceIn(0f, 1f)
-                    },
-                    onDragStopped = {
-                        progress = if (progress > 0.5f) 1f else 0f
-                    }
-                )
-        ) {
+                Spacer(modifier = Modifier.width(Spacing.lg))
 
-            Column {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = Spacing.md),
-                    contentAlignment = Alignment.Center
+                // Play Button
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary,
+                    tonalElevation = Elevation.Lvl2
                 ) {
                     IconButton(
-                        modifier = Modifier.padding(Spacing.xxs),
+                        modifier = Modifier
+                            .padding(Spacing.xxs)
+                            .semantics {
+                                role = Role.Button
+                            },
                         onClick = {
                             selectedGoal?.let {
                                 onStartClick(it.id, it.title)
                             }
-                        )
-                        .semantics {
-                            role = Role.Button
-                            stateDescription = if (isExpanded) "Expanded Goal Selection" else "Collapsed Goal Selection"
-                        }
-                        .padding(horizontal = Spacing.lg),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-
-                    GoalListItem(
-                        title = selectedGoal?.title ?: "Select or create a Goal",
-                        durationText = selectedGoal?.let {
-                            "${it.targetDuration.toMinutes()} min"
                         },
-                        backgroundColor = MaterialTheme.colorScheme.background,
-                        modifier = Modifier.weight(1f),
-                        isPlaceholder = !hasSelectedGoal
-                    )
-
-                    Spacer(modifier = Modifier.width(Spacing.lg))
-
-                    // Play Button
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primary,
-                        tonalElevation = Elevation.Lvl2
+                        enabled = hasSelectedGoal
                     ) {
                         Icon(
                             Icons.Default.PlayArrow,
@@ -327,10 +262,12 @@ fun GoalBottomDrawer(
                         )
                     }
                 }
+            }
 
             // Expanded content (LazyColumn of other goals to select)
             if (isExpanded) {
                 LazyColumn(
+                    modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(Spacing.lg),
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
