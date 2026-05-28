@@ -1,8 +1,6 @@
 package com.example.purrsistence.ui.screens
 
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
-import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,13 +18,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,12 +45,9 @@ import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 fun TrackingScreen(
     viewModel: TrackingViewModel
 ) {
-
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val accessibilityManager = remember {
-        context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-    }
+    var accessibilityAnnouncement by remember { mutableStateOf("") }
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -82,12 +81,16 @@ fun TrackingScreen(
     }
 
     LaunchedEffect(state.isPaused) {
-        val message = if (state.isPaused) "Tracking paused" else "Tracking resumed"
-        val event = AccessibilityEvent.obtain()
-        event.eventType = AccessibilityEvent.TYPE_ANNOUNCEMENT
-        event.text.add(message)
-        accessibilityManager.sendAccessibilityEvent(event)
+        accessibilityAnnouncement = if (state.isPaused) "Tracking paused" else "Tracking resumed"
     }
+
+    // Invisible element to trigger accessibility announcements via LiveRegion
+    Box(
+        Modifier.semantics {
+            liveRegion = LiveRegionMode.Polite
+            contentDescription = accessibilityAnnouncement
+        }
+    )
 
     if (isLandscape) {
 
@@ -160,7 +163,6 @@ fun TrackingScreen(
 
                 TrackingActionButton(
                     text = "Finish",
-                    // remove containerColor if you think this color doesn't fit ???
                     containerColor = DarkTertiary,
                     onClick = viewModel::stopTracking
                 )

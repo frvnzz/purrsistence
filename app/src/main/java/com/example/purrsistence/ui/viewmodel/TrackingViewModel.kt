@@ -1,17 +1,12 @@
 package com.example.purrsistence.ui.viewmodel
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.controller.TrackingNotificationController
 import com.example.purrsistence.domain.focus.FocusBlocker
 import com.example.purrsistence.domain.time.TimeProvider
 import com.example.purrsistence.notifications.SessionReminderScheduler
-import com.example.purrsistence.notifications.SessionReminderWorker
-import com.example.purrsistence.service.CleanupScheduler
-import com.example.purrsistence.service.SupabaseSyncService
 import com.example.purrsistence.service.RewardService
-import com.example.purrsistence.service.TrackingForegroundService
 import com.example.purrsistence.service.TrackingService
 import com.example.purrsistence.service.TrackingSyncService
 import com.example.purrsistence.ui.navigation.TrackingEvent
@@ -222,11 +217,7 @@ class TrackingViewModel(
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             while (coroutineContext.isActive) {
-                val session = trackingService.getActiveTrackingSession()
-
-                if (session == null) {
-                    break // Stop ticker if no session is active
-                }
+                val session = trackingService.getActiveTrackingSession() ?: break // Stop ticker if no session is active
 
                 val now = timeProvider.now()
                 val totalElapsedDuration = Duration.between(startTime, now).toMillis()
@@ -354,13 +345,19 @@ class TrackingViewModel(
                 return@launch
             }
 
-            _uiState.value = TrackingUiState(
-                trackingId = activeSession.id,
-                goalId = activeSession.goalId,
-                startTime = activeSession.startTime,
-                elapsedMillis = timeProvider.now().toEpochMilli() - activeSession.startTime.toEpochMilli(),
-                isTracking = true
-            )
+            val goalTitle = trackingService.getTrackingGoalTitle(activeSession.goalId)
+
+            // Update entire UI state, but keep goalTitle since that doesn't change
+            _uiState.update {
+                it.copy(
+                    trackingId = activeSession.id,
+                    goalId = activeSession.goalId,
+                    goalTitle = goalTitle,
+                    startTime = activeSession.startTime,
+                    elapsedMillis = activeSession.effectiveDuration(timeProvider.now()).toMillis(),
+                    isTracking = true
+                )
+            }
 
             startTicker(activeSession.startTime)
         }

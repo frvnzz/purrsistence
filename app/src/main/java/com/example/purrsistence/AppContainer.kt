@@ -49,7 +49,7 @@ import com.example.purrsistence.notifications.SessionReminderScheduler
 import com.example.purrsistence.notifications.SessionReminderSchedulerImpl
 
 class AppContainer(
-    private val context: Context
+    private val context: Context,
 ) {
 
     // Database
@@ -64,7 +64,7 @@ class AppContainer(
     // Core utilities
     val timeProvider: TimeProvider by lazy { SystemTimeProvider() }
 
-    val focusPrefs by lazy {
+    val focusPrefs: android.content.SharedPreferences by lazy {
         context.getSharedPreferences(DeepFocusConfig.PREFS_NAME, Context.MODE_PRIVATE)
     }
 
@@ -206,7 +206,8 @@ class AppContainer(
             profileRepository = profileRepository,
             catRepository = catCollectionRepository,
             friendshipRepository = friendshipRepository,
-            syncSnapshotRepository = syncSnapshotRepository
+            syncSnapshotRepository = syncSnapshotRepository,
+            goalTrackingRepository = goalTrackingRepository
         )
     }
 }

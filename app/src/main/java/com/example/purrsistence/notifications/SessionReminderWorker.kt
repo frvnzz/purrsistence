@@ -35,7 +35,7 @@ class SessionReminderWorker(
             applicationContext,
             NotificationChannels.REMINDERS
         )
-            .setSmallIcon(R.drawable.coin_64)
+            .setSmallIcon(R.drawable.fish_blue2_24)
             .setContentTitle(title)
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))

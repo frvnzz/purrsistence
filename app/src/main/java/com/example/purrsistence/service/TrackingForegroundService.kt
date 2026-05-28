@@ -9,8 +9,6 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.ServiceCompat
 import com.example.purrsistence.MainActivity
 import com.example.purrsistence.R
 import com.example.purrsistence.notifications.NotificationChannels
