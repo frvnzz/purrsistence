@@ -12,12 +12,12 @@ import android.annotation.SuppressLint
  */
 fun formatMinutes(totalMinutes: Int): String {
     return when {
-        totalMinutes < 60 -> "$totalMinutes min"
-        totalMinutes % 60 == 0 -> "${totalMinutes / 60}h"
+        totalMinutes < 60 -> "${formatLocalizedInteger(totalMinutes)} min"
+        totalMinutes % 60 == 0 -> "${formatLocalizedInteger(totalMinutes / 60)}h"
         else -> {
             val hours = totalMinutes / 60
             val minutes = totalMinutes % 60
-            "${hours}h ${minutes}min"
+            "${formatLocalizedInteger(hours)}h ${minutes}min"
         }
     }
 }

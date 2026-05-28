@@ -31,6 +31,7 @@ import com.example.purrsistence.ui.components.homeScreen.CatImage
 import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.formatLocalizedInteger
 
 @Composable
 fun ShopItemCard(
@@ -84,7 +85,7 @@ fun ShopItemCard(
                 )
 
                 Text(
-                    text = item.price.toString(),
+                    text = formatLocalizedInteger(item.price),
                     style = MaterialTheme.typography.titleMedium
                 )
             }

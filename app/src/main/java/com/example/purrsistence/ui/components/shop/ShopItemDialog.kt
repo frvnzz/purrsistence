@@ -32,6 +32,7 @@ import com.example.purrsistence.ui.components.homeScreen.CatImage
 import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.formatLocalizedInteger
 
 @Composable
 fun ShopItemDialog(
@@ -105,7 +106,7 @@ fun ShopItemDialog(
                             Spacer(modifier = Modifier.width(Spacing.xs))
 
                             Text(
-                                item.price.toString(),
+                                text = formatLocalizedInteger(item.price),
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }
