@@ -1,11 +1,17 @@
 package com.example.purrsistence.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.purrsistence.controller.TrackingNotificationController
 import com.example.purrsistence.domain.focus.FocusBlocker
 import com.example.purrsistence.domain.time.TimeProvider
+import com.example.purrsistence.notifications.SessionReminderScheduler
+import com.example.purrsistence.notifications.SessionReminderWorker
+import com.example.purrsistence.service.CleanupScheduler
 import com.example.purrsistence.service.SupabaseSyncService
 import com.example.purrsistence.service.RewardService
+import com.example.purrsistence.service.TrackingForegroundService
 import com.example.purrsistence.service.TrackingService
 import com.example.purrsistence.service.TrackingSyncService
 import com.example.purrsistence.ui.navigation.TrackingEvent
@@ -27,7 +33,9 @@ class TrackingViewModel(
     private val rewardService: RewardService,
     private val timeProvider: TimeProvider,
     private val focusBlocker: FocusBlocker,
-    private val supabaseSyncService: TrackingSyncService
+    private val supabaseSyncService: TrackingSyncService,
+    private val trackingNotificationController: TrackingNotificationController,
+    private val sessionReminderScheduler: SessionReminderScheduler
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TrackingUiState())
@@ -71,6 +79,14 @@ class TrackingViewModel(
                     isTracking = true
                 )
             }
+
+            trackingNotificationController.startTrackingNotification(
+                trackingId = session.id,
+                goalTitle = goalTitle,
+                startTimeMillis = session.startTime.toEpochMilli()
+            )
+
+            sessionReminderScheduler.cancelReminder()
 
             startTicker(session.startTime)
             _events.emit(TrackingEvent.NavigateToTrackingScreen)
@@ -118,6 +134,14 @@ class TrackingViewModel(
                     showStopWarning = false
                 )
             }
+
+            sessionReminderScheduler.scheduleReminder(
+                delayMinutes = 1200,
+                title = "The cats are pretending not to worry",
+                message = "The cats have checked the doorway twice and are trying to stay brave."
+            )
+
+            trackingNotificationController.stopTrackingNotification()
 
             _events.emit(TrackingEvent.NavigateToRewardsScreen)
             supabaseSyncService.syncAfterLocalTrackingSessionChanged()
@@ -313,6 +337,32 @@ class TrackingViewModel(
 
             delay(5 * 60 * 1000) // 5 minutes (Total 60 min)
             confirmStopTracking()  // Auto-stop
+        }
+    }
+
+    fun refreshTrackingState() {
+        viewModelScope.launch {
+            val activeSession = trackingService.getActiveTrackingSession()
+
+            if (activeSession == null) {
+                timerJob?.cancel()
+                timerJob = null
+
+                _uiState.value = TrackingUiState()
+
+                _events.emit(TrackingEvent.NavigateBackHome)
+                return@launch
+            }
+
+            _uiState.value = TrackingUiState(
+                trackingId = activeSession.id,
+                goalId = activeSession.goalId,
+                startTime = activeSession.startTime,
+                elapsedMillis = timeProvider.now().toEpochMilli() - activeSession.startTime.toEpochMilli(),
+                isTracking = true
+            )
+
+            startTicker(activeSession.startTime)
         }
     }
 }
