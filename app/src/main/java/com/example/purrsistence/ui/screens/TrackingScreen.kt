@@ -1,6 +1,7 @@
 package com.example.purrsistence.ui.screens
 
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
+import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +42,7 @@ import com.example.purrsistence.ui.components.tracking.FinishTrackingDialog
 import com.example.purrsistence.ui.components.tracking.TrackingStopWarningDialog
 import com.example.purrsistence.ui.theme.DarkTertiary
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.safeAnnounce
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 
 @Composable
@@ -94,7 +96,8 @@ fun TrackingScreen(
     }
 
     LaunchedEffect(state.isPaused) {
-        accessibilityAnnouncement = if (state.isPaused) "Tracking paused" else "Tracking resumed"
+        val message = if (state.isPaused) "Tracking paused" else "Tracking resumed"
+        accessibilityManager.safeAnnounce(message)
     }
 
     // Invisible element to trigger accessibility announcements via LiveRegion

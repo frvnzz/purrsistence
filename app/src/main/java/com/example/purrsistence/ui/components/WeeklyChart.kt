@@ -18,6 +18,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.model.DailyStat
+import com.example.purrsistence.ui.util.formatLocalizedNumber
 import com.example.purrsistence.ui.util.formatMinutesForAccessibility
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
@@ -37,9 +38,11 @@ import androidx.compose.ui.text.TextStyle as ComposeTextStyle
 
 private fun formatYAxisLabel(hours: Double): String {
     return if (hours < 1.0) {
-        "${(hours * 60).toInt()}m"
+        "${formatLocalizedNumber(hours * 60, useGrouping = false)}m"
     } else {
-        "${hours.toInt()}h"
+        val hasFraction = hours % 1.0 != 0.0
+        val minFractionDigits = if (hasFraction) 1 else 0
+        "${formatLocalizedNumber(hours, minFractionDigits = minFractionDigits, maxFractionDigits = 1, useGrouping = false)}h"
     }
 }
 
@@ -55,8 +58,9 @@ fun WeeklyChart(dailyStats: List<DailyStat>) {
     )
 
     LaunchedEffect(dailyStats) {
-        modelProducer.runTransaction {
+        if (dailyStats.isEmpty()) return@LaunchedEffect
 
+        modelProducer.runTransaction {
             val values = dailyStats
                 .sortedBy { it.dayOfWeek.value }
                 .map { it.totalMinutes / 60f } // Convert minutes to hours
