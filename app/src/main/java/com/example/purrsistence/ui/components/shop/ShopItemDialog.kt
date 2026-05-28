@@ -114,10 +114,12 @@ fun ShopItemDialog(
 
                                     Spacer(modifier = Modifier.width(Spacing.xs))
 
-                            Text(
-                                text = formatLocalizedInteger(item.price),
-                                style = MaterialTheme.typography.titleMedium
-                            )
+                                    Text(
+                                        text = formatLocalizedInteger(item.price),
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                            }
                         }
                     }
 
