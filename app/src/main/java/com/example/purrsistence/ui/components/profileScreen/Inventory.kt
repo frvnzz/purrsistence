@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -36,18 +38,19 @@ import com.example.purrsistence.ui.theme.Spacing
 fun InventorySection(
     user: User?,
     modifier: Modifier = Modifier,
-    maxGridHeight: Dp
+    maxGridHeight: Dp,
+    isLandscape: Boolean = false
 ) {
     Column(modifier = modifier) {
         Text(
             text = "Inventory",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = Spacing.md)
+            style = if (isLandscape) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(bottom = if (isLandscape) Spacing.sm else Spacing.md)
         )
 
         if (user != null && user.collectedCatsIds.isNotEmpty()) {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
+                columns = if (isLandscape) GridCells.Adaptive(100.dp) else GridCells.Fixed(3),
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = maxGridHeight),
@@ -93,7 +96,10 @@ fun CatInventoryCard(
     Surface(
         modifier = modifier
             .aspectRatio(1f)
-            .clip(Shapes.cards),
+            .clip(Shapes.cards)
+            .clearAndSetSemantics {
+                contentDescription = "Cat: ${cat.name}"
+            },
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 4.dp
     ) {

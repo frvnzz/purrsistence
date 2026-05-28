@@ -14,6 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.R
 import com.example.purrsistence.ui.theme.Elevation
@@ -23,7 +25,11 @@ import com.example.purrsistence.ui.util.formatLocalizedInteger
 @Composable
 fun CurrencyBadge(balance: Int) {
     Surface(
-        modifier = Modifier.height(40.dp),
+        modifier = Modifier
+            .height(40.dp)
+            .clearAndSetSemantics {
+                contentDescription = "$balance fish"
+            },
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.tertiaryContainer,
         tonalElevation = Elevation.Lvl2
@@ -35,7 +41,7 @@ fun CurrencyBadge(balance: Int) {
             Image(
                 // TODO: replace with actual currency icon later
                 painter = painterResource(id = R.drawable.fish_blue2_24),
-                contentDescription = "Currency",
+                contentDescription = null,
                 modifier = Modifier.size(24.dp)
             )
 

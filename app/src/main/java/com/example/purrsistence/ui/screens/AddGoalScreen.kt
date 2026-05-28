@@ -1,15 +1,49 @@
 package com.example.purrsistence.ui.screens
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.selectableGroup
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.components.DeepFocusAccessibilityDialog
 import com.example.purrsistence.ui.components.addEditGoal.DurationBox
 import com.example.purrsistence.ui.state.TopBarState
@@ -42,6 +76,7 @@ fun AddGoalScreen(
     }
 
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
 
     var title by remember { mutableStateOf("New Goal") }
     var type by remember { mutableStateOf("Weekly") }
@@ -77,13 +112,20 @@ fun AddGoalScreen(
 
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .semantics { paneTitle = "Add Goal Screen" }
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            }
     ) {
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = Spacing.lg),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = Spacing.lg)
+                .padding(bottom = 100.dp),
 
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -104,6 +146,8 @@ fun AddGoalScreen(
                 onValueChange = { title = it },
 
                 modifier = Modifier.fillMaxWidth(),
+
+                label = { Text("Goal Title") },
 
                 isError = !titleValid,
 
@@ -183,6 +227,7 @@ fun AddGoalScreen(
             Spacer(modifier = Modifier.height(Spacing.lg))
 
             Row(
+                modifier = Modifier.semantics { selectableGroup() },
                 horizontalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
                 listOf("Daily", "Weekly").forEach { option ->
@@ -195,6 +240,10 @@ fun AddGoalScreen(
                         },
 
                         shape = Shapes.buttons,
+
+                        modifier = Modifier.semantics {
+                            this.selected = selected
+                        },
 
                         colors = ButtonDefaults.buttonColors(
                             containerColor =
@@ -221,7 +270,26 @@ fun AddGoalScreen(
 
             // DEEP FOCUS
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .toggleable(
+                        value = deepFocus,
+                        onValueChange = {
+                            deepFocus = it
+                            if (
+                                requiresDeepFocusSetup(
+                                    context = context,
+                                    deepFocusEnabled = it
+                                )
+                            ) {
+                                showAccessibilityDialog.value = true
+                            }
+                        },
+                        role = Role.Switch
+                    )
+                    .semantics {
+                        stateDescription = if (deepFocus) "Deep Focus on" else "Deep Focus off"
+                    },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -238,18 +306,7 @@ fun AddGoalScreen(
                     Switch(
                         checked = deepFocus,
 
-                        onCheckedChange = {
-                            deepFocus = it
-                            // pop up DeepFocusAlertDialog if turning on the switch
-                            if (
-                                requiresDeepFocusSetup(
-                                    context = context,
-                                    deepFocusEnabled = it
-                                )
-                            ) {
-                                showAccessibilityDialog.value = true
-                            }
-                        },
+                        onCheckedChange = null, //handled by parent row for bigger touch area
 
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
@@ -294,14 +351,15 @@ fun AddGoalScreen(
             horizontalArrangement = Arrangement.spacedBy(Spacing.lg)
         ) {
 
-            OutlinedButton(
+            Button(
                 onClick = onBack,
-
+                modifier = Modifier.weight(1f),
                 shape = Shapes.buttons,
-
-                modifier = Modifier.weight(1f)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                )
             ) {
-
                 Text("Cancel")
             }
 

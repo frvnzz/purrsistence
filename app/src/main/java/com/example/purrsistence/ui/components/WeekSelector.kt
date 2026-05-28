@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -33,12 +34,15 @@ fun WeekSelector(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = if (compact) 4.dp else 8.dp),
+            .padding(vertical = if (compact) 0.dp else 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Previous week button
-        IconButton(onClick = { viewModel.previousWeek() }) {
+        IconButton(
+            onClick = { viewModel.previousWeek() },
+            modifier = if (compact) Modifier.size(32.dp) else Modifier
+        ) {
             Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                 contentDescription = "Previous week"
@@ -47,16 +51,28 @@ fun WeekSelector(
 
         // Week info (centered)
         if (compact) {
-            Text(
-                text = "$label · $dateRange",
+            Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 12.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1
-            )
+                    .padding(horizontal = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = label.uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+                Text(
+                    text = dateRange,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
+                )
+            }
         } else {
             Column(
                 modifier = Modifier
@@ -95,12 +111,13 @@ private fun WeekRightControls(
             // Show a compact action to quickly return to the current week when viewing past weeks
             TextButton(
                 onClick = { viewModel.jumpToThisWeek() },
-                modifier = Modifier.padding(end = if (compact) 4.dp else 8.dp)
+                modifier = Modifier.padding(end = if (compact) 0.dp else 8.dp)
             ) {
                 Text(
-                    text = "Back to this week",
-                    style = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
+                    text = if (compact) "Current" else "Back to this week",
+                    style = if (compact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -108,7 +125,8 @@ private fun WeekRightControls(
         // Next week button (used to step forward, disabled when already at current week)
         IconButton(
             enabled = state.weekOffset < 0,
-            onClick = { viewModel.nextWeek() }
+            onClick = { viewModel.nextWeek() },
+            modifier = if (compact) Modifier.size(32.dp) else Modifier
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight,

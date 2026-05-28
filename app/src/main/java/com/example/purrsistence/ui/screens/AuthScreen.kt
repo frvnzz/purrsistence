@@ -1,6 +1,7 @@
 package com.example.purrsistence.ui.screens
 
 import android.util.Patterns
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +36,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -72,6 +77,8 @@ fun AuthScreen(
     val signUpSuccess by userViewModel
         .signUpSuccess
         .collectAsState()
+
+    val focusManager = LocalFocusManager.current
 
     var isLoginMode by remember { mutableStateOf(true) }
     var isPasswordVisible by remember { mutableStateOf(false) }
@@ -140,6 +147,10 @@ fun AuthScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .semantics { paneTitle = "Account Screen" }
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            }
             .verticalScroll(rememberScrollState())
             .padding(Spacing.lg),
         contentAlignment = Alignment.Center

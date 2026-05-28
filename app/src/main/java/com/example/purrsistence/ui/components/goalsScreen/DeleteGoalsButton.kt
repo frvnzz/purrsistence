@@ -50,7 +50,7 @@ fun DeleteGoalsButton(
         ) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = null
+                contentDescription = "Enter Delete Mode"
             )
         }
 
@@ -99,7 +99,7 @@ fun DeleteGoalsButton(
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = null
+                    contentDescription = if (selectedGoalsCount > 0) "Delete ${selectedGoalsCount} selected goals" else "Delete"
                 )
 
                 if (selectedGoalsCount > 0) {

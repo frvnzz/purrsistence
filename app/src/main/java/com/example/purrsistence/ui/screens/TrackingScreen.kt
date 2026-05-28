@@ -1,6 +1,8 @@
 package com.example.purrsistence.ui.screens
 
-import android.content.res.Configuration
+import android.content.Context
+import android.content.res.Configuration.ORIENTATION_LANDSCAPE
+import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,10 +20,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.components.tracking.FocusTimerProgress
@@ -29,6 +34,7 @@ import com.example.purrsistence.ui.components.tracking.TrackingActionButton
 import com.example.purrsistence.ui.components.tracking.TrackingStopWarningDialog
 import com.example.purrsistence.ui.theme.DarkTertiary
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.safeAnnounce
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 
 @Composable
@@ -38,10 +44,13 @@ fun TrackingScreen(
 
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val accessibilityManager = remember {
+        context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+    }
 
     val configuration = LocalConfiguration.current
     val isLandscape =
-        configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        configuration.orientation == ORIENTATION_LANDSCAPE
 
     LaunchedEffect(state.pauseAutoStopWarning) {
         state.pauseAutoStopWarning?.let {
@@ -62,6 +71,11 @@ fun TrackingScreen(
         )
     }
 
+    LaunchedEffect(state.isPaused) {
+        val message = if (state.isPaused) "Tracking paused" else "Tracking resumed"
+        accessibilityManager.safeAnnounce(message)
+    }
+
     if (isLandscape) {
 
         // LANDSCAPE MODE
@@ -74,7 +88,11 @@ fun TrackingScreen(
 
             // LEFT SECTION
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = "Tracking: ${state.goalTitle}"
+                    },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
@@ -153,20 +171,27 @@ fun TrackingScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                Text(
-                    text = "TRACKING",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.semantics(mergeDescendants = true) {
+                        contentDescription = "Tracking: ${state.goalTitle}"
+                    }
+                ) {
+                    Text(
+                        text = "TRACKING",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
-                Spacer(modifier = Modifier.height(Spacing.sm))
+                    Spacer(modifier = Modifier.height(Spacing.sm))
 
-                Text(
-                    text = state.goalTitle,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
-                )
+                    Text(
+                        text = state.goalTitle,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.Center
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(Spacing.xxl))
 

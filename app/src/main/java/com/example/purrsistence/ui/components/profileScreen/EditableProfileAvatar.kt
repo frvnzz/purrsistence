@@ -29,10 +29,14 @@ fun EditableProfileAvatar(
     profileImageUri: Uri?,
     onPickProfileImage: () -> Unit,
     onRemoveProfileImage: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isLandscape: Boolean = false
 ) {
+    val actionButtonSize = if (isLandscape) 22.dp else 28.dp
+    val actionIconSize = if (isLandscape) 12.dp else 16.dp
+
     Box(
-        modifier = modifier,
+        modifier = if (isLandscape) Modifier.size(72.dp) else modifier,
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -54,7 +58,7 @@ fun EditableProfileAvatar(
                 Icon(
                     imageVector = Icons.Default.Camera,
                     contentDescription = "Add Profile Picture",
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(if (isLandscape) 24.dp else 36.dp),
                     tint = MaterialTheme.colorScheme.onSecondary
                 )
             }
@@ -64,7 +68,9 @@ fun EditableProfileAvatar(
             icon = Icons.Default.Camera,
             contentDescription = "Change Profile Picture",
             onClick = onPickProfileImage,
-            modifier = Modifier.align(Alignment.BottomEnd)
+            modifier = Modifier.align(Alignment.BottomEnd),
+            size = actionButtonSize,
+            iconSize = actionIconSize
         )
 
         if (profileImageUri != null) {
@@ -74,7 +80,9 @@ fun EditableProfileAvatar(
                 onClick = onRemoveProfileImage,
                 containerColor = MaterialTheme.colorScheme.error,
                 contentColor = MaterialTheme.colorScheme.onError,
-                modifier = Modifier.align(Alignment.TopEnd)
+                modifier = Modifier.align(Alignment.TopEnd),
+                size = actionButtonSize,
+                iconSize = actionIconSize
             )
         }
     }
@@ -87,10 +95,12 @@ fun AvatarActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.primary,
-    contentColor: Color = MaterialTheme.colorScheme.onPrimary
+    contentColor: Color = MaterialTheme.colorScheme.onPrimary,
+    size: androidx.compose.ui.unit.Dp = 28.dp,
+    iconSize: androidx.compose.ui.unit.Dp = 16.dp
 ) {
     Surface(
-        modifier = modifier.size(28.dp),
+        modifier = modifier.size(size),
         shape = CircleShape,
         color = containerColor,
         shadowElevation = 2.dp
@@ -99,7 +109,7 @@ fun AvatarActionButton(
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(iconSize),
                 tint = contentColor
             )
         }

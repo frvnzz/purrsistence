@@ -34,6 +34,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.cats.CatList
@@ -86,6 +91,9 @@ fun CatSelectionDialog(
                 // Number of selected cats
                 Text(
                     text = "${selectedIds.size} / 5 selected",
+                    modifier = Modifier.semantics { 
+                        contentDescription = "${selectedIds.size} out of 5 selected" 
+                    },
                     style = MaterialTheme.typography.bodyLarge,
                     color = when {
                         selectedIds.isEmpty() || selectedIds.size > 5 ->
@@ -132,6 +140,10 @@ fun CatSelectionDialog(
                             Card(
                                 modifier = Modifier
                                     .aspectRatio(1f)
+                                    .clearAndSetSemantics {
+                                        contentDescription = "${cat.name}${if (isSelected) ", selected" else ", not selected"}"
+                                        role = Role.Button
+                                    }
                                     // every cat card can be de-/selected
                                     .clickable {
                                         selectedIds = when {
