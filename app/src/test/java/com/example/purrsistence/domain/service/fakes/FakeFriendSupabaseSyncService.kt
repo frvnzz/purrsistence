@@ -5,8 +5,12 @@ import com.example.purrsistence.domain.model.FriendProfileDetails
 import com.example.purrsistence.domain.model.Friendship
 import com.example.purrsistence.domain.model.types.SyncStatus
 import com.example.purrsistence.service.TrackingSyncService
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.flow.Flow
 
-class FakeFriendSupabaseSyncService : TrackingSyncService {
+class FakeFriendSupabaseSyncService(
+    override val sessionStatus: Flow<SessionStatus> = kotlinx.coroutines.flow.MutableStateFlow(SessionStatus.NotAuthenticated())
+) : TrackingSyncService {
 
     var signedIn: Boolean = true
     var currentUserId: String? = "current-user-id"
@@ -23,6 +27,7 @@ class FakeFriendSupabaseSyncService : TrackingSyncService {
     var acceptFriendRequestCalls = 0
     var declineFriendRequestCalls = 0
     var deleteFriendshipCalls = 0
+    var resetTrackingSessionsCalls = 0
 
     var lastSearchQuery: String? = null
     var lastAddresseeId: String? = null
@@ -110,6 +115,9 @@ class FakeFriendSupabaseSyncService : TrackingSyncService {
     override suspend fun updateUsername(username: String) = Unit
 
     override suspend fun updateAvatarPath(avatarPath: String?) = Unit
+    override suspend fun resetTrackingSessions(userId: Int) {
+        resetTrackingSessionsCalls++
+    }
 
     override suspend fun getFriends(): List<FriendProfile> {
         throwOnLoadFriends?.let { throw it }

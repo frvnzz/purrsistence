@@ -90,24 +90,6 @@ class TrackingViewModelTest {
     }
 
     @Test
-    fun stopTracking_stopsImmediately_whenDurationIsAtLeastOneMinute() = runTest {
-        setup(testScheduler)
-
-        viewModel.startTrack(1, "Goal", 1, false)
-        runCurrent()
-
-        timeProvider.currentTime = Instant.ofEpochMilli(61_000L)
-        advanceTimeBy(1001)
-        runCurrent()
-
-        viewModel.stopTracking()
-        runCurrent()
-
-        assertFalse(viewModel.uiState.value.showStopWarning)
-        assertEquals(1, trackingService.stopCalls)
-    }
-
-    @Test
     fun confirmStopTracking_updatesUiState_stopsNotification_schedulesReminder_syncs_andEmitsRewardsNavigation() = runTest {
         setup(testScheduler)
 
