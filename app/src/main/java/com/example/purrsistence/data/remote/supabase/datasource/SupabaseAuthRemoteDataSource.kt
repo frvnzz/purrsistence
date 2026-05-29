@@ -4,6 +4,8 @@ import android.util.Log
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -12,6 +14,7 @@ interface AuthRemoteDataSource {
     suspend fun signIn(email: String, password: String)
     suspend fun signOut()
     fun currentUserId(): String?
+    val sessionStatus: Flow<SessionStatus>
 }
 
 class SupabaseAuthRemoteDataSource(
@@ -56,4 +59,6 @@ class SupabaseAuthRemoteDataSource(
 
         return user?.id
     }
+
+    override val sessionStatus: Flow<SessionStatus> = supabase.auth.sessionStatus
 }

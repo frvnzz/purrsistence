@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.service.ProfileService
 import com.example.purrsistence.service.ShopService
 import com.example.purrsistence.service.TrackingSyncService
+import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -30,16 +32,17 @@ class UserViewModel(
         )
 
     // Centralized source of truth of remote user (sign up / in / out)
-    private val _isSupabaseSignedIn =
-        MutableStateFlow(
+    val isSupabaseSignedIn: StateFlow<Boolean> = supabaseSyncService.sessionStatus
+        .map { it is SessionStatus.Authenticated }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
             supabaseSyncService.isSignedIn()
         )
-    val isSupabaseSignedIn: StateFlow<Boolean> =
-        _isSupabaseSignedIn
+
     // refresh the state of the remote user authorization (for session recovery)
     fun refreshAuthState() {
-        _isSupabaseSignedIn.value =
-            supabaseSyncService.isSignedIn()
+        // No longer needed as we observe sessionStatus flow
     }
 
     private val _supabaseError = MutableStateFlow<String?>(null)
@@ -139,7 +142,6 @@ class UserViewModel(
                     email = email,
                     password = password
                 )
-                refreshAuthState()
 
             } catch (exception: Exception) {
                 _supabaseError.value = exception.message
@@ -160,7 +162,6 @@ class UserViewModel(
             } catch (exception: Exception) {
                 _supabaseError.value = exception.message
             } finally {
-                refreshAuthState()
                 _isSupabaseLoading.value = false
             }
         }

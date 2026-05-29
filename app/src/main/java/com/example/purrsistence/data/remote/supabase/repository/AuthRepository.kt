@@ -1,6 +1,8 @@
 package com.example.purrsistence.data.remote.supabase.repository
 
 import com.example.purrsistence.data.remote.supabase.datasource.AuthRemoteDataSource
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
     fun isSignedIn(): Boolean
@@ -8,6 +10,7 @@ interface AuthRepository {
     suspend fun signUp(email: String, password: String, username: String)
     suspend fun signIn(email: String, password: String)
     suspend fun signOut()
+    val sessionStatus: Flow<SessionStatus>
 }
 
 class AuthRepositoryImpl(
@@ -47,4 +50,6 @@ class AuthRepositoryImpl(
     override suspend fun signOut() {
         remoteDataSource.signOut()
     }
+
+    override val sessionStatus: Flow<SessionStatus> = remoteDataSource.sessionStatus
 }

@@ -16,6 +16,8 @@ import com.example.purrsistence.domain.model.Goal
 import com.example.purrsistence.domain.model.TrackingSession
 import com.example.purrsistence.domain.model.User
 import com.example.purrsistence.domain.model.types.SyncStatus
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.net.URL
 import java.time.Instant
@@ -25,6 +27,8 @@ interface TrackingSyncService {
     fun isSignedIn(): Boolean
 
     fun currentSupabaseUserId(): String?
+
+    val sessionStatus: Flow<SessionStatus>
 
     suspend fun signUp(
         email: String,
@@ -110,6 +114,8 @@ class SupabaseSyncService(
         return authRepository.currentUserId()
     }
 
+    override val sessionStatus: Flow<SessionStatus> = authRepository.sessionStatus
+
     override suspend fun signUp(
         email: String,
         password: String,
@@ -140,6 +146,14 @@ class SupabaseSyncService(
 
     override suspend fun signOut() {
         authRepository.signOut()
+
+        // Clear Supabase linking info from local user
+        val localUser = requireLocalUser()
+        val clearedUser = localUser.copy(
+            isSupabaseLinked = false,
+            supabaseUserId = null
+        )
+        userRepository.updateUserFromRemoteSync(clearedUser)
     }
 
     override suspend fun syncAfterLocalGoalChanged(): SyncStatus {

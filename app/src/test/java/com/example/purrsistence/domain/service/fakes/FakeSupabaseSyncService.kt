@@ -4,11 +4,22 @@ import com.example.purrsistence.domain.model.FriendProfile
 import com.example.purrsistence.domain.model.Friendship
 import com.example.purrsistence.domain.model.types.SyncStatus
 import com.example.purrsistence.service.TrackingSyncService
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakeSupabaseSyncService(
-    private var signedIn: Boolean = false,
-    private var supabaseUserId: String? = null
+    initialSignedIn: Boolean = false,
+    initialSupabaseUserId: String? = null
 ) : TrackingSyncService {
+
+    private var signedIn: Boolean = initialSignedIn
+    private var supabaseUserId: String? = initialSupabaseUserId
+
+    private val _sessionStatus = MutableStateFlow<SessionStatus>(
+        if (signedIn) SessionStatus.Authenticated(null!!) else SessionStatus.NotAuthenticated()
+    )
+    override val sessionStatus: Flow<SessionStatus> = _sessionStatus
 
     var signUpCalls = 0
     var signInCalls = 0
@@ -70,6 +81,7 @@ class FakeSupabaseSyncService(
 
         signedIn = true
         supabaseUserId = "fake-supabase-user-id"
+        _sessionStatus.value = SessionStatus.Authenticated(null!!)
     }
 
     override suspend fun signIn(
@@ -82,12 +94,14 @@ class FakeSupabaseSyncService(
 
         signedIn = true
         supabaseUserId = "fake-supabase-user-id"
+        _sessionStatus.value = SessionStatus.Authenticated(null!!)
     }
 
     override suspend fun signOut() {
         signOutCalls++
         signedIn = false
         supabaseUserId = null
+        _sessionStatus.value = SessionStatus.NotAuthenticated()
     }
 
     override suspend fun syncAfterLocalGoalChanged(): SyncStatus {
