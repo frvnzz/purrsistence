@@ -22,6 +22,8 @@ import com.example.purrsistence.ui.viewmodel.StatisticsViewModelFactory
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModelFactory
 import com.example.purrsistence.ui.viewmodel.UserViewModel
+import com.example.purrsistence.ui.viewmodel.FriendViewModel
+import com.example.purrsistence.ui.viewmodel.FriendViewModelFactory
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
@@ -31,6 +33,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var goalViewModel: GoalViewModel
     private lateinit var trackingViewModel: TrackingViewModel
     private lateinit var statisticsViewModel: StatisticsViewModel
+    private lateinit var friendViewModel: FriendViewModel
 
     private var openTrackingFromNotification by mutableStateOf(false)
 
@@ -77,6 +80,14 @@ class MainActivity : ComponentActivity() {
             StatisticsViewModelFactory(appContainer.statisticsService)
         )[StatisticsViewModel::class.java]
 
+        friendViewModel =
+            ViewModelProvider(
+                this,
+                FriendViewModelFactory(
+                    supabaseSyncService = appContainer.supabaseSyncService
+                )
+            )[FriendViewModel::class.java]
+
         handleNotificationIntent(intent)
 
         lifecycleScope.launch {
@@ -113,7 +124,8 @@ class MainActivity : ComponentActivity() {
                     openTrackingFromNotification = openTrackingFromNotification,
                     onTrackingNotificationHandled = {
                         openTrackingFromNotification = false
-                    }
+                    },
+                    friendViewModel = friendViewModel
                 )
             }
         }

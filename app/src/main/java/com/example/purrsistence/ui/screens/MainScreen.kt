@@ -24,6 +24,7 @@ import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
+import com.example.purrsistence.ui.viewmodel.FriendViewModel
 import androidx.compose.runtime.collectAsState
 
 @Composable
@@ -32,6 +33,7 @@ fun MainScreen(
     goalViewModel: GoalViewModel,
     trackingViewModel: TrackingViewModel,
     statisticsViewModel: StatisticsViewModel,
+    friendViewModel: FriendViewModel,
     openTrackingFromNotification: Boolean,
     onTrackingNotificationHandled: () -> Unit
 
@@ -113,6 +115,7 @@ fun MainScreen(
             goalViewModel = goalViewModel,
             trackingViewModel = trackingViewModel,
             statisticsViewModel = statisticsViewModel,
+            friendViewModel = friendViewModel,
             modifier = Modifier.padding(padding),
             snackbarHostState = snackbarHostState,
             soundManager = soundManager

@@ -1,0 +1,174 @@
+package com.example.purrsistence.ui.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import com.example.purrsistence.domain.cats.CatList
+import com.example.purrsistence.domain.model.FriendProfileDetails
+import com.example.purrsistence.domain.model.ShopItem
+import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.viewmodel.FriendViewModel
+
+@Composable
+fun FriendProfileScreen(
+    viewModel: FriendViewModel,
+    friendUserId: String,
+    onBack: () -> Unit,
+    setTopBar: (TopBarState) -> Unit
+) {
+    val details by viewModel.selectedFriendProfile.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    LaunchedEffect(friendUserId) {
+        setTopBar(
+            TopBarState(
+                title = "Friend Profile",
+                onBackClick = onBack
+            )
+        )
+
+        viewModel.loadFriendProfile(friendUserId)
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        when {
+            isLoading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(Spacing.md)
+                )
+            }
+
+            error != null -> {
+                Text(
+                    text = error ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(Spacing.md)
+                )
+            }
+
+            details != null -> {
+                FriendProfileDetailsContent(
+                    details = details!!
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun FriendProfileDetailsContent(
+    details: FriendProfileDetails
+) {
+    val selectedCats =
+        details.selectedCatIds.mapNotNull { catId ->
+            CatList.getCatById(catId)
+        }
+
+    val collectedCats =
+        details.collectedCatIds.mapNotNull { catId ->
+            CatList.getCatById(catId)
+        }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = Spacing.md),
+        contentPadding = PaddingValues(
+            vertical = Spacing.md
+        )
+    ) {
+        item {
+            Text(
+                text = details.profile.username,
+                style = MaterialTheme.typography.headlineSmall
+            )
+
+            Spacer(
+                modifier = Modifier.height(Spacing.md)
+            )
+
+            Text(
+                text = "Selected Cats",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(
+                modifier = Modifier.height(Spacing.sm)
+            )
+        }
+
+        if (selectedCats.isEmpty()) {
+            item {
+                EmptyText("No selected cats.")
+            }
+        } else {
+            items(selectedCats) { cat ->
+                FriendCatItem(cat = cat)
+            }
+        }
+
+        item {
+            Spacer(
+                modifier = Modifier.height(Spacing.lg)
+            )
+
+            Text(
+                text = "Cat Collection",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(
+                modifier = Modifier.height(Spacing.sm)
+            )
+        }
+
+        if (collectedCats.isEmpty()) {
+            item {
+                EmptyText("No cats collected yet.")
+            }
+        } else {
+            items(collectedCats) { cat ->
+                FriendCatItem(cat = cat)
+            }
+        }
+    }
+}
+
+@Composable
+fun FriendCatItem(
+    cat: ShopItem
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = Spacing.xs)
+    ) {
+        Column(
+            modifier = Modifier.padding(Spacing.md)
+        ) {
+            Text(
+                text = cat.name,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyText(
+    text: String
+) {
+    Text(
+        text = text,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(vertical = Spacing.sm)
+    )
+}

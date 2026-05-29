@@ -1,6 +1,7 @@
 package com.example.purrsistence.domain.service.fakes
 
 import com.example.purrsistence.domain.model.FriendProfile
+import com.example.purrsistence.domain.model.FriendProfileDetails
 import com.example.purrsistence.domain.model.Friendship
 import com.example.purrsistence.domain.model.types.SyncStatus
 import com.example.purrsistence.service.TrackingSyncService
@@ -36,6 +37,7 @@ class FakeSupabaseSyncService(
     var getFriendsCalls = 0
     var getIncomingFriendRequestsCalls = 0
     var getOutgoingFriendRequestsCalls = 0
+    var searchProfilesCalls = 0
     var sendFriendRequestCalls = 0
     var acceptFriendRequestCalls = 0
     var declineFriendRequestCalls = 0
@@ -47,6 +49,7 @@ class FakeSupabaseSyncService(
     var lastCatId: String? = null
     var lastAvatarPath: String? = null
     var lastAddresseeId: String? = null
+    var lastSearchQuery: String? = null
     var lastAcceptedFriendshipId: Long? = null
     var lastDeclinedFriendshipId: Long? = null
     var lastDeletedFriendshipId: Long? = null
@@ -60,6 +63,7 @@ class FakeSupabaseSyncService(
     var friends: List<FriendProfile> = emptyList()
     var incomingFriendRequests: List<Friendship> = emptyList()
     var outgoingFriendRequests: List<Friendship> = emptyList()
+    var searchProfilesResult: List<FriendProfile> = emptyList()
 
     override fun isSignedIn(): Boolean {
         return signedIn
@@ -194,6 +198,12 @@ class FakeSupabaseSyncService(
         return outgoingFriendRequests
     }
 
+    override suspend fun searchProfiles(query: String): List<FriendProfile> {
+        searchProfilesCalls++
+        lastSearchQuery = query
+        return searchProfilesResult
+    }
+
     override suspend fun sendFriendRequest(
         addresseeId: String
     ) {
@@ -214,6 +224,20 @@ class FakeSupabaseSyncService(
         declineFriendRequestCalls++
         lastDeclinedFriendshipId = friendshipId
     }
+
+    override suspend fun getFriendProfileDetails(
+        friendUserId: String
+    ): FriendProfileDetails {
+        return FriendProfileDetails(
+            profile = FriendProfile(
+                id = friendUserId,
+                username = ""
+            ),
+            collectedCatIds = emptyList(),
+            selectedCatIds = emptyList()
+        )
+    }
+
 
     override suspend fun deleteFriendship(
         friendshipId: Long

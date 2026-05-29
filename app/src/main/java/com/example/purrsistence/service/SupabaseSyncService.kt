@@ -10,7 +10,9 @@ import com.example.purrsistence.data.remote.supabase.repository.FriendshipReposi
 import com.example.purrsistence.data.remote.supabase.repository.GoalTrackingRepository
 import com.example.purrsistence.data.remote.supabase.repository.ProfileRepository
 import com.example.purrsistence.data.remote.supabase.repository.SyncSnapshotRepository
+import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.domain.model.FriendProfile
+import com.example.purrsistence.domain.model.FriendProfileDetails
 import com.example.purrsistence.domain.model.Friendship
 import com.example.purrsistence.domain.model.Goal
 import com.example.purrsistence.domain.model.TrackingSession
@@ -53,17 +55,11 @@ interface TrackingSyncService {
 
     suspend fun forceDownloadFromSupabase(): SyncStatus
 
-    suspend fun addCollectedCatToSupabaseAndLocal(
-        catId: String
-    )
+    suspend fun addCollectedCatToSupabaseAndLocal(catId: String)
 
-    suspend fun updateUsername(
-        username: String
-    )
+    suspend fun updateUsername(username: String)
 
-    suspend fun updateAvatarPath(
-        avatarPath: String?
-    )
+    suspend fun updateAvatarPath(avatarPath: String?)
 
     suspend fun resetTrackingSessions(
         userId: Int
@@ -75,17 +71,15 @@ interface TrackingSyncService {
 
     suspend fun getOutgoingFriendRequests(): List<Friendship>
 
-    suspend fun sendFriendRequest(
-        addresseeId: String
-    )
+    suspend fun searchProfiles(query: String): List<FriendProfile>
 
-    suspend fun acceptFriendRequest(
-        friendshipId: Long
-    )
+    suspend fun sendFriendRequest(addresseeId: String)
 
-    suspend fun declineFriendRequest(
-        friendshipId: Long
-    )
+    suspend fun acceptFriendRequest(friendshipId: Long)
+
+    suspend fun declineFriendRequest(friendshipId: Long)
+
+    suspend fun getFriendProfileDetails(friendUserId: String): FriendProfileDetails
 
     suspend fun deleteFriendship(
         friendshipId: Long
@@ -491,6 +485,61 @@ class SupabaseSyncService(
     override suspend fun getOutgoingFriendRequests(): List<Friendship> {
         return friendshipRepository.getOutgoingRequests(
             userId = requireSupabaseUserId()
+        )
+    }
+
+    override suspend fun searchProfiles(
+        query: String
+    ): List<FriendProfile> {
+        if (!isSignedIn()) {
+            return emptyList()
+        }
+
+        val trimmedQuery = query.trim()
+
+        if (trimmedQuery.length < 2) {
+            return emptyList()
+        }
+
+        return profileRepository.searchProfiles(
+            query = trimmedQuery,
+            limit = 10
+        )
+    }
+
+    override suspend fun getFriendProfileDetails(
+        friendUserId: String
+    ): FriendProfileDetails {
+        require(friendUserId.isNotBlank()) {
+            "Friend user id must not be blank."
+        }
+
+        requireSupabaseUserId()
+
+        val profile =
+            profileRepository.fetchFriendProfile(friendUserId)
+
+        val collectedCatIds =
+            catRepository
+                .fetchVisibleCollectedCatIds(friendUserId)
+                .distinct()
+                .filter { catId ->
+                    CatList.getCatById(catId) != null
+                }
+
+        val selectedCatIds =
+            catRepository
+                .fetchVisibleSelectedCatIds(friendUserId)
+                .distinct()
+                .filter { catId ->
+                    catId in collectedCatIds
+                }
+                .take(3)
+
+        return FriendProfileDetails(
+            profile = profile,
+            collectedCatIds = collectedCatIds,
+            selectedCatIds = selectedCatIds
         )
     }
 

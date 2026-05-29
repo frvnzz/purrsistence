@@ -15,3 +15,15 @@ data class FriendshipDto(
 
     val status: String
 )
+
+
+@Serializable
+data class FriendshipInsertDto(
+    @SerialName("requester_id")
+    val requesterId: String,
+
+    @SerialName("addressee_id")
+    val addresseeId: String,
+
+    val status: String = "pending"
+)
