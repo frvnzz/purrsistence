@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import com.example.purrsistence.MainActivity
 import com.example.purrsistence.R
 import com.example.purrsistence.notifications.NotificationChannels
+import androidx.core.content.ContextCompat.startForegroundService
 
 class TrackingForegroundService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
@@ -75,7 +76,7 @@ class TrackingForegroundService : Service() {
                 putExtra(EXTRA_START_TIME_MILLIS, startTimeMillis)
             }
 
-            androidx.core.content.ContextCompat.startForegroundService(context, intent)
+            startForegroundService(context, intent)
         }
 
         fun stop(context: Context) {
