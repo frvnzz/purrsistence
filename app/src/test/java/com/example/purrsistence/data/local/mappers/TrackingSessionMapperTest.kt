@@ -20,7 +20,8 @@ class TrackingSessionMapperTest {
             pauseReminder = true,
             deepFocus = true,
             startTime = 1_700_000_000_000L,
-            endTime = 1_700_000_300_000L
+            endTime = 1_700_000_300_000L,
+            pauseHistory = "1000;1700000100000-1700000101000"
         )
 
         val domain = entity.toDomain()
@@ -32,6 +33,7 @@ class TrackingSessionMapperTest {
         assertEquals(true, domain.deepFocus)
         assertEquals(Instant.ofEpochMilli(1_700_000_000_000L), domain.startTime)
         assertEquals(Instant.ofEpochMilli(1_700_000_300_000L), domain.endTime)
+        assertEquals("1000;1700000100000-1700000101000", domain.pauseHistory)
     }
 
     @Test
@@ -66,7 +68,8 @@ class TrackingSessionMapperTest {
             pauseReminder = true,
             deepFocus = false,
             startTime = Instant.ofEpochMilli(1_700_000_000_000L),
-            endTime = Instant.ofEpochMilli(1_700_000_300_000L)
+            endTime = Instant.ofEpochMilli(1_700_000_300_000L),
+            pauseHistory = "1000;1700000100000-1700000101000"
         )
 
         val entity = domain.toEntity()
@@ -78,5 +81,6 @@ class TrackingSessionMapperTest {
         assertEquals(false, entity.deepFocus)
         assertEquals(1_700_000_000_000L, entity.startTime)
         assertEquals(1_700_000_300_000L, entity.endTime)
+        assertEquals("1000;1700000100000-1700000101000", entity.pauseHistory)
     }
 }

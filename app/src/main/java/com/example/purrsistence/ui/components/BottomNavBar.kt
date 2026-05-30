@@ -1,5 +1,8 @@
 package com.example.purrsistence.ui.components
 
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Assessment
@@ -13,15 +16,24 @@ import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LocalGroceryStore
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun BottomNavBar(navController: NavController) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     // Determine the current route to know which tab is selected
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
@@ -29,7 +41,11 @@ fun BottomNavBar(navController: NavController) {
     // TODO: use single source of truth for routes (screen model) in the future
     val items = listOf("statistics", "goals", "home", "shop", "profile")
 
-    NavigationBar {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = if (isLandscape) Modifier.height(80.dp) else Modifier,
+        windowInsets = if (isLandscape) WindowInsets(0, 0, 0, 46) else NavigationBarDefaults.windowInsets
+    ) {
         items.forEach { screen ->
             val isSelected = currentRoute == screen
 
@@ -43,22 +59,32 @@ fun BottomNavBar(navController: NavController) {
                         restoreState = true
                     }
                 },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    selectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    // pill highlight for selected tab
+                    indicatorColor = MaterialTheme.colorScheme.tertiary
+                ),
+
                 icon = {
                     Icon(
-                        // Display the icon for the current screen (filled when tab is selected)
                         imageVector = when (screen) {
-                            "statistics" -> if(isSelected) Icons.Filled.Assessment else Icons.Outlined.Assessment
+                            "statistics" -> if (isSelected) Icons.Filled.Assessment else Icons.Outlined.Assessment
                             "goals" -> if (isSelected) Icons.Filled.Checklist else Icons.Outlined.Checklist
                             "home" -> if (isSelected) Icons.Filled.Home else Icons.Outlined.Home
-                            "shop" -> if(isSelected) Icons.Filled.LocalGroceryStore else Icons.Outlined.LocalGroceryStore
+                            "shop" -> if (isSelected) Icons.Filled.LocalGroceryStore else Icons.Outlined.LocalGroceryStore
                             "profile" -> if (isSelected) Icons.Filled.AccountBox else Icons.Outlined.AccountBox
-
                             else -> Icons.Filled.DoDisturb
                         },
                         contentDescription = screen
                     )
                 },
-                label = { Text(screen.replaceFirstChar { it.uppercase() }) }
+
+                label = {
+                    Text(screen.replaceFirstChar { it.uppercase() })
+                }
             )
         }
     }

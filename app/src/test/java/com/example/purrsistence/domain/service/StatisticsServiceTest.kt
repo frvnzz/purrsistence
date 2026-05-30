@@ -212,7 +212,8 @@ class StatisticsServiceTest {
             deepFocus = false,
             inactive = false,
             createdAt = Instant.ofEpochMilli(1_000L),
-            isCompleted = false
+            isCompleted = false,
+            lastCompletedAt = null //should not matter for statistics
         )
     }
 

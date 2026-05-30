@@ -25,21 +25,29 @@ class RewardServiceTest {
     }
 
     @Test
-    fun reward_30Minutes_appliesHigherMultiplier() {
-        val (coins, multiplier) = service.calculateReward(Duration.ofMinutes(30))
+    fun reward_withCheckpointedCurrency_sumsCorrectly() {
+        // 10 minutes (10 coins) + 38 checkpointed coins = 48
+        val (coins, multiplier) = service.calculateReward(
+            duration = Duration.ofMinutes(10),
+            hasLongPause = false,
+            checkpointedCurrency = 38
+        )
 
-        assertEquals(38, coins)
-        assertEquals(1.25, multiplier, 0.0001)
+        assertEquals(48, coins)
+        assertEquals(1.0, multiplier, 0.0001)
     }
 
     @Test
-    fun reward_isCappedAtTwoTimes() {
-        val (coins, multiplier) = service.calculateReward(Duration.ofMinutes(150))
+    fun reward_afterReset_multiplierIsOneButCurrencyKept() {
+        //even if we have focus time, if hasLongPause is true (meaning the current time block ended in a long pause)
+        //the current block multiplier is 1.0
+        val (coins, multiplier) = service.calculateReward(
+            duration = Duration.ofMinutes(20),
+            hasLongPause = true,
+            checkpointedCurrency = 50
+        )
 
-        assertEquals(300, coins)
-        assertEquals(2.0, multiplier, 0.0001)
+        assertEquals(70, coins) // 20 + 50 (checkpoint)
+        assertEquals(1.0, multiplier, 0.0001)
     }
-
-
-
 }

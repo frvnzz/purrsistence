@@ -7,11 +7,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.service.GoalService
+import com.example.purrsistence.service.TrackingSyncService
 import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
 
 class GoalViewModel(
     private val goalService: GoalService,
-    private val sharedPreferences: SharedPreferences
+    private val sharedPreferences: SharedPreferences,
+    private val supabaseSyncService: TrackingSyncService
 ) : ViewModel() {
 
     // Goal Selection state (HomeScreen goal picker)
@@ -59,17 +62,23 @@ class GoalViewModel(
                 inactive = inactive,
                 isCompleted = isCompleted
             )
+
+            supabaseSyncService.syncAfterLocalGoalChanged()
         }
     }
 
     fun deleteGoal(goalId: Int) {
         viewModelScope.launch {
             goalService.deleteGoal(goalId)
+            supabaseSyncService.syncAfterLocalGoalChanged()
         }
     }
 
     fun getGoal(goalId: Int?) =
         goalService.getGoal(goalId)
+
+    fun getGoalWithSessions(goalId: Int?) =
+        goalService.getGoalWithSessions(goalId)
 
     fun updateGoal(
         goalId: Int,
@@ -80,6 +89,8 @@ class GoalViewModel(
     ) {
         viewModelScope.launch {
             goalService.updateGoal(goalId, title, type, hours, deepFocus)
+
+            supabaseSyncService.syncAfterLocalGoalChanged()
         }
     }
 
@@ -89,4 +100,11 @@ class GoalViewModel(
 
     fun searchedGoals(userId: Int) =
         goalService.searchGoals(userId, searchQuery)
+
+    fun resetCompletedGoalsIfNewCycle(userId: Int) { //called on goal screen open to reset completed goals if a new time window has started
+        viewModelScope.launch {
+            goalService.resetCompletedGoalsIfNewCycle(userId, ZonedDateTime.now())
+            supabaseSyncService.syncAfterLocalGoalChanged()
+        }
+    }
 }

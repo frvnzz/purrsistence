@@ -19,6 +19,21 @@ interface UserDao {
     @Query("SELECT * FROM UserEntity WHERE userId = :userId LIMIT 1")
     fun getUser(userId: Int): Flow<UserEntity?>
 
+    @Query("SELECT * FROM UserEntity WHERE supabaseUserId = :supabaseUserId LIMIT 1")
+    suspend fun getUserBySupabaseId(supabaseUserId: String): UserEntity?
+
+    @Query(
+        """
+        SELECT *
+        FROM UserEntity
+        WHERE supabaseUserId = :supabaseUserId
+        LIMIT 1
+        """
+    )
+    fun observeBySupabaseUserId(
+        supabaseUserId: String
+    ): Flow<UserEntity?>
+
     @Query("UPDATE UserEntity SET balance = balance + :amount WHERE userId = :userId")
     suspend fun addCurrency(userId: Int, amount: Int)
 
@@ -31,4 +46,41 @@ interface UserDao {
     """
     )
     suspend fun buyCat(userId: Int, price: Int, cats: List<String>)
+
+    @Query("""
+    UPDATE UserEntity
+    SET username = :username,
+        profileImageUrl = :profileImageUrl
+    WHERE userId = :userId
+""")
+    suspend fun updateProfile(userId: Int, username: String, profileImageUrl: String?)
+
+    @Query(
+        """
+        UPDATE UserEntity
+        SET
+            supabaseUserId = :supabaseUserId,
+            username = :username,
+            profileImageUrl = :avatarPath
+        WHERE userId = :userId
+        """
+    )
+    suspend fun linkSupabaseProfileToLocalUser(
+        userId: Int,
+        supabaseUserId: String,
+        username: String,
+        avatarPath: String?
+    )
+
+    @Query(
+        """
+        UPDATE UserEntity
+        SET collectedCatsIds = :ownedCatIds
+        WHERE supabaseUserId = :supabaseUserId
+        """
+    )
+    suspend fun updateOwnedCatIds(
+        supabaseUserId: String,
+        ownedCatIds: List<String>
+    )
 }

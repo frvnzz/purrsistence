@@ -16,7 +16,8 @@ fun GoalEntity.toDomain(): Goal =
         deepFocus = deepFocus,
         inactive = inactive,
         createdAt = Instant.ofEpochMilli(createdAt),
-        isCompleted = isCompleted
+        isCompleted = isCompleted,
+        lastCompletedAt = lastCompletedAt?.let { Instant.ofEpochMilli(it) }
     )
 
 fun Goal.toEntity(): GoalEntity =
@@ -29,5 +30,6 @@ fun Goal.toEntity(): GoalEntity =
         deepFocus = deepFocus,
         inactive = inactive,
         createdAt = createdAt.toEpochMilli(),
-        isCompleted = isCompleted
+        isCompleted = isCompleted,
+        lastCompletedAt = lastCompletedAt?.toEpochMilli()
     )

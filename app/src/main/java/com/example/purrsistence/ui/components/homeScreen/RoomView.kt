@@ -4,8 +4,15 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -17,16 +24,28 @@ import androidx.compose.ui.zIndex
 import com.example.purrsistence.R
 import com.example.purrsistence.domain.model.PlacedCat
 import com.example.purrsistence.domain.model.RoomSpot
+import com.example.purrsistence.ui.components.HeartParticleEffect
+import java.util.UUID
+
+data class HeartBurstState(
+    val id: String = UUID.randomUUID().toString(),
+    val x: Dp,
+    val y: Dp,
+    val zIndex: Float
+)
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun RoomView(
     placedCats: List<PlacedCat>,
     spots: List<RoomSpot>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCatTap: () -> Unit = {}
 ) {
-    val painter = painterResource(R.drawable.room_ph)
+    val painter = painterResource(R.drawable.home_room1)
     val imageSize = painter.intrinsicSize
+
+    val activeBursts = remember { mutableStateListOf<HeartBurstState>() }
 
     BoxWithConstraints(
         modifier = modifier.fillMaxSize(),
@@ -80,10 +99,34 @@ fun RoomView(
                             y = (actualHeight * spot.yPercent) - 100.dp
                         )
                         .zIndex(spot.yPercent)
+                        .pointerInput(Unit) {
+                            detectTapGestures {
+                                onCatTap()
+                                activeBursts.add(
+                                    HeartBurstState(
+                                        x = (actualWidth * spot.xPercent),
+                                        y = (actualHeight * spot.yPercent) - 80.dp,
+                                        zIndex = spot.yPercent
+                                    )
+                                )
+                            }
+                        }
                 ) {
                     CatImage(
                         catId = placedCat.catId,
-                        isMirrored = placedCat.isMirrored
+                        isMirrored = placedCat.isMirrored,
+                        modifier = Modifier.size(82.dp)
+                    )
+                }
+            }
+
+            activeBursts.forEach { burst ->
+                key(burst.id) {
+                    HeartParticleEffect(
+                        onAnimationComplete = { activeBursts.remove(burst) },
+                        modifier = Modifier
+                            .zIndex(burst.zIndex)
+                            .offset(x = burst.x, y = burst.y)
                     )
                 }
             }

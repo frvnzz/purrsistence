@@ -23,7 +23,8 @@ class GoalMapperTest {
             deepFocus = true,
             inactive = false,
             createdAt = 1_700_000_000_000L,
-            isCompleted = false
+            isCompleted = false,
+            lastCompletedAt = null
         )
 
         val domain = entity.toDomain()
@@ -50,7 +51,8 @@ class GoalMapperTest {
             deepFocus = true,
             inactive = false,
             createdAt = Instant.ofEpochMilli(1_700_000_000_000L),
-            isCompleted = false
+            isCompleted = false,
+            lastCompletedAt = null
         )
 
         val entity = goal.toEntity()

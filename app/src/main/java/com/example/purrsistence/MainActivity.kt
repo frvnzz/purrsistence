@@ -1,35 +1,29 @@
 package com.example.purrsistence
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.example.purrsistence.data.local.AppDatabase
-import com.example.purrsistence.data.focus.SharedPrefsFocusBlocker
 import com.example.purrsistence.data.local.entity.UserEntity
-import com.example.purrsistence.data.local.repository.GoalRepository
-import com.example.purrsistence.data.local.repository.GoalRepositoryImpl
-import com.example.purrsistence.data.local.repository.StatisticsRepository
-import com.example.purrsistence.data.local.repository.StatisticsRepositoryImpl
-import com.example.purrsistence.data.local.repository.TrackingRepository
-import com.example.purrsistence.data.local.repository.TrackingRepositoryImpl
-import com.example.purrsistence.data.local.repository.UserRepository
-import com.example.purrsistence.data.local.repository.UserRepositoryImpl
-import com.example.purrsistence.domain.time.SystemTimeProvider
-import com.example.purrsistence.ui.viewmodel.GoalViewModel
-import com.example.purrsistence.focus.DeepFocusConfig
-import com.example.purrsistence.service.GoalService
-import com.example.purrsistence.service.RewardService
-import com.example.purrsistence.service.ShopService
-import com.example.purrsistence.service.StatisticsService
-import com.example.purrsistence.service.TrackingService
-import com.example.purrsistence.service.TrackingServiceImpl
+import com.example.purrsistence.notifications.ReminderNotificationManager
+import com.example.purrsistence.notifications.TrackingNotificationManager
+import com.example.purrsistence.service.TrackingForegroundService
 import com.example.purrsistence.ui.screens.MainScreen
-import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.theme.PurrsistenceTheme
+import com.example.purrsistence.ui.viewmodel.GoalViewModel
+import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
+import com.example.purrsistence.ui.viewmodel.StatisticsViewModelFactory
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
+import com.example.purrsistence.ui.viewmodel.TrackingViewModelFactory
 import com.example.purrsistence.ui.viewmodel.UserViewModel
+import com.example.purrsistence.ui.viewmodel.FriendViewModel
+import com.example.purrsistence.ui.viewmodel.FriendViewModelFactory
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
@@ -39,66 +33,118 @@ class MainActivity : ComponentActivity() {
     private lateinit var goalViewModel: GoalViewModel
     private lateinit var trackingViewModel: TrackingViewModel
     private lateinit var statisticsViewModel: StatisticsViewModel
+    private lateinit var friendViewModel: FriendViewModel
+
+    private var openTrackingFromNotification by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // DATABASE & DAO
-        val db = AppDatabase.getInstance(this)
-        val goalsDao = db.goalsDao()
-        val trackingDao = db.trackingDao()
-        val userDao = db.userDao()
+        TrackingNotificationManager(this).createChannels()
+        ReminderNotificationManager(this).createChannels()
 
-        // REPOSITORIES
-        val userRepo : UserRepository = UserRepositoryImpl(userDao)
-        val goalRepo : GoalRepository = GoalRepositoryImpl(goalsDao) // replace with goalDao when it's implemented
-        val timeProvider = SystemTimeProvider()
-        val trackingRepo : TrackingRepository = TrackingRepositoryImpl(trackingDao)
-        val statisticsRepo : StatisticsRepository= StatisticsRepositoryImpl(goalsDao, trackingDao)
 
-        //Services
-        val goalService = GoalService(goalRepo, timeProvider)
-        val rewardService = RewardService()
-        val trackingService = TrackingServiceImpl(trackingRepo, userRepo, rewardService, timeProvider)
-        val shopService = ShopService(userRepo)
-        val statisticsService = StatisticsService(statisticsRepo)
+        val appContainer = (application as PurrsistenceApplication).appContainer
 
-        // shared preferences (for storing last selected goal from GoalBottomDrawer)
-        val prefs = getSharedPreferences(DeepFocusConfig.PREFS_NAME, MODE_PRIVATE)
-        val focusBlocker = SharedPrefsFocusBlocker(prefs)
+        // Optional place for notification channel creation later, for example:
+        // TrackingNotificationManager(this).createChannels()
 
-        // create ViewModel instances for this activity
-        userViewModel = UserViewModel(shopService)
-        goalViewModel = GoalViewModel(goalService, prefs)
-        trackingViewModel = TrackingViewModel(trackingService, timeProvider, focusBlocker)
-        statisticsViewModel = StatisticsViewModel(statisticsService)
+        userViewModel = UserViewModel(
+            shopService = appContainer.shopService,
+            supabaseSyncService = appContainer.supabaseSyncService,
+            profileService = appContainer.profileService
+        )
+
+        goalViewModel = GoalViewModel(
+            goalService = appContainer.goalService,
+            sharedPreferences = appContainer.focusPrefs,
+            supabaseSyncService = appContainer.supabaseSyncService
+        )
+
+        trackingViewModel = ViewModelProvider(
+            this,
+            TrackingViewModelFactory(
+                trackingService = appContainer.trackingService,
+                rewardService = appContainer.rewardService,
+                timeProvider = appContainer.timeProvider,
+                focusBlocker = appContainer.focusBlocker,
+                trackingNotificationController = appContainer.trackingNotificationController,
+                sessionReminderScheduler = appContainer.sessionReminderScheduler,
+                supabaseSyncService = appContainer.supabaseSyncService
+            )
+        )[TrackingViewModel::class.java]
+
+        statisticsViewModel = ViewModelProvider(
+            this,
+            StatisticsViewModelFactory(appContainer.statisticsService)
+        )[StatisticsViewModel::class.java]
+
+        friendViewModel =
+            ViewModelProvider(
+                this,
+                FriendViewModelFactory(
+                    supabaseSyncService = appContainer.supabaseSyncService
+                )
+            )[FriendViewModel::class.java]
+
+        handleNotificationIntent(intent)
 
         lifecycleScope.launch {
-            // Only insert if userId 1 doesn't exist
-            if (userDao.getUser(1).firstOrNull() == null) {
+            if (appContainer.userDao.getUser(1).firstOrNull() == null) {
                 val exampleUserEntity = UserEntity(
-                    userId = 1, // fixed userId 1 for the test user
+                    userId = 1,
                     username = "testuser",
                     balance = 100,
                     friends = listOf("alice", "bob"),
                     collectedCatsIds = listOf("cat_1"),
-                    selectedCatIds = listOf("cat_1")
+                    selectedCatIds = listOf("cat_1"),
+                    profileImageUrl = null,
+                    isSupabaseLinked = false,
+                    supabaseUserId = null
                 )
-                userDao.insertUser(exampleUserEntity)
+                appContainer.userDao.insertUser(exampleUserEntity)
             }
+
+            appContainer.cleanupScheduler.runIfDue()
+
+            // Optional later:
+            // if (appContainer.supabaseSyncService.isSignedIn()) {
+            //     appContainer.supabaseSyncService.checkAndSyncIfNeeded()
+            // }
         }
 
         setContent {
             PurrsistenceTheme {
-                // pass created ViewModels to MainScreen (scaffold)
                 MainScreen(
                     userViewModel = userViewModel,
                     goalViewModel = goalViewModel,
                     trackingViewModel = trackingViewModel,
                     statisticsViewModel = statisticsViewModel,
+                    openTrackingFromNotification = openTrackingFromNotification,
+                    onTrackingNotificationHandled = {
+                        openTrackingFromNotification = false
+                    },
+                    friendViewModel = friendViewModel
                 )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: Intent?) {
+        if (intent?.action == TrackingForegroundService.ACTION_OPEN_TRACKING_FROM_NOTIFICATION) {
+            openTrackingFromNotification = true
+
+            intent.action = null
+            intent.removeExtra(TrackingForegroundService.EXTRA_TRACKING_ID)
+            intent.removeExtra(TrackingForegroundService.EXTRA_GOAL_TITLE)
+            intent.removeExtra(TrackingForegroundService.EXTRA_START_TIME_MILLIS)
         }
     }
 }

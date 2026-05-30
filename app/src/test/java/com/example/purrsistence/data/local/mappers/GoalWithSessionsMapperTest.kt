@@ -24,7 +24,8 @@ class GoalWithSessionsMapperTest {
                 deepFocus = true,
                 inactive = false,
                 createdAt = 1_700_000_000_000L,
-                isCompleted = false
+                isCompleted = false,
+                lastCompletedAt = null
             ),
             sessions = listOf(
                 TrackingSessionEntity(

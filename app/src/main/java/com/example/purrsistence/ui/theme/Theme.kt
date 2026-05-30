@@ -3,6 +3,7 @@ package com.example.purrsistence.ui.theme
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes as MaterialShapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -18,18 +19,29 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
+    primary = Primary,
+    onPrimary = OnPrimary,
 
-    // Other default colors
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
+    secondary = Secondary,
+    onSecondary = OnSecondary,
+
+    tertiary = Tertiary,
+    onTertiary = OnTertiary,
+
+    tertiaryContainer = Accent,
+    onTertiaryContainer = OnAccent,
+
+    background = Background,
+    onBackground = OnBackground,
+
+    surface = Surface,
+    onSurface = OnSurface,
+
+    // Extra roles
+    surfaceVariant = SurfaceContainer,
+    onSurfaceVariant = OnSurface,
+    surfaceDim = Disabled,
+    outline = Outline
 )
 
 @Composable
@@ -57,6 +69,12 @@ fun PurrsistenceTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content
+        content = content,
+        // corner radius -> shapes
+        shapes = MaterialShapes(
+            small = Shapes.inputs,
+            medium = Shapes.buttons,
+            large = Shapes.cards
+        )
     )
 }

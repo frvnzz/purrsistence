@@ -6,15 +6,25 @@ import com.example.purrsistence.data.local.mapping.toEntity
 import com.example.purrsistence.domain.model.Goal
 import com.example.purrsistence.domain.model.GoalWithSessions
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 interface GoalRepository {
     fun getGoals(userId: Int): Flow<List<GoalWithSessions>>
+    fun getActiveGoals(userId: Int): Flow<List<GoalWithSessions>>
     suspend fun insertGoal(goal: Goal)
     suspend fun deleteGoal(goalId: Int)
     fun getGoal(goalId: Int?): Flow<Goal?>
+    fun getGoalWithSessions(goalId: Int?): Flow<GoalWithSessions?>
     suspend fun updateGoal(goal: Goal)
     fun searchGoals(userId: Int, query: String): Flow<List<GoalWithSessions>>
+    suspend fun getInactiveGoals(): List<Goal>
+    suspend fun getGoalsForSync(userId: Int): List<Goal>
+    suspend fun resetGoalsStatus(userId: Int)
+    suspend fun replaceGoalsFromRemoteSync(
+        userId: Int,
+        goals: List<Goal>
+    )
 }
 
 class GoalRepositoryImpl(
@@ -23,6 +33,12 @@ class GoalRepositoryImpl(
 
     override fun getGoals(userId: Int): Flow<List<GoalWithSessions>> {
         return dao.getGoals(userId).map { list ->
+            list.map { it.toDomain() }
+        }
+    }
+
+    override fun getActiveGoals(userId: Int): Flow<List<GoalWithSessions>> {
+        return dao.getActiveGoals(userId).map { list ->
             list.map { it.toDomain() }
         }
     }
@@ -37,9 +53,19 @@ class GoalRepositoryImpl(
 
     override fun getGoal(goalId: Int?): Flow<Goal?> {
         return if (goalId == null) {
-            kotlinx.coroutines.flow.flowOf(null)
+            flowOf(null)
         } else {
             dao.getGoal(goalId).map { entity ->
+                entity?.toDomain()
+            }
+        }
+    }
+
+    override fun getGoalWithSessions(goalId: Int?): Flow<GoalWithSessions?> {
+        return if (goalId == null) {
+            flowOf(null)
+        } else {
+            dao.getGoalWithSessions(goalId).map { entity ->
                 entity?.toDomain()
             }
         }
@@ -51,7 +77,10 @@ class GoalRepositoryImpl(
             title = goal.title,
             type = goal.type.name,
             hours = goal.targetDuration.toMinutes().toInt(),
-            deepFocus = goal.deepFocus
+            deepFocus = goal.deepFocus,
+            lastCompletedAt = goal.lastCompletedAt?.toEpochMilli(), //for updating the last completed time when marking as completed
+            isCompleted = goal.isCompleted, //for showing the completed status in the UI
+            inactive = goal.inactive
         )
     }
 
@@ -60,5 +89,32 @@ class GoalRepositoryImpl(
             list.map { it.toDomain() }
         }
     }
+
+    override suspend fun getInactiveGoals(): List<Goal> {
+        return dao.getInactiveGoals().map { it.toDomain() }
+    }
+
+    override suspend fun getGoalsForSync(userId: Int): List<Goal> {
+        return dao
+            .getGoalEntitiesForUser(userId)
+            .map { it.toDomain() }
+    }
+
+    override suspend fun resetGoalsStatus(userId: Int) {
+        dao.resetGoalsStatusForUser(userId)
+    }
+
+    override suspend fun replaceGoalsFromRemoteSync(
+        userId: Int,
+        goals: List<Goal>
+    ) {
+        dao.replaceGoalsForUser(
+            userId = userId,
+            goals = goals.map { goal ->
+                goal.copy(userId = userId).toEntity()
+            }
+        )
+    }
+
 }
 

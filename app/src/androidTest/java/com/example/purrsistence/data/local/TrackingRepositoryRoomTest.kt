@@ -1,92 +1,121 @@
 package com.example.purrsistence.data.local
 
-import android.content.Context
-import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.purrsistence.data.local.dao.Dao
-import com.example.purrsistence.data.local.entity.GoalEntity
-import com.example.purrsistence.data.local.entity.UserEntity
-import com.example.purrsistence.data.local.repository.TrackingRepositoryImpl
-import com.example.purrsistence.domain.time.FakeTimeProvider
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.example.purrsistence.domain.model.TrackingSession
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Before
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.Instant
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
-class TrackingRepositoryRoomTest {
+class TrackingRepositoryRoomIntegrationTest : RoomIntegrationTestBase() {
 
-    private lateinit var db: AppDatabase
-    private lateinit var dao: Dao
-    private lateinit var repositoryImpl: TrackingRepositoryImpl
-    private lateinit var fakeTimeProvider: FakeTimeProvider
+    @Test
+    fun insertAndFinishTrackingSession_persistsEndTime() = runBlocking {
+        seedUserEntity(userId = 1)
+        seedGoalEntity(goalId = 1, userId = 1)
 
-    @Before
-    fun setup() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
+        val inserted = trackingRepository.insertTrackingSession(
+            TrackingSession(
+                id = 0,
+                goalId = 1,
+                userId = 1,
+                pauseReminder = false,
+                deepFocus = false,
+                startTime = Instant.ofEpochMilli(1_000L),
+                endTime = null
+            )
+        )
 
-        db = Room.inMemoryDatabaseBuilder(
-            context,
-            AppDatabase::class.java
-        ).allowMainThreadQueries().build()
+        val active = trackingRepository.getActiveTrackingSession(1)
+        assertNotNull(active)
+        assertEquals(inserted.id, active!!.id)
+        assertNull(active.endTime)
 
-        dao = db.dao()
-        fakeTimeProvider = FakeTimeProvider(1000L)
-        repositoryImpl = TrackingRepositoryImpl(dao, fakeTimeProvider)
+        val finished = trackingRepository.finishTrackingSession(
+            trackingId = inserted.id,
+            endTimeMillis = 5_000L
+        )
 
-    }
+        assertNotNull(finished)
+        assertEquals(Instant.ofEpochMilli(5_000L), finished!!.endTime)
 
-    @After
-    fun clean(){
-        db.close()
+        val afterFinish = trackingRepository.getActiveTrackingSession(1)
+        assertNull(afterFinish)
     }
 
     @Test
-    fun startAndStopTracking () = runBlocking {
-        val testGoalId = 100
+    fun deleteFinishedSessionsForGoalBefore_removesOnlyOldFinishedSessions() = runBlocking {
+        seedUserEntity(userId = 1)
+        seedGoalEntity(goalId = 1, userId = 1)
 
-        dao.insertUser(
-            UserEntity(
+        val oldFinished = trackingRepository.insertTrackingSession(
+            TrackingSession(
+                id = 0,
+                goalId = 1,
                 userId = 1,
-                username = "TestUsr",
-                balance = 10,
-                friends= emptyList(),
-                collectedCatsIds = emptyList()
-            )
-        )
-        dao.insertGoal(
-            GoalEntity(
-                goalId = testGoalId,
-                userId = 1,
-                title = "Test Goal",
-                type = "Focus",
-                targetDuration = 25,
+                pauseReminder = false,
                 deepFocus = false,
-                inactive = false,
-                createdAt = 1000L,
-                isCompleted = false
+                startTime = Instant.parse("2026-03-01T10:00:00Z"),
+                endTime = Instant.parse("2026-03-01T11:00:00Z")
             )
         )
 
-        val started = repositoryImpl.startTracking(
-            goalId = testGoalId,
-            userId = 1,
-            pauseReminder = false
+        val recentFinished = trackingRepository.insertTrackingSession(
+            TrackingSession(
+                id = 0,
+                goalId = 1,
+                userId = 1,
+                pauseReminder = false,
+                deepFocus = false,
+                startTime = Instant.parse("2026-04-20T10:00:00Z"),
+                endTime = Instant.parse("2026-04-20T11:00:00Z")
+            )
         )
 
-        fakeTimeProvider.currentTime = 7000L
-        repositoryImpl.stopTracking(started.trackingId)
+        val active = trackingRepository.insertTrackingSession(
+            TrackingSession(
+                id = 0,
+                goalId = 1,
+                userId = 1,
+                pauseReminder = false,
+                deepFocus = false,
+                startTime = Instant.parse("2026-04-25T10:00:00Z"),
+                endTime = null
+            )
+        )
 
-        val stored = repositoryImpl.getTrackingSessionById(started.trackingId)
+        trackingRepository.deleteFinishedSessionsForGoalBefore(
+            goalId = 1,
+            cutoff = Instant.parse("2026-04-01T00:00:00Z")
+        )
 
-        assertNotNull(stored)
-        assertEquals(1000L, stored!!.startTime)
-        assertEquals(7000L, stored.endTime)
+        assertNull(trackingRepository.getTrackingSessionById(oldFinished.id))
+        assertNotNull(trackingRepository.getTrackingSessionById(recentFinished.id))
+        assertNotNull(trackingRepository.getTrackingSessionById(active.id))
+        assertEquals(2, trackingRepository.countSessionsForGoal(1))
+    }
+
+    @Test
+    fun deleteAllTrackingSessions_removesAllSessionsForUser() = runBlocking {
+        seedUserEntity(userId = 1)
+        seedGoalEntity(goalId = 1, userId = 1)
+        seedTrackingSessionEntity(sessionId = 1, goalId = 1, userId = 1, duration = 1000)
+        seedTrackingSessionEntity(sessionId = 2, goalId = 1, userId = 1, duration = 2000)
+
+        seedUserEntity(userId = 2)
+        seedGoalEntity(goalId = 2, userId = 2)
+        seedTrackingSessionEntity(sessionId = 3, goalId = 2, userId = 2, duration = 3000)
+
+        assertEquals(2, trackingRepository.getTrackingSessionsForSync(1).size)
+        assertEquals(1, trackingRepository.getTrackingSessionsForSync(2).size)
+
+        trackingRepository.deleteAllTrackingSessions(1)
+
+        assertEquals(0, trackingRepository.getTrackingSessionsForSync(1).size)
+        assertEquals(1, trackingRepository.getTrackingSessionsForSync(2).size)
     }
 }

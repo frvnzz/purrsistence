@@ -1,12 +1,28 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     id("com.google.devtools.ksp")
     jacoco
 }
 
 jacoco {
     toolVersion = "0.8.14"
+}
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+
+fun localProperty(name: String): String {
+    return localProperties.getProperty(name)
+        ?: project.findProperty(name) as? String
+        ?: ""
 }
 
 android {
@@ -25,6 +41,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            "\"${localProperty("SUPABASE_URL")}\""
+        )
+
+        buildConfigField(
+            "String",
+            "SUPABASE_PUBLISHABLE_KEY",
+            "\"${localProperty("SUPABASE_PUBLISHABLE_KEY")}\""
+        )
     }
 
     buildTypes {
@@ -42,6 +70,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     testOptions {
@@ -201,13 +230,24 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    val room_version = "2.8.4"
-
-    implementation("androidx.room:room-runtime:$room_version")
-    ksp("androidx.room:room-compiler:$room_version")
-    implementation("androidx.room:room-ktx:$room_version")
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
 
     //Vico Compose Graphs
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
+    implementation(libs.coil.compose)
+
+    //--------------- Supabase --------------
+    implementation(platform(libs.bom))
+    implementation(libs.auth.kt)
+    implementation(libs.postgrest.kt)
+    implementation(libs.storage.kt)
+    implementation(libs.ktor.client.okhttp)
+    // serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    //------------Notifs----------------
+    implementation("androidx.work:work-runtime-ktx:2.11.2")
 }

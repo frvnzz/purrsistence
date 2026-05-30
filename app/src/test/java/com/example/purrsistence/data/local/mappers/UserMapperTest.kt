@@ -6,6 +6,7 @@ import com.example.purrsistence.data.local.mapping.toEntity
 import com.example.purrsistence.domain.model.User
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.net.URL
 
 class UserMapperTest {
 
@@ -15,9 +16,12 @@ class UserMapperTest {
             userId = 1,
             username = "TestUser",
             balance = 120,
-            friends = listOf(""),
+            friends = listOf("friend_1", "friend_2"),
             collectedCatsIds = listOf("cat_grey", "cat_lucky"),
-            selectedCatIds =  listOf("cat_grey", "cat_lucky")
+            selectedCatIds = listOf("cat_grey", "cat_lucky"),
+            profileImageUrl = "https://example.com/profile.png",
+            isSupabaseLinked = true,
+            supabaseUserId = "supabase-123"
         )
 
         val domain = entity.toDomain()
@@ -25,8 +29,12 @@ class UserMapperTest {
         assertEquals(1, domain.id)
         assertEquals("TestUser", domain.username)
         assertEquals(120, domain.balance)
-        assertEquals(listOf(""), domain.friends)
+        assertEquals(listOf("friend_1", "friend_2"), domain.friends)
         assertEquals(listOf("cat_grey", "cat_lucky"), domain.collectedCatsIds)
+        assertEquals(listOf("cat_grey", "cat_lucky"), domain.selectedCatIds)
+        assertEquals(URL("https://example.com/profile.png"), domain.profileImageUrl)
+        assertEquals(true, domain.isSupabaseLinked)
+        assertEquals("supabase-123", domain.supabaseUserId)
     }
 
     @Test
@@ -35,9 +43,15 @@ class UserMapperTest {
             id = 1,
             username = "TestUser",
             balance = 120,
-            friends = listOf(""),
+            friends = listOf("friend_1", "friend_2"),
             collectedCatsIds = listOf("cat_grey", "cat_lucky"),
-            selectedCatIds =  listOf("cat_grey", "cat_lucky")
+            selectedCatIds = listOf("cat_grey", "cat_lucky"),
+            profileImageUrl = URL("https://example.com/profile.png"),
+            isSupabaseLinked = true,
+            supabaseUserId = "supabase-123",
+            localUpdatedAt = null,
+            lastSyncedAt = null,
+            hasPendingLocalChanges = false
         )
 
         val entity = domain.toEntity()
@@ -45,7 +59,63 @@ class UserMapperTest {
         assertEquals(1, entity.userId)
         assertEquals("TestUser", entity.username)
         assertEquals(120, entity.balance)
-        assertEquals(listOf(""), entity.friends)
-        assertEquals(listOf("cat_grey", "cat_lucky"), domain.collectedCatsIds)
+        assertEquals(listOf("friend_1", "friend_2"), entity.friends)
+        assertEquals(listOf("cat_grey", "cat_lucky"), entity.collectedCatsIds)
+        assertEquals(listOf("cat_grey", "cat_lucky"), entity.selectedCatIds)
+        assertEquals("https://example.com/profile.png", entity.profileImageUrl)
+        assertEquals(true, entity.isSupabaseLinked)
+        assertEquals("supabase-123", entity.supabaseUserId)
+    }
+
+    @Test
+    fun user_toEntity_preservesNullProfileImageUrl() {
+        val domain = User(
+            id = 3,
+            username = "NoAvatar",
+            balance = 10,
+            friends = emptyList(),
+            collectedCatsIds = emptyList(),
+            selectedCatIds = emptyList(),
+            profileImageUrl = null,
+            isSupabaseLinked = false,
+            supabaseUserId = null,
+            localUpdatedAt = null,
+            lastSyncedAt = null,
+            hasPendingLocalChanges = false
+        )
+
+        val entity = domain.toEntity()
+
+        assertEquals(null, entity.profileImageUrl)
+    }
+
+    @Test
+    fun userEntity_toDomain_mapsNullProfileFieldsCorrectly() {
+        val entity = UserEntity(
+            userId = 2,
+            username = "LocalUser",
+            balance = 0,
+            friends = emptyList(),
+            collectedCatsIds = emptyList(),
+            selectedCatIds = emptyList(),
+            profileImageUrl = null,
+            isSupabaseLinked = false,
+            supabaseUserId = null,
+            localUpdatedAt = null,
+            lastSyncedAt = null,
+            hasPendingLocalChanges = false
+        )
+
+        val domain = entity.toDomain()
+
+        assertEquals(2, domain.id)
+        assertEquals("LocalUser", domain.username)
+        assertEquals(0, domain.balance)
+        assertEquals(emptyList<String>(), domain.friends)
+        assertEquals(emptyList<String>(), domain.collectedCatsIds)
+        assertEquals(emptyList<String>(), domain.selectedCatIds)
+        assertEquals(null, domain.profileImageUrl)
+        assertEquals(false, domain.isSupabaseLinked)
+        assertEquals(null, domain.supabaseUserId)
     }
 }

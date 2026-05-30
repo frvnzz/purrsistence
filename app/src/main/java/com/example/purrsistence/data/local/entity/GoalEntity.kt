@@ -1,19 +1,21 @@
 package com.example.purrsistence.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.time.Instant
 
 @Entity(
     foreignKeys = [
-        androidx.room.ForeignKey(
+        ForeignKey(
             entity = UserEntity::class,
             parentColumns = ["userId"],
             childColumns = ["userId"],
-            onDelete = androidx.room.ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [androidx.room.Index(value = ["userId"])]
+    indices = [Index(value = ["userId"])]
 )
 
 // TODO: refactor entity + add "canonical Goal" :)
@@ -30,5 +32,6 @@ data class GoalEntity(
     val deepFocus: Boolean,
     val inactive: Boolean, // if user deletes a goal, we still want to keep the data for statistics, so we just mark it as inactive
     val createdAt: Long,
-    val isCompleted: Boolean
+    val isCompleted: Boolean,
+    val lastCompletedAt: Long?
 )

@@ -1,19 +1,21 @@
 package com.example.purrsistence.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 //INFO if this is updated, check if tests are still running (if not, update them accordingly)
 @Entity(
     foreignKeys = [
-        androidx.room.ForeignKey(
+        ForeignKey(
             entity = GoalEntity::class,
             parentColumns = ["goalId"],
             childColumns = ["goalId"],
-            onDelete = androidx.room.ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [androidx.room.Index(value = ["goalId"])]
+    indices = [Index(value = ["goalId"])]
 )
 
 data class TrackingSessionEntity(
@@ -23,5 +25,8 @@ data class TrackingSessionEntity(
     val pauseReminder: Boolean,
     val deepFocus: Boolean,
     val startTime: Long,
-    val endTime: Long?
+    val endTime: Long?,
+    val pauseHistory: String = "0;;0", //totalPausedMillis;start1-end1,start2-end2;checkpointedCurrency
+    val currentPauseStart: Long? = null, //when current pause has started
+    val lastResetTime: Long? = null,
 )

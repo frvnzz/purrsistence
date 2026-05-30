@@ -9,11 +9,23 @@ class FakeTrackingService : TrackingService {
 
     var startCalls = 0
     var stopCalls = 0
+    var pauseCalls = 0
+    var resumeCalls = 0
 
     var lastStartedGoalId: Int? = null
     var lastStartedUserId: Int? = null
 
     val stoppedTrackingIds = mutableListOf<Int>()
+
+    private var activeSession: TrackingSession? = null
+
+    override suspend fun getActiveTrackingSession(): TrackingSession? {
+        return activeSession
+    }
+
+    override suspend fun getTrackingGoalTitle(goalId: Int): String {
+        return "Fake Goal Title"
+    }
 
     override suspend fun startTracking(
         goalId: Int,
@@ -25,25 +37,38 @@ class FakeTrackingService : TrackingService {
         lastStartedGoalId = goalId
         lastStartedUserId = userId
 
-        return TrackingSession(
+        val session = TrackingSession(
             id = 1,
             goalId = goalId,
             userId = userId,
             pauseReminder = pauseReminder,
-            deepFocus = true,
+            deepFocus = deepFocus,
             startTime = Instant.ofEpochMilli(1_000L),
             endTime = null
         )
+        activeSession = session
+        return session
     }
 
     override suspend fun stopTracking(trackingId: Int): TrackingStopResult {
         stopCalls++
         stoppedTrackingIds += trackingId
+        activeSession = null
 
         return TrackingStopResult(
             rewardedCurrency = 10,
             multiplier = 1.0,
             sessionDurationMillis = 60_000L
         )
+    }
+
+    override suspend fun pauseTracking(trackingId: Int): Boolean {
+        pauseCalls++
+        return true
+    }
+
+    override suspend fun resumeTracking(trackingId: Int): Boolean {
+        resumeCalls++
+        return true
     }
 }

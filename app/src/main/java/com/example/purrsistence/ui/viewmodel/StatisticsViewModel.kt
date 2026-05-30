@@ -1,5 +1,6 @@
 package com.example.purrsistence.ui.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.service.StatisticsService
@@ -10,29 +11,42 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class StatisticsViewModel(
-    private val statisticsService: StatisticsService
+    private val statisticsService: StatisticsService,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StatisticsUiState())
     val uiState = _uiState.asStateFlow()
 
     private var currentJob: Job? = null
 
+    companion object {
+        private const val WEEK_OFFSET_KEY = "week_offset"
+    }
+
     init {
-        loadStats(0)
+        // Restore weekOffset from saved state, default to 0 if not found
+        val savedOffset = (savedStateHandle.get<Int>(WEEK_OFFSET_KEY) ?: 0).coerceAtMost(0)
+        loadStats(savedOffset)
     }
 
     private fun loadStats(offset: Int) {
+        val safeOffset = offset.coerceAtMost(0)
         currentJob?.cancel()
 
         _uiState.value = _uiState.value.copy(
-            weekOffset = offset,
+            weekOffset = safeOffset,
+            dailyStats = emptyList(),
+            goalStats = emptyList(),
             isLoading = true
         )
 
+        // Save weekOffset for configuration changes (rotation)
+        savedStateHandle[WEEK_OFFSET_KEY] = safeOffset
+
         currentJob = viewModelScope.launch {
-            statisticsService.getWeeklyStats(offset).collect { (daily, goals) ->
+            statisticsService.getWeeklyStats(safeOffset).collect { (daily, goals) ->
                 _uiState.value = _uiState.value.copy(
-                    weekOffset = offset,
+                    weekOffset = safeOffset,
                     dailyStats = daily,
                     goalStats = goals,
                     isLoading = false
@@ -41,11 +55,16 @@ class StatisticsViewModel(
         }
     }
 
-    fun previousWeek(){
-        loadStats(_uiState.value.weekOffset -1)
+    fun previousWeek() {
+        loadStats(_uiState.value.weekOffset - 1)
     }
 
-    fun nextWeek(){
-        loadStats(_uiState.value.weekOffset +1)
+    fun nextWeek() {
+        loadStats(_uiState.value.weekOffset + 1)
+    }
+
+    // Jump directly to the current week (offset = 0).
+    fun jumpToThisWeek() {
+        loadStats(0)
     }
 }

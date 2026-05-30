@@ -34,13 +34,13 @@ class ShopService(
             selectedCatIds = updatedSelectedCats
         )
 
-        userRepository.updateUser(updatedUser)
+        userRepository.updateUserFromLocalAction(updatedUser)
     }
 
     // Update selected cats to show in RoomView
     suspend fun updateSelectedCats(userId: Int, selectedIds: List<String>) {
         val user = userRepository.getUser(userId).firstOrNull() ?: return
         val updatedUser = user.copy(selectedCatIds = selectedIds)
-        userRepository.updateUser(updatedUser)
+        userRepository.updateUserFromLocalAction(updatedUser)
     }
 }
