@@ -10,7 +10,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 const config = {
   title: 'Purrsistence',
   tagline: 'Build habits. Collect cats.',
-  favicon: 'img/favicon.ico',
+  favicon: './img/favicon.ico',
 
   future: {
     v4: true,
@@ -68,6 +68,8 @@ const config = {
         logo: {
           alt: 'Purrsistence Logo',
           src: 'img/logo.svg',
+          width: 55,
+          height: 55,
         },
         items: [
           {
