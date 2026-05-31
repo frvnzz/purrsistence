@@ -1,6 +1,7 @@
 package com.example.purrsistence
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.example.purrsistence.data.focus.SharedPrefsFocusBlocker
 import com.example.purrsistence.data.local.AppDatabase
 import com.example.purrsistence.data.local.repository.GoalRepository
@@ -64,7 +65,7 @@ class AppContainer(
     // Core utilities
     val timeProvider: TimeProvider by lazy { SystemTimeProvider() }
 
-    val focusPrefs: android.content.SharedPreferences by lazy {
+    val focusPrefs: SharedPreferences by lazy {
         context.getSharedPreferences(DeepFocusConfig.PREFS_NAME, Context.MODE_PRIVATE)
     }
 

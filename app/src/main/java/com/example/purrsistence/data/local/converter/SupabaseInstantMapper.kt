@@ -13,8 +13,7 @@ internal fun String.toSupabaseInstant(): Instant {
 
 internal fun String?.toSupabaseInstantOrNull(): Instant? {
     return this
-        ?.takeIf { value -> value.isNotBlank() }
-        ?.let { value -> value.toSupabaseInstant() }
+        ?.takeIf { value -> value.isNotBlank() }?.toSupabaseInstant()
 }
 
 internal fun Instant.toSupabaseTimestamp(): String {

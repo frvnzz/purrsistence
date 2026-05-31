@@ -11,6 +11,7 @@ import com.example.purrsistence.domain.time.TimeProvider
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.Duration
 import java.time.ZoneId
+import kotlin.math.roundToInt
 
 interface TrackingService{
     suspend fun getActiveTrackingSession(): TrackingSession?
@@ -143,7 +144,7 @@ class TrackingServiceImpl(
         if (Duration.between(pauseStart, now).toMinutes() >= 15) {
             val minutesBeforePause = session.getEffectiveMinutesSinceLastReset(pauseStart)
             val currentMultiplier = rewardService.calculateRewardMultiplier(minutesBeforePause)
-            val earnedCoins = Math.round(minutesBeforePause * currentMultiplier).toInt()
+            val earnedCoins = (minutesBeforePause * currentMultiplier).roundToInt()
             checkpointed += earnedCoins
             lastReset = now
         }
