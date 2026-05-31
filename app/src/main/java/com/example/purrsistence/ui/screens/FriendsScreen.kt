@@ -237,7 +237,7 @@ fun FriendRequestItem(
                 )
 
                 Text(
-                    text = request.requesterId,
+                    text = request.requesterUsername ?: request.requesterId,
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -289,7 +289,7 @@ fun OutgoingFriendRequestItem(
             )
 
             Text(
-                text = request.addresseeId,
+                text = request.addresseeUsername ?: request.addresseeId,
                 style = MaterialTheme.typography.bodyLarge
             )
         }

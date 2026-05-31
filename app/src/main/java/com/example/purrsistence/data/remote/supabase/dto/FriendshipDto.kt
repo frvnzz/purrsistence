@@ -13,7 +13,9 @@ data class FriendshipDto(
     @SerialName("addressee_id")
     val addresseeId: String,
 
-    val status: String
+    val status: String,
+    val requester: ProfileDto? = null,
+    val addressee: ProfileDto? = null
 )
 
 
