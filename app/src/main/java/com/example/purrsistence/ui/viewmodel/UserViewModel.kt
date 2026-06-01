@@ -199,6 +199,21 @@ class UserViewModel(
         }
     }
 
+    fun updatePasswordInSupabase(currentPassword: String, newPassword: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isSupabaseLoading.value = true
+            _supabaseError.value = null
+
+            try {
+                supabaseSyncService.updatePassword(currentPassword, newPassword)
+            } catch (exception: Exception) {
+                _supabaseError.value = exception.message
+            } finally {
+                _isSupabaseLoading.value = false
+            }
+        }
+    }
+
     fun updateAvatarPathInSupabase(avatarPath: String?) {
         viewModelScope.launch(Dispatchers.IO) {
             _isSupabaseLoading.value = true

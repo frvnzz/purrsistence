@@ -59,6 +59,8 @@ interface TrackingSyncService {
 
     suspend fun updateUsername(username: String)
 
+    suspend fun updatePassword(currentPassword: String, newPassword: String)
+
     suspend fun updateAvatarPath(avatarPath: String?)
 
     suspend fun resetTrackingSessions(
@@ -422,6 +424,10 @@ class SupabaseSyncService(
                 supabaseUserId = supabaseUserId
             )
         )
+    }
+
+    override suspend fun updatePassword(currentPassword: String, newPassword: String) {
+        authRepository.updatePassword(currentPassword, newPassword)
     }
 
     override suspend fun updateAvatarPath(

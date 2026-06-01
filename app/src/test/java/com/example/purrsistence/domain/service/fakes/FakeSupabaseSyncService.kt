@@ -32,6 +32,7 @@ class FakeSupabaseSyncService(
     var forceDownloadCalls = 0
     var addCollectedCatCalls = 0
     var updateUsernameCalls = 0
+    var updatePasswordCalls = 0
     var updateAvatarPathCalls = 0
     var resetTrackingSessionsCalls = 0
     var getFriendsCalls = 0
@@ -46,6 +47,8 @@ class FakeSupabaseSyncService(
     var lastEmail: String? = null
     var lastPassword: String? = null
     var lastUsername: String? = null
+    var lastCurrentPassword: String? = null
+    var lastNewPassword: String? = null
     var lastCatId: String? = null
     var lastAvatarPath: String? = null
     var lastAddresseeId: String? = null
@@ -170,6 +173,12 @@ class FakeSupabaseSyncService(
     ) {
         updateUsernameCalls++
         lastUsername = username
+    }
+
+    override suspend fun updatePassword(currentPassword: String, newPassword: String) {
+        updatePasswordCalls++
+        lastCurrentPassword = currentPassword
+        lastNewPassword = newPassword
     }
 
     override suspend fun updateAvatarPath(
