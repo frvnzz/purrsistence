@@ -1,5 +1,6 @@
 package com.example.purrsistence.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.service.ProfileService
@@ -73,7 +74,7 @@ class UserViewModel(
                     supabaseSyncService.forceUploadLocalToSupabase()
                 }
             } catch (exception: Exception) {
-                _supabaseError.value = exception.message
+                handleSupabaseError(exception, "buying this cat")
             }
         }
     }
@@ -85,21 +86,49 @@ class UserViewModel(
     }
 
     fun updateUsername(newUsername: String) {
-        viewModelScope.launch {
-            profileService?.updateProfile(
-                userId = currentUserId,
-                username = newUsername,
-                profileImageUrl = user.value?.profileImageUrl
-            )
+        viewModelScope.launch(Dispatchers.IO) {
+            _isSupabaseLoading.value = true
+            _supabaseError.value = null
+
+            val trimmedUsername = newUsername.trim()
+
+            try {
+                profileService?.updateProfile(
+                    userId = currentUserId,
+                    username = trimmedUsername,
+                    profileImageUrl = user.value?.profileImageUrl
+                )
+
+                if (supabaseSyncService.currentSupabaseUserId() != null) {
+                    supabaseSyncService.updateUsername(trimmedUsername)
+                }
+            } catch (exception: Exception) {
+                handleSupabaseError(exception, "updating your username")
+            } finally {
+                _isSupabaseLoading.value = false
+            }
         }
     }
 
     fun updateProfileImage(imageUrl: String?) {
-        viewModelScope.launch {
-            profileService?.updateProfilePicture(
-                userId = currentUserId,
-                profileImageUrl = imageUrl
-            )
+        viewModelScope.launch(Dispatchers.IO) {
+            _isSupabaseLoading.value = true
+            _supabaseError.value = null
+
+            try {
+                profileService?.updateProfilePicture(
+                    userId = currentUserId,
+                    profileImageUrl = imageUrl
+                )
+
+                if (supabaseSyncService.currentSupabaseUserId() != null) {
+                    supabaseSyncService.updateAvatarPath(imageUrl)
+                }
+            } catch (exception: Exception) {
+                handleSupabaseError(exception, "updating your profile picture")
+            } finally {
+                _isSupabaseLoading.value = false
+            }
         }
     }
 
@@ -122,7 +151,7 @@ class UserViewModel(
                 _signUpSuccess.value = true
             } catch (exception: Exception) {
                 _signUpSuccess.value = false
-                _supabaseError.value = exception.message
+                handleSupabaseError(exception, "creating your account")
             } finally {
                 _isSupabaseLoading.value = false
             }
@@ -144,7 +173,7 @@ class UserViewModel(
                 )
 
             } catch (exception: Exception) {
-                _supabaseError.value = exception.message
+                handleSupabaseError(exception, "signing in")
 
             } finally {
                 _isSupabaseLoading.value = false
@@ -177,37 +206,7 @@ class UserViewModel(
                     supabaseSyncService.checkAndSyncIfNeeded()
                 }
             } catch (exception: Exception) {
-                _supabaseError.value = exception.message
-            } finally {
-                _isSupabaseLoading.value = false
-            }
-        }
-    }
-
-    fun updateUsernameInSupabase(username: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _isSupabaseLoading.value = true
-            _supabaseError.value = null
-
-            try {
-                supabaseSyncService.updateUsername(username)
-            } catch (exception: Exception) {
-                _supabaseError.value = exception.message
-            } finally {
-                _isSupabaseLoading.value = false
-            }
-        }
-    }
-
-    fun updateAvatarPathInSupabase(avatarPath: String?) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _isSupabaseLoading.value = true
-            _supabaseError.value = null
-
-            try {
-                supabaseSyncService.updateAvatarPath(avatarPath)
-            } catch (exception: Exception) {
-                _supabaseError.value = exception.message
+                handleSupabaseError(exception, "syncing your data")
             } finally {
                 _isSupabaseLoading.value = false
             }
@@ -222,7 +221,7 @@ class UserViewModel(
             try {
                 supabaseSyncService.resetTrackingSessions(currentUserId)
             } catch (exception: Exception) {
-                _supabaseError.value = exception.message
+                handleSupabaseError(exception, "resetting your tracking sessions")
             } finally {
                 _isSupabaseLoading.value = false
             }
@@ -231,5 +230,43 @@ class UserViewModel(
 
     fun clearSupabaseError() {
         _supabaseError.value = null
+    }
+
+    private fun friendlySupabaseError(
+        exception: Exception,
+        action: String
+    ): String {
+        val rawMessage = exception.message.orEmpty()
+
+        return when {
+            rawMessage.contains("Invalid login credentials", ignoreCase = true) -> {
+                "The email or password is incorrect. Please check your details and try again."
+            }
+
+            rawMessage.contains("already registered", ignoreCase = true) ||
+                    rawMessage.contains("already exists", ignoreCase = true) -> {
+                "An account with this email already exists. Please log in instead."
+            }
+
+            rawMessage.contains("timeout", ignoreCase = true) ||
+                    rawMessage.contains("request timeout", ignoreCase = true) ||
+                    rawMessage.contains("failed to connect", ignoreCase = true) ||
+                    rawMessage.contains("unable to resolve host", ignoreCase = true) ||
+                    rawMessage.contains("network", ignoreCase = true) -> {
+                "Something went wrong while $action. Please check your connection and try again. If the problem persists, contact support."
+            }
+
+            else -> {
+                "Something went wrong while $action. Please try again. If the problem persists, contact support."
+            }
+        }
+    }
+
+    private fun handleSupabaseError(
+        exception: Exception,
+        action: String
+    ) {
+        Log.e("UserViewModel", "Supabase error while $action", exception)
+        _supabaseError.value = friendlySupabaseError(exception, action)
     }
 }

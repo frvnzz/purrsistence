@@ -1,5 +1,6 @@
 package com.example.purrsistence.service
 
+import android.util.Log
 import com.example.purrsistence.data.local.repository.GoalRepository
 import com.example.purrsistence.data.local.repository.TrackingRepository
 import com.example.purrsistence.data.local.repository.UserRepository
@@ -19,6 +20,7 @@ import com.example.purrsistence.domain.model.TrackingSession
 import com.example.purrsistence.domain.model.User
 import com.example.purrsistence.domain.model.types.SyncStatus
 import io.github.jan.supabase.auth.status.SessionStatus
+import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.net.URL
@@ -108,6 +110,20 @@ class SupabaseSyncService(
         return authRepository.currentUserId()
     }
 
+    private suspend fun runSyncSafely(
+        actionName: String,
+        block: suspend () -> SyncStatus
+    ): SyncStatus {
+        return try {
+            block()
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            Log.e("SupabaseSyncService", "Sync failed while $actionName", exception)
+            SyncStatus.SYNC_FAILED
+        }
+    }
+
     override val sessionStatus: Flow<SessionStatus> = authRepository.sessionStatus
 
     override suspend fun signUp(
@@ -151,11 +167,15 @@ class SupabaseSyncService(
     }
 
     override suspend fun syncAfterLocalGoalChanged(): SyncStatus {
-        return syncGoalsAndTrackingAfterLocalChange()
+        return runSyncSafely("syncing local goal changes") {
+            syncGoalsAndTrackingAfterLocalChange()
+        }
     }
 
     override suspend fun syncAfterLocalTrackingSessionChanged(): SyncStatus {
-        return syncGoalsAndTrackingAfterLocalChange()
+        return runSyncSafely("syncing local tracking session changes") {
+            syncGoalsAndTrackingAfterLocalChange()
+        }
     }
 
     private suspend fun syncGoalsAndTrackingAfterLocalChange(): SyncStatus {
@@ -288,7 +308,13 @@ class SupabaseSyncService(
         return SyncStatus.IN_SYNC
     }
 
-    override suspend fun checkAndSyncIfNeeded(): SyncStatus {
+    override suspend fun checkAndSyncIfNeeded(): SyncStatus{
+        return runSyncSafely("checking and syncing data") {
+            checkAndSyncIfNeededUnsafe()
+        }
+    }
+
+    private suspend fun checkAndSyncIfNeededUnsafe(): SyncStatus {
         if (!isSignedIn()) {
             return SyncStatus.NOT_LINKED
         }
@@ -344,7 +370,13 @@ class SupabaseSyncService(
         }
     }
 
-    override suspend fun forceUploadLocalToSupabase(): SyncStatus {
+    override suspend fun forceUploadLocalToSupabase(): SyncStatus{
+        return runSyncSafely("uploading local data to Supabase") {
+            forceUploadLocalToSupabaseUnsafe()
+        }
+    }
+
+    suspend fun forceUploadLocalToSupabaseUnsafe(): SyncStatus {
         if (!isSignedIn()) {
             return SyncStatus.NOT_LINKED
         }
@@ -363,6 +395,12 @@ class SupabaseSyncService(
     }
 
     override suspend fun forceDownloadFromSupabase(): SyncStatus {
+        return runSyncSafely("downloading data from Supabase") {
+            forceDownloadFromSupabaseUnsafe()
+        }
+    }
+
+    private suspend fun forceDownloadFromSupabaseUnsafe(): SyncStatus {
         if (!isSignedIn()) {
             return SyncStatus.NOT_LINKED
         }
@@ -445,28 +483,38 @@ class SupabaseSyncService(
     }
 
     override suspend fun resetTrackingSessions(userId: Int) {
-        //Delete local tracking sessions
+        // Delete local tracking sessions
         trackingRepository.deleteAllTrackingSessions(userId)
 
-        //Reset local goal statuses
+        // Reset local goal statuses
         goalRepository.resetGoalsStatus(userId)
 
-        //mark user as having pending local changes to ensure sync picks up the reset goals
+        // Mark user as having pending local changes
         val localUser = requireLocalUser()
         userRepository.updateUserFromLocalAction(localUser)
 
-        //Handle remote sync if signed in
-        if (isSignedIn()) {
+        if (!isSignedIn()) {
+            return
+        }
+
+        val syncStatus = runSyncSafely("resetting tracking sessions remotely") {
             val supabaseUserId = requireSupabaseUserId()
 
-            //delete remote tracking sessions
             goalTrackingRepository.deleteTrackingSessions(supabaseUserId)
 
-            //update remote goals with the reset status
             val localGoals = goalRepository.getGoalsForSync(userId)
             goalTrackingRepository.upsertGoals(supabaseUserId, localGoals)
 
             userRepository.markUserSynced(userId)
+
+            SyncStatus.CONFLICT_RESOLVED_FROM_LOCAL
+        }
+
+        if (syncStatus == SyncStatus.SYNC_FAILED) {
+            Log.w(
+                "SupabaseSyncService",
+                "Tracking sessions were reset locally, but remote sync failed."
+            )
         }
     }
 
