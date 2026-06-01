@@ -9,6 +9,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -20,12 +21,11 @@ import com.example.purrsistence.ui.components.TopBar
 import com.example.purrsistence.ui.navigation.AppNavHost
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.util.SoundManager
+import com.example.purrsistence.ui.viewmodel.FriendViewModel
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
 import com.example.purrsistence.ui.viewmodel.UserViewModel
-import com.example.purrsistence.ui.viewmodel.FriendViewModel
-import androidx.compose.runtime.collectAsState
 
 @Composable
 fun MainScreen(
@@ -104,7 +104,10 @@ fun MainScreen(
         // NAV BAR
         bottomBar = {
             if (currentRoute in topLevelRoutes) {
-                BottomNavBar(navController)
+                BottomNavBar(
+                    navController = navController,
+                    onStatisticsClick = { statisticsViewModel.jumpToThisWeek() }
+                )
             }
         }
     ) { padding ->

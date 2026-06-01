@@ -30,7 +30,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
-fun BottomNavBar(navController: NavController) {
+fun BottomNavBar(
+    navController: NavController,
+    onStatisticsClick: () -> Unit = {}
+) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
@@ -52,6 +55,9 @@ fun BottomNavBar(navController: NavController) {
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
+                    if (screen == "statistics") {
+                        onStatisticsClick()
+                    }
                     navController.navigate(screen) {
                         // make sure that only one tab is selected at a time, and back navigates to home (startDestination)
                         popUpTo("home") { saveState = true }
