@@ -203,14 +203,14 @@ class SupabaseSyncService(
                 .take(3)
 
         val mergedUsername =
-            if (useLocalData) {
+            if (useLocalData || remoteData.profile.username.isBlank()) {
                 localUser.username
             } else {
                 remoteData.profile.username
             }
 
         val mergedAvatarPath =
-            if (useLocalData) {
+            if (useLocalData || remoteData.profile.avatarPath == null) {
                 localUser.profileImageUrl?.toString()
             } else {
                 remoteData.profile.avatarPath
