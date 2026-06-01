@@ -106,9 +106,10 @@ fun AddGoalScreen(
                 (minutes.toIntOrNull() ?: 0)
 
     val titleValid = title.isNotBlank()
+    val titleNotTooLong = title.length<=30
     val durationValid = durationInMinutes >= 1
 
-    val formValid = titleValid && durationValid
+    val formValid = titleValid && durationValid && titleNotTooLong
 
 
     Box(
@@ -149,11 +150,14 @@ fun AddGoalScreen(
 
                 label = { Text("Goal Title") },
 
-                isError = !titleValid,
+                isError = !titleValid || !titleNotTooLong,
 
                 supportingText = {
                     if (!titleValid) {
                         Text("Goal title cannot be empty")
+                    }
+                    if(!titleNotTooLong){
+                        Text("Goal title can not be longer than 50 characters")
                     }
                 },
 

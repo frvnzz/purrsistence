@@ -57,7 +57,8 @@ fun ProfileHeaderSection(
     usernameFocusRequester: FocusRequester,
     callbacks: ProfileHeaderCallbacks,
     modifier: Modifier = Modifier,
-    isLandscape: Boolean = false
+    isLandscape: Boolean = false,
+    usernameError: String?
 ) {
     if (isLandscape) {
         LandscapeProfileHeader(
@@ -67,7 +68,8 @@ fun ProfileHeaderSection(
             profileImageUri = profileImageUri,
             usernameFocusRequester = usernameFocusRequester,
             callbacks = callbacks,
-            modifier = modifier
+            modifier = modifier,
+            usernameError = usernameError
         )
     } else {
         PortraitProfileHeader(
@@ -77,7 +79,8 @@ fun ProfileHeaderSection(
             profileImageUri = profileImageUri,
             usernameFocusRequester = usernameFocusRequester,
             callbacks = callbacks,
-            modifier = modifier
+            modifier = modifier,
+            usernameError = usernameError
         )
     }
 }
@@ -90,7 +93,8 @@ private fun PortraitProfileHeader(
     profileImageUri: Uri?,
     usernameFocusRequester: FocusRequester,
     callbacks: ProfileHeaderCallbacks,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    usernameError: String?
 ) {
     Row(
         modifier = modifier
@@ -122,7 +126,8 @@ private fun PortraitProfileHeader(
                 username = username,
                 isEditing = isEditing,
                 usernameFocusRequester = usernameFocusRequester,
-                callbacks = callbacks
+                callbacks = callbacks,
+                usernameError = usernameError
             )
 
             UserStatsRow(user = user)
@@ -138,7 +143,8 @@ private fun LandscapeProfileHeader(
     profileImageUri: Uri?,
     usernameFocusRequester: FocusRequester,
     callbacks: ProfileHeaderCallbacks,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    usernameError: String?
 ) {
     Column(
         modifier = modifier
@@ -165,7 +171,8 @@ private fun LandscapeProfileHeader(
                 isEditing = isEditing,
                 usernameFocusRequester = usernameFocusRequester,
                 callbacks = callbacks,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                usernameError = usernameError
             )
 
             UserStatsRow(user = user)
@@ -180,7 +187,8 @@ private fun UsernameDisplay(
     isEditing: Boolean,
     usernameFocusRequester: FocusRequester,
     callbacks: ProfileHeaderCallbacks,
-    textAlign: TextAlign = TextAlign.Start
+    textAlign: TextAlign = TextAlign.Start,
+    usernameError: String?
 ) {
     if (isEditing) {
         // Edit mode
@@ -208,7 +216,13 @@ private fun UsernameDisplay(
                 ),
                 textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = textAlign),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { callbacks.onSaveUsername() })
+                keyboardActions = KeyboardActions(onDone = { callbacks.onSaveUsername() }),
+                isError = usernameError != null,
+                supportingText = {
+                    usernameError?.let {
+                        Text(text = it)
+                    }
+                }
             )
 
             // Save/Cancel buttons

@@ -59,6 +59,7 @@ fun ProfileScreen(
     }
 
     val user by userViewModel.user.collectAsState()
+    var usernameError by remember { mutableStateOf<String?>(null) }
     var isEditingName by remember { mutableStateOf(false) }
     var editedUsername by remember(user?.username) { mutableStateOf(user?.username ?: "") }
     var selectedProfileImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -72,6 +73,14 @@ fun ProfileScreen(
             selectedProfileImageUri = profileImageUrl.toString().toUri()
         } ?: run {
             selectedProfileImageUri = null
+        }
+    }
+
+    fun validateUsername(username: String): String? {
+        return when {
+            username.isBlank() -> "Username cannot be empty"
+            username.any { it.isWhitespace() } -> "Username cannot contain spaces"
+            else -> null
         }
     }
 
@@ -94,8 +103,13 @@ fun ProfileScreen(
 
     val onSaveUsername = {
         focusManager.clearFocus()
-        userViewModel.updateUsername(editedUsername)
-        isEditingName = false
+
+        usernameError = validateUsername(editedUsername)
+
+        if (usernameError == null) {
+            userViewModel.updateUsername(editedUsername.trim())
+            isEditingName = false
+        }
     }
 
     val onPickProfileImage = {
@@ -112,7 +126,10 @@ fun ProfileScreen(
     }
 
     val headerCallbacks = ProfileHeaderCallbacks(
-        onUsernameChange = { editedUsername = it },
+        onUsernameChange = {
+            editedUsername = it
+            usernameError = null
+        },
         onEditingChange = { isEditingName = it },
         onSaveUsername = onSaveUsername,
         onPickProfileImage = onPickProfileImage,
@@ -148,7 +165,8 @@ fun ProfileScreen(
                     profileImageUri = selectedProfileImageUri,
                     usernameFocusRequester = usernameFocusRequester,
                     callbacks = headerCallbacks,
-                    isLandscape = true
+                    isLandscape = true,
+                    usernameError = usernameError
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -185,7 +203,8 @@ fun ProfileScreen(
                     isEditing = isEditingName,
                     profileImageUri = selectedProfileImageUri,
                     usernameFocusRequester = usernameFocusRequester,
-                    callbacks = headerCallbacks
+                    callbacks = headerCallbacks,
+                    usernameError = usernameError
                 )
             }
 

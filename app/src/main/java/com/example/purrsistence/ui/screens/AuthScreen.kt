@@ -95,14 +95,23 @@ fun AuthScreen(
         return Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
+    fun validateUsername(username: String): String? {
+        return when {
+            username.isBlank() -> "Username cannot be empty"
+            username.any { it.isWhitespace() } -> "Username cannot contain spaces"
+            else -> null
+        }
+    }
+
     fun validateInputs(): Boolean {
         var isValid = true
 
-        if (!isLoginMode && username.isBlank()) {
-            usernameError = "Username cannot be empty"
-            isValid = false
-        } else {
-            usernameError = null
+        if (!isLoginMode) {
+            usernameError = validateUsername(username)
+
+            if (usernameError != null) {
+                isValid = false
+            }
         }
 
         if (email.isBlank()) {
@@ -280,7 +289,7 @@ fun AuthScreen(
                                 userViewModel.signUpWithSupabase(
                                     email = email,
                                     password = password,
-                                    username = username
+                                    username = username.trim()
                                 )
                             }
                         },
