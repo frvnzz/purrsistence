@@ -40,6 +40,7 @@ fun HomeScreen(
     userViewModel: UserViewModel,
     goalViewModel: GoalViewModel,
     onStartTracking: (Int, String, Int, Boolean) -> Unit,
+    onAddGoalClick: () -> Unit,
     setTopBar: (TopBarState) -> Unit,
     soundManager: SoundManager
 ) {
@@ -139,6 +140,7 @@ fun HomeScreen(
                     onNeedsAccessibilitySetup = { showAccessibilityDialog = true }
                 )
             },
+            onAddGoalClick = onAddGoalClick,
             alwaysExpanded = isLandscape
         )
 

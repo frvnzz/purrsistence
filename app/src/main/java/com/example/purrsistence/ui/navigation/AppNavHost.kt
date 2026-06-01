@@ -87,6 +87,9 @@ fun AppNavHost(
                         deepFocus = deepFocus
                     )
                 },
+                onAddGoalClick = {
+                    navController.navigate("add_goal")
+                },
                 setTopBar = setTopBar,
                 soundManager = soundManager
             )

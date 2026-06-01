@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,6 +57,7 @@ fun GoalBottomDrawer(
     selectedGoalId: Int?,
     onGoalSelected: (Int) -> Unit,
     onStartClick: (Int, String) -> Unit,
+    onAddGoalClick: () -> Unit,
     alwaysExpanded: Boolean = false
 ) {
     // get all inactive = false goals
@@ -172,7 +174,7 @@ fun GoalBottomDrawer(
             Text(
                 text = "Choose Goal to track:",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.85f),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
@@ -248,15 +250,19 @@ fun GoalBottomDrawer(
                                 role = Role.Button
                             },
                         onClick = {
-                            selectedGoal?.let {
-                                onStartClick(it.id, it.title)
+                            if (activeGoals.isEmpty()) {
+                                onAddGoalClick()
+                            } else {
+                                selectedGoal?.let {
+                                    onStartClick(it.id, it.title)
+                                }
                             }
                         },
-                        enabled = hasSelectedGoal
+                        enabled = hasSelectedGoal || activeGoals.isEmpty()
                     ) {
                         Icon(
-                            Icons.Default.PlayArrow,
-                            contentDescription = "Start tracking",
+                            if (activeGoals.isEmpty()) Icons.Default.Add else Icons.Default.PlayArrow,
+                            contentDescription = if (activeGoals.isEmpty()) "Add new goal" else "Start tracking",
                             modifier = Modifier.size(32.dp),
                             tint = MaterialTheme.colorScheme.onPrimary
                         )

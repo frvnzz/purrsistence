@@ -78,7 +78,7 @@ fun InventorySection(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No cats in inventory yet.\nVisit the Shop to adopt some!",
+                    text = "No cats in inventory yet.\nVisit the Shelter to adopt some!",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(Spacing.md),
                     textAlign = TextAlign.Center

@@ -52,7 +52,7 @@ fun ShopScreen(
 
     setTopBar(
         TopBarState(
-            title = "Cat Shop",
+            title = "Cat Shelter",
             actions = {
                 CurrencyBadge(balance = balance)
             }
@@ -62,7 +62,7 @@ fun ShopScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .semantics { paneTitle = "Cat Shop Screen" }
+            .semantics { paneTitle = "Cat Shelter Screen" }
             .padding(horizontal = Spacing.lg)
     ) {
         // Shop Grid that holds all ShopItemCards (cats)
