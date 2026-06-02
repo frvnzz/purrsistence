@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -53,13 +54,17 @@ fun CatSelectionDialog(
     onDismiss: () -> Unit,
     onConfirm: (List<String>) -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
 
     var selectedIds by remember {
         mutableStateOf(initiallySelectedIds.toSet())
     }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            focusManager.clearFocus()
+            onDismiss()
+        },
         shape = Shapes.cards,
         tonalElevation = Elevation.Lvl3,
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
