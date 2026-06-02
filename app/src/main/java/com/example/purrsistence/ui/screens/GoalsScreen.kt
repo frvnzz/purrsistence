@@ -1,5 +1,6 @@
 package com.example.purrsistence.ui.screens
 
+import android.content.res.Configuration
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,9 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -32,10 +35,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -78,7 +81,14 @@ fun GoalsScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var swipeToDeleteGoalId by remember { mutableStateOf<Int?>(null) }
     var selectedSort by remember { mutableStateOf(SortOption.LAST_TRACKED) }
-    val listState = rememberLazyListState()
+
+    // Goal List state
+    val gridState = rememberLazyGridState()
+    val isLandscape =
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    // columns for Goals List (portrait or landscape)
+    val columns = if (isLandscape) 2 else 1
+
     var pendingVisibleGoalId by remember { mutableStateOf<Int?>(null) }
     var pendingVisibleScrollOffset by remember { mutableIntStateOf(0) }
 
@@ -172,8 +182,9 @@ fun GoalsScreen(
                     onSortChange = { newSort ->
                         // capture currently visible goal id + offset so we can restore view after reordering
                         pendingVisibleGoalId =
-                            displayGoals.getOrNull(listState.firstVisibleItemIndex)?.goal?.id
-                        pendingVisibleScrollOffset = listState.firstVisibleItemScrollOffset
+                            displayGoals.getOrNull(gridState.firstVisibleItemIndex)?.goal?.id
+                        pendingVisibleScrollOffset =
+                            gridState.firstVisibleItemScrollOffset
                         selectedSort = newSort
                     }
                 )
@@ -181,37 +192,50 @@ fun GoalsScreen(
 
             // GOAL CARDS LIST (sorted according to selectedSort)
             LaunchedEffect(selectedSort) {
-                // after the selectedSort changes, try to restore the visible item using the captured id
                 pendingVisibleGoalId?.let { id ->
-                    val idx = displayGoals.indexOfFirst { it.goal.id == id }
+                    val idx =
+                        displayGoals.indexOfFirst {
+                            it.goal.id == id
+                        }
                     if (idx != -1) {
-                        // restore scroll position to the same item and offset
-                        listState.scrollToItem(idx, pendingVisibleScrollOffset)
+                        gridState.scrollToItem(
+                            index = idx,
+                            scrollOffset = pendingVisibleScrollOffset
+                        )
                     } else {
-                        // if we can't find the item anymore, scroll to top
-                        listState.scrollToItem(0)
+                        gridState.scrollToItem(0)
                     }
                     pendingVisibleGoalId = null
                 }
             }
 
-            LazyColumn(
-                state = listState,
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(columns),
+                state = gridState,
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg),
+                horizontalArrangement = Arrangement.spacedBy(
+                    Spacing.lg
+                ),
                 contentPadding = PaddingValues(
                     top = Spacing.sm,
-                    bottom = 64.dp
+                    bottom = Spacing.xxl
                 )
             ) {
+                // GoalsEmptyState
                 if (displayGoals.isEmpty()) {
-                    item {
+                    item(
+                        span = {
+                            GridItemSpan(maxLineSpan)
+                        }
+                    ) {
                         GoalsEmptyState(
                             isSearching = isSearching,
                             query = query,
                             onAddGoalClick = onAddGoalClick
                         )
                     }
+
                 } else {
                     items(
                         items = displayGoals,
@@ -219,7 +243,9 @@ fun GoalsScreen(
                     ) { goalWithSessions ->
 
                         val goal = goalWithSessions.goal
-                        val isSelected = selectedGoals.contains(goal.id)
+
+                        val isSelected =
+                            selectedGoals.contains(goal.id)
 
                         GoalCard(
                             goalWithSessions = goalWithSessions,
@@ -229,14 +255,20 @@ fun GoalsScreen(
                                 onGoalClick(goal.id)
                             },
                             onCheckedChange = { checked ->
-                                selectedGoals = if (checked) {
-                                    selectedGoals + goal.id
-                                } else {
-                                    selectedGoals - goal.id
-                                }
+                                selectedGoals =
+                                    if (checked) {
+                                        selectedGoals + goal.id
+                                    } else {
+                                        selectedGoals - goal.id
+                                    }
                             },
                             onTrack = {
-                                onStartTracking(goal.id, goal.title, goal.userId, goal.deepFocus)
+                                onStartTracking(
+                                    goal.id,
+                                    goal.title,
+                                    goal.userId,
+                                    goal.deepFocus
+                                )
                             },
                             onDelete = {
                                 swipeToDeleteGoalId = goal.id

@@ -164,13 +164,13 @@ fun GoalDetailsScreen(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
                         modifier = Modifier.height(24.dp)
                     ) {
                         Text(
                             text = formattedType,
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
                             modifier = Modifier.padding(horizontal = Spacing.sm, vertical = 2.dp)
                         )
                     }
