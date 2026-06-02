@@ -33,6 +33,8 @@ import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.example.purrsistence.domain.model.ShopItem
+import com.example.purrsistence.ui.components.profileScreen.CatCloseupDialog
 import com.example.purrsistence.ui.components.profileScreen.InventorySection
 import com.example.purrsistence.ui.components.profileScreen.ProfileActionButtons
 import com.example.purrsistence.ui.components.profileScreen.ProfileHeaderCallbacks
@@ -40,6 +42,7 @@ import com.example.purrsistence.ui.components.profileScreen.ProfileHeaderSection
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.SoundManager
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 
 @Composable
@@ -47,7 +50,8 @@ fun ProfileScreen(
     userViewModel: UserViewModel,
     setTopBar: (TopBarState) -> Unit,
     onNavigateToSettings: () -> Unit = {},
-    onNavigateToFriends: () -> Unit = {}
+    onNavigateToFriends: () -> Unit = {},
+    soundManager: SoundManager? = null
 ) {
     // set TopBar content (header only)
     LaunchedEffect(Unit) {
@@ -62,6 +66,7 @@ fun ProfileScreen(
     var isEditingName by remember { mutableStateOf(false) }
     var editedUsername by remember(user?.username) { mutableStateOf(user?.username ?: "") }
     var selectedProfileImageUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedCatForCloseup by remember { mutableStateOf<ShopItem?>(null) }
     val focusManager = LocalFocusManager.current
     val usernameFocusRequester = remember { FocusRequester() }
 
@@ -164,7 +169,8 @@ fun ProfileScreen(
                 user = user,
                 modifier = Modifier.weight(0.68f),
                 maxGridHeight = 1000.dp,
-                isLandscape = true
+                isLandscape = true,
+                onCatClick = { selectedCatForCloseup = it }
             )
         }
     } else {
@@ -199,9 +205,18 @@ fun ProfileScreen(
             item {
                 InventorySection(
                     user = user,
-                    maxGridHeight = 500.dp
+                    maxGridHeight = 500.dp,
+                    onCatClick = { selectedCatForCloseup = it }
                 )
             }
         }
+    }
+
+    selectedCatForCloseup?.let { cat ->
+        CatCloseupDialog(
+            cat = cat,
+            onDismiss = { selectedCatForCloseup = null },
+            soundManager = soundManager
+        )
     }
 }

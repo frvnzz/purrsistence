@@ -237,7 +237,8 @@ fun AppNavHost(
                     } else {
                         navController.navigate("auth?redirect=friends")
                     }
-                }
+                },
+                soundManager = soundManager
             )
         }
 

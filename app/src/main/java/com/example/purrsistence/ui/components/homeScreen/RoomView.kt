@@ -24,15 +24,9 @@ import androidx.compose.ui.zIndex
 import com.example.purrsistence.R
 import com.example.purrsistence.domain.model.PlacedCat
 import com.example.purrsistence.domain.model.RoomSpot
+import com.example.purrsistence.ui.components.HeartBurstState
 import com.example.purrsistence.ui.components.HeartParticleEffect
 import java.util.UUID
-
-data class HeartBurstState(
-    val id: String = UUID.randomUUID().toString(),
-    val x: Dp,
-    val y: Dp,
-    val zIndex: Float
-)
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable

@@ -22,6 +22,16 @@ import com.example.purrsistence.R
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
+import androidx.compose.ui.unit.Dp
+import java.util.UUID
+
+data class HeartBurstState(
+    val id: String = UUID.randomUUID().toString(),
+    val x: Dp,
+    val y: Dp,
+    val zIndex: Float
+)
+
 @Composable
 fun HeartParticleEffect(
     onAnimationComplete: () -> Unit,
