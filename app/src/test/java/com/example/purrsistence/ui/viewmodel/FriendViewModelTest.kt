@@ -313,7 +313,7 @@ class FriendViewModelTest {
         viewModel.searchProfiles("alice")
         runCurrent()
 
-        assertEquals("Search failed", viewModel.error.value)
+        assertEquals("Something went wrong while searching for friends. Please try again.", viewModel.error.value)
         assertEquals(false, viewModel.isLoading.value)
     }
 
@@ -328,7 +328,7 @@ class FriendViewModelTest {
         viewModel.sendFriendRequest("target-user-id")
         runCurrent()
 
-        assertEquals("Request failed", viewModel.error.value)
+        assertEquals("Something went wrong while sending the friend request. Please try again.", viewModel.error.value)
         assertEquals(false, viewModel.isLoading.value)
     }
 
@@ -343,7 +343,7 @@ class FriendViewModelTest {
         viewModel.searchProfiles("alice")
         runCurrent()
 
-        assertEquals("Search failed", viewModel.error.value)
+        assertEquals("Something went wrong while searching for friends. Please try again.", viewModel.error.value)
 
         viewModel.clearError()
 
