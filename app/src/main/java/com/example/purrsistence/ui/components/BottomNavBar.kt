@@ -9,12 +9,12 @@ import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.DoDisturb
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.Loyalty
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Pets
+import androidx.compose.material.icons.outlined.Loyalty
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -80,7 +80,7 @@ fun BottomNavBar(
                             "statistics" -> if (isSelected) Icons.Filled.Assessment else Icons.Outlined.Assessment
                             "goals" -> if (isSelected) Icons.Filled.Checklist else Icons.Outlined.Checklist
                             "home" -> if (isSelected) Icons.Filled.Home else Icons.Outlined.Home
-                            "shop" -> if (isSelected) Icons.Filled.Pets else Icons.Outlined.Pets
+                            "shop" -> if (isSelected) Icons.Filled.Loyalty else Icons.Outlined.Loyalty
                             "profile" -> if (isSelected) Icons.Filled.AccountBox else Icons.Outlined.AccountBox
                             else -> Icons.Filled.DoDisturb
                         },
