@@ -402,6 +402,7 @@ fun AddGoalScreen(
         DeepFocusAccessibilityDialog(
             onDismiss = {
                 showAccessibilityDialog.value = false
+                deepFocus = false
             },
 
             onOpenSettings = {

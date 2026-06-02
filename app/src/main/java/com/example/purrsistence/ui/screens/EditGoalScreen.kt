@@ -435,6 +435,7 @@ fun EditGoalScreen(
             DeepFocusAccessibilityDialog(
                 onDismiss = {
                     showAccessibilityDialog.value = false
+                    deepFocus = false
                 },
 
                 onOpenSettings = {
