@@ -1,6 +1,12 @@
 package com.example.purrsistence.ui.components.homeScreen
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -13,6 +19,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,6 +30,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,10 +38,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -48,6 +55,7 @@ import androidx.compose.ui.unit.lerp
 import com.example.purrsistence.domain.model.GoalWithSessions
 import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Spacing
+import kotlinx.coroutines.launch
 
 @Composable
 fun GoalBottomDrawer(
@@ -56,6 +64,7 @@ fun GoalBottomDrawer(
     selectedGoalId: Int?,
     onGoalSelected: (Int) -> Unit,
     onStartClick: (Int, String) -> Unit,
+    onAddGoalClick: () -> Unit,
     alwaysExpanded: Boolean = false
 ) {
     // get all inactive = false goals
@@ -73,16 +82,19 @@ fun GoalBottomDrawer(
     val expandedHeight = 500.dp
 
     val density = LocalDensity.current
+    val coroutineScope = rememberCoroutineScope()
 
     // progress: 0f = collapsed, 1f = expanded
-    var progress by remember {
-        mutableFloatStateOf(
-            if (alwaysExpanded) 1f else 0f
-        )
+    val progressAnimatable = remember {
+        Animatable(if (alwaysExpanded) 1f else 0f)
     }
+    val progress = progressAnimatable.value
+
     // force expanded if HomeScreen is in landscape
-    if (alwaysExpanded) {
-        progress = 1f
+    LaunchedEffect(alwaysExpanded) {
+        if (alwaysExpanded) {
+            progressAnimatable.snapTo(1f)
+        }
     }
 
     val height =
@@ -95,8 +107,10 @@ fun GoalBottomDrawer(
     val isExpanded = progress > 0.5f
 
     //handle system back button to collapse drawer if it's expanded
-    BackHandler(enabled = progress > 0f) {
-        progress = 0f
+    BackHandler(enabled = !alwaysExpanded && progress > 0f) {
+        coroutineScope.launch {
+            progressAnimatable.animateTo(0f)
+        }
     }
 
     Box(
@@ -117,7 +131,9 @@ fun GoalBottomDrawer(
                         }
                 ) {
                     if (!alwaysExpanded) {
-                        progress = if (isExpanded) 0f else 1f
+                        coroutineScope.launch {
+                            progressAnimatable.animateTo(if (isExpanded) 0f else 1f)
+                        }
                     }
                     true
                 }
@@ -137,11 +153,14 @@ fun GoalBottomDrawer(
                         (expandedHeight - collapsedHeight).toPx()
                     }
 
-                    progress -= delta / heightPx
-                    progress = progress.coerceIn(0f, 1f)
+                    coroutineScope.launch {
+                        progressAnimatable.snapTo((progress - delta / heightPx).coerceIn(0f, 1f))
+                    }
                 },
                 onDragStopped = {
-                    progress = if (progress > 0.5f) 1f else 0f
+                    coroutineScope.launch {
+                        progressAnimatable.animateTo(if (progress > 0.5f) 1f else 0f)
+                    }
                 }
             )
     ) {
@@ -172,7 +191,7 @@ fun GoalBottomDrawer(
             Text(
                 text = "Choose Goal to track:",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.85f),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
@@ -195,7 +214,9 @@ fun GoalBottomDrawer(
                                 "Expand goal list"
                             },
                         onClick = {
-                            progress = if (isExpanded) 0f else 1f
+                            coroutineScope.launch {
+                                progressAnimatable.animateTo(if (isExpanded) 0f else 1f)
+                            }
                         }
                     )
                     .semantics {
@@ -211,27 +232,39 @@ fun GoalBottomDrawer(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Selected Goal
-                GoalListItem(
-                    title = selectedGoal?.title ?: "Create or select a Goal",
-                    type = selectedGoal?.type,
-                    targetDuration = selectedGoal?.targetDuration,
-                    deepFocus = selectedGoal?.deepFocus ?: false,
-                    backgroundColor = MaterialTheme.colorScheme.background,
+                AnimatedContent(
+                    targetState = selectedGoal,
+                    transitionSpec = {
+                        fadeIn().togetherWith(fadeOut())
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .draggable(
                             orientation = Orientation.Vertical,
                             state = rememberDraggableState { delta ->
                                 val heightPx = with(density) { (expandedHeight - collapsedHeight).toPx() }
-                                progress -= delta / heightPx
-                                progress = progress.coerceIn(0f, 1f)
+                                coroutineScope.launch {
+                                    progressAnimatable.snapTo((progress - delta / heightPx).coerceIn(0f, 1f))
+                                }
                             },
                             onDragStopped = {
-                                progress = if (progress > 0.5f) 1f else 0f
+                                coroutineScope.launch {
+                                    progressAnimatable.animateTo(if (progress > 0.5f) 1f else 0f)
+                                }
                             }
                         ),
-                    isPlaceholder = !hasSelectedGoal
-                )
+                    label = "SelectedGoalTransition"
+                ) { goal ->
+                    GoalListItem(
+                        title = goal?.title ?: "Create or select a Goal",
+                        type = goal?.type,
+                        targetDuration = goal?.targetDuration,
+                        deepFocus = goal?.deepFocus ?: false,
+                        backgroundColor = MaterialTheme.colorScheme.background,
+                        modifier = Modifier.fillMaxWidth(),
+                        isPlaceholder = goal == null
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(Spacing.lg))
 
@@ -248,15 +281,19 @@ fun GoalBottomDrawer(
                                 role = Role.Button
                             },
                         onClick = {
-                            selectedGoal?.let {
-                                onStartClick(it.id, it.title)
+                            if (activeGoals.isEmpty()) {
+                                onAddGoalClick()
+                            } else {
+                                selectedGoal?.let {
+                                    onStartClick(it.id, it.title)
+                                }
                             }
                         },
-                        enabled = hasSelectedGoal
+                        enabled = hasSelectedGoal || activeGoals.isEmpty()
                     ) {
                         Icon(
-                            Icons.Default.PlayArrow,
-                            contentDescription = "Start tracking",
+                            if (activeGoals.isEmpty()) Icons.Default.Add else Icons.Default.PlayArrow,
+                            contentDescription = if (activeGoals.isEmpty()) "Add new goal" else "Start tracking",
                             modifier = Modifier.size(32.dp),
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
@@ -265,9 +302,14 @@ fun GoalBottomDrawer(
             }
 
             // Expanded content (LazyColumn of other goals to select)
-            if (isExpanded) {
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier.weight(1f)
+            ) {
                 LazyColumn(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(Spacing.lg),
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
@@ -284,7 +326,9 @@ fun GoalBottomDrawer(
                             onClick = {
                                 onGoalSelected(goal.id)
                                 if (!alwaysExpanded) {
-                                    progress = 0f
+                                    coroutineScope.launch {
+                                        progressAnimatable.animateTo(0f)
+                                    }
                                 }
                             }
                         )

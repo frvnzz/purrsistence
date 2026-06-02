@@ -213,6 +213,51 @@ class UserViewModel(
         }
     }
 
+    fun updateUsernameInSupabase(username: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isSupabaseLoading.value = true
+            _supabaseError.value = null
+
+            try {
+                supabaseSyncService.updateUsername(username)
+            } catch (exception: Exception) {
+                _supabaseError.value = exception.message
+            } finally {
+                _isSupabaseLoading.value = false
+            }
+        }
+    }
+
+    fun updatePasswordInSupabase(currentPassword: String, newPassword: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isSupabaseLoading.value = true
+            _supabaseError.value = null
+
+            try {
+                supabaseSyncService.updatePassword(currentPassword, newPassword)
+            } catch (exception: Exception) {
+                _supabaseError.value = exception.message
+            } finally {
+                _isSupabaseLoading.value = false
+            }
+        }
+    }
+
+    fun updateAvatarPathInSupabase(avatarPath: String?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isSupabaseLoading.value = true
+            _supabaseError.value = null
+
+            try {
+                supabaseSyncService.updateAvatarPath(avatarPath)
+            } catch (exception: Exception) {
+                _supabaseError.value = exception.message
+            } finally {
+                _isSupabaseLoading.value = false
+            }
+        }
+    }
+
     fun resetTrackingSessions() {
         viewModelScope.launch(Dispatchers.IO) {
             _isSupabaseLoading.value = true

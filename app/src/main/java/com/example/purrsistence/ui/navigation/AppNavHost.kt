@@ -87,6 +87,9 @@ fun AppNavHost(
                         deepFocus = deepFocus
                     )
                 },
+                onAddGoalClick = {
+                    navController.navigate("add_goal")
+                },
                 setTopBar = setTopBar,
                 soundManager = soundManager
             )
@@ -234,7 +237,8 @@ fun AppNavHost(
                     } else {
                         navController.navigate("auth?redirect=friends")
                     }
-                }
+                },
+                soundManager = soundManager
             )
         }
 

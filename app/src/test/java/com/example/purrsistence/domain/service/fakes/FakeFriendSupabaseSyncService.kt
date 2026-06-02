@@ -27,6 +27,9 @@ class FakeFriendSupabaseSyncService(
     var acceptFriendRequestCalls = 0
     var declineFriendRequestCalls = 0
     var deleteFriendshipCalls = 0
+    var updateUsernameCalls = 0
+    var updatePasswordCalls = 0
+    var updateAvatarPathCalls = 0
     var resetTrackingSessionsCalls = 0
 
     var lastSearchQuery: String? = null
@@ -35,6 +38,8 @@ class FakeFriendSupabaseSyncService(
     var lastDeclinedFriendshipId: Long? = null
     var lastDeletedFriendshipId: Long? = null
     var lastLoadedFriendUserId: String? = null
+    var lastUpdatePasswordCurrent: String? = null
+    var lastUpdatePasswordNew: String? = null
 
     val friendsResult = mutableListOf<FriendProfile>()
     val incomingRequestsResult = mutableListOf<Friendship>()
@@ -58,6 +63,7 @@ class FakeFriendSupabaseSyncService(
     var throwOnDecline: Exception? = null
     var throwOnDelete: Exception? = null
     var throwOnLoadFriendProfile: Exception? = null
+    var throwOnUpdatePassword: Exception? = null
 
     override fun isSignedIn(): Boolean {
         return signedIn
@@ -112,9 +118,20 @@ class FakeFriendSupabaseSyncService(
 
     override suspend fun addCollectedCatToSupabaseAndLocal(catId: String) = Unit
 
-    override suspend fun updateUsername(username: String) = Unit
+    override suspend fun updateUsername(username: String) {
+        updateUsernameCalls++
+    }
 
-    override suspend fun updateAvatarPath(avatarPath: String?) = Unit
+    override suspend fun updatePassword(currentPassword: String, newPassword: String) {
+        throwOnUpdatePassword?.let { throw it }
+        updatePasswordCalls++
+        lastUpdatePasswordCurrent = currentPassword
+        lastUpdatePasswordNew = newPassword
+    }
+
+    override suspend fun updateAvatarPath(avatarPath: String?) {
+        updateAvatarPathCalls++
+    }
     override suspend fun resetTrackingSessions(userId: Int) {
         resetTrackingSessionsCalls++
     }

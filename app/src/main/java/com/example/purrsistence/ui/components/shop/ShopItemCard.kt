@@ -47,7 +47,7 @@ fun ShopItemCard(
 
     val buttonText = when {
         isOwned -> "Owned"
-        !canAfford -> "No Funds"
+        !canAfford -> "No Fish"
         else -> "Adopt"
     }
 

@@ -1,5 +1,6 @@
 package com.example.purrsistence.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,12 +14,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.R
-import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.util.formatLocalizedInteger
 
@@ -31,8 +32,9 @@ fun CurrencyBadge(balance: Int) {
                 contentDescription = "$balance fish"
             },
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.tertiaryContainer,
-        tonalElevation = Elevation.Lvl2
+        color = Color.Transparent,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier.padding(horizontal = Spacing.md),
@@ -50,7 +52,7 @@ fun CurrencyBadge(balance: Int) {
             Text(
                 text = formatLocalizedInteger(balance),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onTertiaryContainer
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }

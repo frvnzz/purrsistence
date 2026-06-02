@@ -61,6 +61,8 @@ interface TrackingSyncService {
 
     suspend fun updateUsername(username: String)
 
+    suspend fun updatePassword(currentPassword: String, newPassword: String)
+
     suspend fun updateAvatarPath(avatarPath: String?)
 
     suspend fun resetTrackingSessions(
@@ -223,14 +225,14 @@ class SupabaseSyncService(
                 .take(3)
 
         val mergedUsername =
-            if (useLocalData) {
+            if (useLocalData || remoteData.profile.username.isBlank()) {
                 localUser.username
             } else {
                 remoteData.profile.username
             }
 
         val mergedAvatarPath =
-            if (useLocalData) {
+            if (useLocalData || remoteData.profile.avatarPath == null) {
                 localUser.profileImageUrl?.toString()
             } else {
                 remoteData.profile.avatarPath
@@ -460,6 +462,10 @@ class SupabaseSyncService(
                 supabaseUserId = supabaseUserId
             )
         )
+    }
+
+    override suspend fun updatePassword(currentPassword: String, newPassword: String) {
+        authRepository.updatePassword(currentPassword, newPassword)
     }
 
     override suspend fun updateAvatarPath(
