@@ -106,6 +106,14 @@ fun AppNavHost(
                 onGoalClick = { goalId ->
                     navController.navigate("goalDetails/$goalId")
                 },
+                onStartTracking = { goalId, goalTitle, userId, deepFocus ->
+                    trackingViewModel.startTrack(
+                        goalId = goalId,
+                        goalTitle = goalTitle,
+                        userId = userId,
+                        deepFocus = deepFocus
+                    )
+                },
                 snackbarHostState = snackbarHostState,
                 setTopBar = setTopBar
             )

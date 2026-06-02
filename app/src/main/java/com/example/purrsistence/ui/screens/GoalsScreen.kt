@@ -60,6 +60,7 @@ fun GoalsScreen(
     goalViewModel: GoalViewModel,
     onAddGoalClick: () -> Unit = {},
     onGoalClick: (Int) -> Unit = {},
+    onStartTracking: (Int, String, Int, Boolean) -> Unit = { _, _, _, _ -> },
     snackbarHostState: SnackbarHostState,
     setTopBar: (TopBarState) -> Unit
 ) {
@@ -75,6 +76,7 @@ fun GoalsScreen(
     var isDeleteMode by remember { mutableStateOf(false) }
     var selectedGoals by remember { mutableStateOf(setOf<Int>()) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var swipeToDeleteGoalId by remember { mutableStateOf<Int?>(null) }
     var selectedSort by remember { mutableStateOf(SortOption.LAST_TRACKED) }
     val listState = rememberLazyListState()
     var pendingVisibleGoalId by remember { mutableStateOf<Int?>(null) }
@@ -232,6 +234,12 @@ fun GoalsScreen(
                                 } else {
                                     selectedGoals - goal.id
                                 }
+                            },
+                            onTrack = {
+                                onStartTracking(goal.id, goal.title, goal.userId, goal.deepFocus)
+                            },
+                            onDelete = {
+                                swipeToDeleteGoalId = goal.id
                             }
                         )
                     }
@@ -266,6 +274,21 @@ fun GoalsScreen(
                 },
                 onDismiss = {
                     showDeleteDialog = false
+                }
+            )
+        }
+
+        if (swipeToDeleteGoalId != null) {
+            val goalToDelete = goals.find { it.goal.id == swipeToDeleteGoalId }?.goal
+            DeleteGoalDialog(
+                title = "Delete Goal",
+                message = "Are you sure you want to delete \"${goalToDelete?.title}\"?",
+                onConfirm = {
+                    swipeToDeleteGoalId?.let { goalViewModel.deleteGoal(it) }
+                    swipeToDeleteGoalId = null
+                },
+                onDismiss = {
+                    swipeToDeleteGoalId = null
                 }
             )
         }
