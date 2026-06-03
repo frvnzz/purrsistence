@@ -10,6 +10,14 @@ interface TrackingNotificationController {
         startTimeMillis: Long
     )
 
+    fun updateTrackingNotification(
+        trackingId: Int,
+        goalTitle: String,
+        isPaused: Boolean,
+        startTimeMillis: Long,
+        elapsedMillis: Long
+    )
+
     fun stopTrackingNotification()
 }
 
@@ -27,6 +35,23 @@ class TrackingNotificationControllerImpl(
             trackingId = trackingId,
             goalTitle = goalTitle,
             startTimeMillis = startTimeMillis
+        )
+    }
+
+    override fun updateTrackingNotification(
+        trackingId: Int,
+        goalTitle: String,
+        isPaused: Boolean,
+        startTimeMillis: Long,
+        elapsedMillis: Long
+    ) {
+        TrackingForegroundService.update(
+            context = appContext,
+            trackingId = trackingId,
+            goalTitle = goalTitle,
+            isPaused = isPaused,
+            startTimeMillis = startTimeMillis,
+            elapsedMillis = elapsedMillis
         )
     }
 

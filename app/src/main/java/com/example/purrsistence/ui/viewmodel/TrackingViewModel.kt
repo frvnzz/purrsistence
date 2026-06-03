@@ -208,6 +208,14 @@ class TrackingViewModel(
                 focusBlocker.startBlocking()
             }
 
+            trackingNotificationController.updateTrackingNotification(
+                trackingId = session.id,
+                goalTitle = goalTitle,
+                isPaused = session.currentPauseStart != null,
+                startTimeMillis = session.startTime.toEpochMilli(),
+                elapsedMillis = effectiveElapsed
+            )
+
             startTicker(session.startTime)
 
             if (session.currentPauseStart != null) {
@@ -285,6 +293,14 @@ class TrackingViewModel(
                     )
                 }
 
+                trackingNotificationController.updateTrackingNotification(
+                    trackingId = trackingId,
+                    goalTitle = state.goalTitle,
+                    isPaused = true,
+                    startTimeMillis = state.startTime?.toEpochMilli() ?: 0L,
+                    elapsedMillis = state.elapsedMillis
+                )
+
                 startPauseTimer()  //Auto-stop after 1 hour
             }
         }
@@ -321,6 +337,14 @@ class TrackingViewModel(
                         checkpointedCurrency = session?.getCheckpointedCurrency() ?: it.checkpointedCurrency
                     )
                 }
+
+                trackingNotificationController.updateTrackingNotification(
+                    trackingId = trackingId,
+                    goalTitle = state.goalTitle,
+                    isPaused = false,
+                    startTimeMillis = state.startTime?.toEpochMilli() ?: 0L,
+                    elapsedMillis = session?.effectiveDuration(now)?.toMillis() ?: 0L
+                )
 
                 pauseJob?.cancel()
             }
