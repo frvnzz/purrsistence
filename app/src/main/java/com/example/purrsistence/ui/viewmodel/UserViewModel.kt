@@ -3,6 +3,7 @@ package com.example.purrsistence.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.purrsistence.domain.model.types.SyncStatus
 import com.example.purrsistence.service.ProfileService
 import com.example.purrsistence.service.ShopService
 import com.example.purrsistence.service.TrackingSyncService
@@ -61,7 +62,7 @@ class UserViewModel(
     }
 
     fun buyCat(catId: String, price: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
                 // Local purchase remains the primary app
                 // behavior:
@@ -81,12 +82,22 @@ class UserViewModel(
 
     fun updateSelectedCats(selectedIds: List<String>) {
         viewModelScope.launch {
-            shopService.updateSelectedCats(currentUserId, selectedIds)
+            _supabaseError.value = null
+
+            val result = shopService.updateSelectedCats(
+                userId = currentUserId,
+                selectedIds = selectedIds
+            )
+
+            if (result == SyncStatus.SYNC_FAILED) {
+                _supabaseError.value =
+                    "Cats were saved on this device, but syncing failed. Please check your connection and try again later."
+            }
         }
     }
 
     fun updateUsername(newUsername: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -111,7 +122,7 @@ class UserViewModel(
     }
 
     fun updateProfileImage(imageUrl: String?) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -137,7 +148,7 @@ class UserViewModel(
         password: String,
         username: String
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -162,7 +173,7 @@ class UserViewModel(
         email: String,
         password: String
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -182,7 +193,7 @@ class UserViewModel(
     }
 
     fun signOutFromSupabase() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -197,7 +208,7 @@ class UserViewModel(
     }
 
     fun syncFromSupabase() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -214,7 +225,7 @@ class UserViewModel(
     }
 
     fun updateUsernameInSupabase(username: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -229,7 +240,7 @@ class UserViewModel(
     }
 
     fun updatePasswordInSupabase(currentPassword: String, newPassword: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -244,7 +255,7 @@ class UserViewModel(
     }
 
     fun updateAvatarPathInSupabase(avatarPath: String?) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch{
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -259,7 +270,7 @@ class UserViewModel(
     }
 
     fun resetTrackingSessions() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 

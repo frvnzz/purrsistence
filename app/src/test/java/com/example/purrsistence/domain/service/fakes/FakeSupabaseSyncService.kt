@@ -168,6 +168,12 @@ class FakeSupabaseSyncService(
         lastCatId = catId
     }
 
+    override suspend fun updateSelectedCats(
+        selectedCatIds: List<String>
+    ): SyncStatus {
+        return SyncStatus.IN_SYNC
+    }
+
     override suspend fun updateUsername(
         username: String
     ) {

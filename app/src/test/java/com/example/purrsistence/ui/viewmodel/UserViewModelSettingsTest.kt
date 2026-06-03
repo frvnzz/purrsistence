@@ -33,7 +33,7 @@ class UserViewModelSettingsTest {
 
     @Test
     fun updateUsernameInSupabase_callsSyncService() = runTest {
-        val shopService = ShopService(fakeUserRepository)
+        val shopService = ShopService(fakeUserRepository, trackingSyncService = fakeSupabaseSyncService)
         val viewModel = UserViewModel(
             shopService = shopService,
             supabaseSyncService = fakeSupabaseSyncService
@@ -50,7 +50,7 @@ class UserViewModelSettingsTest {
 
     @Test
     fun updatePasswordInSupabase_callsSyncService() = runTest {
-        val shopService = ShopService(fakeUserRepository)
+        val shopService = ShopService(fakeUserRepository, trackingSyncService = fakeSupabaseSyncService)
         val viewModel = UserViewModel(
             shopService = shopService,
             supabaseSyncService = fakeSupabaseSyncService

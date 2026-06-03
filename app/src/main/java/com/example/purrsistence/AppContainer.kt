@@ -117,7 +117,7 @@ class AppContainer(
     }
 
     val shopService by lazy {
-        ShopService(userRepository)
+        ShopService(userRepository, supabaseSyncService)
     }
 
     val profileService by lazy {
