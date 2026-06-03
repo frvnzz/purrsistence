@@ -143,8 +143,56 @@ class SupabaseSyncService(
         )
 
         if (isSignedIn()) {
-            syncUserAfterSignIn()
+            syncUserAfterSignUp(username)
+
+            forceDownloadFromSupabase()
         }
+    }
+
+    private suspend fun syncUserAfterSignUp(
+        username: String
+    ): SyncStatus {
+        if (!isSignedIn()) {
+            return SyncStatus.NOT_LINKED
+        }
+
+        val localUser = requireLocalUser()
+        val supabaseUserId = requireSupabaseUserId()
+
+        val localGoals =
+            goalRepository.getGoalsForSync(localUserId)
+
+        val localTrackingSessions =
+            trackingRepository.getTrackingSessionsForSync(localUserId)
+
+        val localCollectedCatIds =
+            localUser.collectedCatsIds.distinct()
+
+        val localSelectedCatIds =
+            localUser.selectedCatIds
+                .distinct()
+                .filter { catId -> catId in localCollectedCatIds }
+
+        val linkedUser = localUser.copy(
+            username = username.ifBlank { localUser.username },
+            collectedCatsIds = localCollectedCatIds,
+            selectedCatIds = localSelectedCatIds,
+            isSupabaseLinked = true,
+            supabaseUserId = supabaseUserId
+        )
+
+        syncSnapshotRepository.uploadUserData(
+            supabaseUserId = supabaseUserId,
+            localUser = linkedUser,
+            goals = localGoals,
+            trackingSessions = localTrackingSessions
+        )
+
+        userRepository.updateUserFromRemoteSync(linkedUser)
+
+        userRepository.markUserSynced(localUserId)
+
+        return SyncStatus.IN_SYNC
     }
 
     override suspend fun signIn(
