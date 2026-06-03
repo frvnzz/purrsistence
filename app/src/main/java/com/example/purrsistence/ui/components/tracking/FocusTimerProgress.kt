@@ -1,12 +1,15 @@
 package com.example.purrsistence.ui.components.tracking
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -16,8 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.purrsistence.R
 import com.example.purrsistence.ui.theme.DarkTertiary
 import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
@@ -30,7 +35,6 @@ import kotlin.math.roundToInt
 @Composable
 fun FocusTimerProgress(
     elapsedMillis: Long,
-    pausedMillis: Long,
     multiplier: Float,
     multiplierProgress: Float,
     checkpointedCurrency: Int,
@@ -38,7 +42,6 @@ fun FocusTimerProgress(
     isPaused: Boolean,
     modifier: Modifier = Modifier
 ) {
-
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.surfaceVariant
 
@@ -101,11 +104,23 @@ fun FocusTimerProgress(
             val potentialCurrency = (minutesSinceReset * multiplier).roundToInt()
             val totalLiveCurrency = checkpointedCurrency + potentialCurrency
 
-            Text(
-                text = "Earned: ${formatLocalizedInteger(totalLiveCurrency)}",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // Earned currency (fish)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+            ) {
+                Text(
+                    text = "Earned: ${formatLocalizedInteger(totalLiveCurrency)}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                // fish icon
+                Image(
+                    painter = painterResource(id = R.drawable.fish_blue2_24),
+                    contentDescription = "Fish",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
             // Multiplier (x2.0 maximum)
             Text(

@@ -11,6 +11,15 @@ val AppFont = FontFamily.Default
 
 val Typography = Typography(
 
+    // Headline Large 32 / 40 (only used in RewardsScreen)
+    headlineLarge = TextStyle(
+        fontFamily = AppFont,
+        fontWeight = FontWeight.Medium,
+        fontSize = 32.sp,
+        lineHeight = 40.sp,
+        letterSpacing = 0.sp
+    ),
+
     // Title large 22 / 28
     titleLarge = TextStyle(
         fontFamily = AppFont,

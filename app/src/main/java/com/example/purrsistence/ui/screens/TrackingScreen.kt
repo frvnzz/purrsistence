@@ -150,7 +150,6 @@ fun TrackingScreen(
             // TIMER
             FocusTimerProgress(
                 elapsedMillis = state.elapsedMillis,
-                pausedMillis = state.totalPausedMillis,
                 multiplier = state.liveMultiplier.toFloat(),
                 multiplierProgress = state.multiplierProgress,
                 checkpointedCurrency = state.checkpointedCurrency,
@@ -230,7 +229,6 @@ fun TrackingScreen(
 
                 FocusTimerProgress(
                     elapsedMillis = state.elapsedMillis,
-                    pausedMillis = state.totalPausedMillis,
                     multiplier = state.liveMultiplier.toFloat(),
                     multiplierProgress = state.multiplierProgress,
                     checkpointedCurrency = state.checkpointedCurrency,
@@ -261,7 +259,6 @@ fun TrackingScreen(
 
                 TrackingActionButton(
                     text = "Finish",
-                    // remove containerColor if you think this color doesn't fit ???
                     containerColor = DarkTertiary,
                     onClick = viewModel::stopTracking
                 )
