@@ -2,6 +2,7 @@ package com.example.purrsistence.domain.service
 
 import com.example.purrsistence.data.local.repository.FakeUserRepository
 import com.example.purrsistence.domain.model.User
+import com.example.purrsistence.domain.service.fakes.FakeSupabaseSyncService
 import com.example.purrsistence.service.ShopService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -13,11 +14,12 @@ import org.junit.Test
 import java.net.URL
 
 class ShopServiceTest {
+    private val fakeSupabaseSyncService = FakeSupabaseSyncService()
 
     @Test
     fun buyCat_reducesBalance_andAddsCat() = runBlocking {
         val userRepository = FakeUserRepository()
-        val service = ShopService(userRepository)
+        val service = ShopService(userRepository, trackingSyncService = fakeSupabaseSyncService)
 
         userRepository.insertUser(
             User(
@@ -46,7 +48,7 @@ class ShopServiceTest {
     @Test
     fun buyCat_doesNothing_ifAlreadyOwned() = runBlocking {
         val userRepository = FakeUserRepository()
-        val service = ShopService(userRepository)
+        val service = ShopService(userRepository,  trackingSyncService = fakeSupabaseSyncService)
 
         userRepository.insertUser(
             User(
@@ -75,7 +77,7 @@ class ShopServiceTest {
     @Test
     fun buyCat_doesNothing_ifNotEnoughMoney() = runBlocking {
         val userRepository = FakeUserRepository()
-        val service = ShopService(userRepository)
+        val service = ShopService(userRepository,  trackingSyncService = fakeSupabaseSyncService)
 
         userRepository.insertUser(
             User(
@@ -104,7 +106,7 @@ class ShopServiceTest {
     @Test
     fun buyCat_doesNothing_whenUserDoesNotExist() = runBlocking {
         val userRepository = FakeUserRepository()
-        val service = ShopService(userRepository)
+        val service = ShopService(userRepository, trackingSyncService = fakeSupabaseSyncService)
 
         service.buyCat(
             userId = 999,
@@ -119,7 +121,7 @@ class ShopServiceTest {
     @Test
     fun buyCat_doesNothing_whenBalanceIsTooLow() = runBlocking {
         val userRepository = FakeUserRepository()
-        val service = ShopService(userRepository)
+        val service = ShopService(userRepository, trackingSyncService = fakeSupabaseSyncService)
 
         userRepository.insertUser(
             User(

@@ -59,6 +59,8 @@ interface TrackingSyncService {
 
     suspend fun addCollectedCatToSupabaseAndLocal(catId: String)
 
+    suspend fun updateSelectedCats(selectedCatIds: List<String>): SyncStatus
+
     suspend fun updateUsername(username: String)
 
     suspend fun updatePassword(currentPassword: String, newPassword: String)
@@ -88,6 +90,7 @@ interface TrackingSyncService {
     suspend fun deleteFriendship(
         friendshipId: Long
     )
+
 }
 
 
@@ -222,7 +225,7 @@ class SupabaseSyncService(
             (localUser.selectedCatIds + remoteData.selectedCatIds)
                 .distinct()
                 .filter { catId -> catId in mergedCollectedCatIds }
-                .take(3)
+                .take(5)
 
         val mergedUsername =
             if (useLocalData || remoteData.profile.username.isBlank()) {
@@ -444,6 +447,47 @@ class SupabaseSyncService(
         userRepository.updateUserFromRemoteSync(updatedUser)
     }
 
+    override suspend fun updateSelectedCats(
+        selectedCatIds: List<String>
+    ): SyncStatus {
+        return runSyncSafely("updating selected cats") {
+            updateSelectedCatsUnsafe(selectedCatIds)
+        }
+    }
+
+    private suspend fun updateSelectedCatsUnsafe(
+        selectedCatIds: List<String>
+    ): SyncStatus {
+        if (!isSignedIn()) {
+            return SyncStatus.NOT_LINKED
+        }
+
+        val localUser = requireLocalUser()
+        val supabaseUserId = requireSupabaseUserId()
+
+        val validSelectedCatIds = selectedCatIds
+            .distinct()
+            .filter { catId -> catId in localUser.collectedCatsIds }
+            .take(5)
+
+        catRepository.replaceSelectedCats(
+            userId = supabaseUserId,
+            selectedCatIds = validSelectedCatIds
+        )
+
+        userRepository.updateUserFromRemoteSync(
+            localUser.copy(
+                selectedCatIds = validSelectedCatIds,
+                isSupabaseLinked = true,
+                supabaseUserId = supabaseUserId
+            )
+        )
+
+        userRepository.markUserSynced(localUserId)
+
+        return SyncStatus.CONFLICT_RESOLVED_FROM_LOCAL
+    }
+
     override suspend fun updateUsername(
         username: String
     ) {
@@ -588,7 +632,7 @@ class SupabaseSyncService(
                 .filter { catId ->
                     catId in collectedCatIds
                 }
-                .take(3)
+                .take(5)
 
         return FriendProfileDetails(
             profile = profile,

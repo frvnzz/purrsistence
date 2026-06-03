@@ -119,7 +119,7 @@ class SupabaseCatRemoteDataSource(
             }
 
         selectedCatIds
-            .take(3)
+            .take(5)
             .forEachIndexed { index, catId ->
                 supabase
                     .from("selected_cats")

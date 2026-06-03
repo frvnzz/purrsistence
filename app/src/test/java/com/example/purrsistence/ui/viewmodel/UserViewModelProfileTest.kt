@@ -71,7 +71,7 @@ class UserViewModelProfileTest {
 
         fakeRepo.insertUser(initialUser)
 
-        val shopService = ShopService(fakeRepo)
+        val shopService = ShopService(fakeRepo, trackingSyncService = fakeSupabaseSyncService)
 
         // We can't easily subclass the real ProfileService (it requires a Context)
         // so create a tiny spy-like wrapper and pass it to the ViewModel by reflection-like use
@@ -122,7 +122,7 @@ class UserViewModelProfileTest {
 
         fakeRepo.insertUser(initialUser)
 
-        val shopService = ShopService(fakeRepo)
+        val shopService = ShopService(fakeRepo, trackingSyncService = fakeSupabaseSyncService)
         val spy = SpyProfileService()
         val viewModel = UserViewModel(shopService, profileService = null,
             supabaseSyncService = fakeSupabaseSyncService

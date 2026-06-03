@@ -118,6 +118,12 @@ class FakeFriendSupabaseSyncService(
 
     override suspend fun addCollectedCatToSupabaseAndLocal(catId: String) = Unit
 
+    override suspend fun updateSelectedCats(
+        selectedCatIds: List<String>
+    ): SyncStatus {
+        return SyncStatus.IN_SYNC
+    }
+
     override suspend fun updateUsername(username: String) {
         updateUsernameCalls++
     }

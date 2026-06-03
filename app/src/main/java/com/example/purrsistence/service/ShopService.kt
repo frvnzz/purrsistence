@@ -2,11 +2,13 @@ package com.example.purrsistence.service
 
 import com.example.purrsistence.data.local.repository.UserRepository
 import com.example.purrsistence.domain.model.User
+import com.example.purrsistence.domain.model.types.SyncStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 
 class ShopService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val trackingSyncService: TrackingSyncService
 ) {
 
     fun getUser(userId: Int): Flow<User?> {
@@ -35,12 +37,32 @@ class ShopService(
         )
 
         userRepository.updateUserFromLocalAction(updatedUser)
+        if (shouldAutoSelect) {
+            trackingSyncService.updateSelectedCats(updatedSelectedCats)
+        }
     }
 
     // Update selected cats to show in RoomView
-    suspend fun updateSelectedCats(userId: Int, selectedIds: List<String>) {
-        val user = userRepository.getUser(userId).firstOrNull() ?: return
-        val updatedUser = user.copy(selectedCatIds = selectedIds)
+    suspend fun updateSelectedCats(
+        userId: Int,
+        selectedIds: List<String>
+    ): SyncStatus {
+        val user = userRepository.getUser(userId).firstOrNull()
+            ?: return SyncStatus.NOT_LINKED
+
+        val validSelectedIds = selectedIds
+            .distinct()
+            .filter { catId -> catId in user.collectedCatsIds }
+            .take(5)
+
+        val updatedUser = user.copy(
+            selectedCatIds = validSelectedIds
+        )
+
+        // Always update local database first
         userRepository.updateUserFromLocalAction(updatedUser)
+
+        // Then try to update Supabase
+        return trackingSyncService.updateSelectedCats(validSelectedIds)
     }
 }
