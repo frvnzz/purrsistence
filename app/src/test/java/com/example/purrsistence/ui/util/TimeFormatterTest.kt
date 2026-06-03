@@ -22,5 +22,12 @@ class TimeFormatterTest {
         assertEquals("2h 30min", formatMinutes(150))
         assertEquals("3h 5min", formatMinutes(185))
     }
-}
 
+    @Test
+    fun `formatMinutes shows days, hours and minutes`() {
+        assertEquals("1d 2h 30min", formatMinutes(1440 + 120 + 30))
+        assertEquals("2d 0h 5min", formatMinutes(2880 + 5))
+        assertEquals("10d", formatMinutes(14400))
+        assertEquals("1d 1h", formatMinutes(1500))
+    }
+}
