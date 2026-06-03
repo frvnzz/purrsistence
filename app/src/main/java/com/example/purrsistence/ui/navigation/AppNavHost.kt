@@ -43,6 +43,7 @@ fun AppNavHost(
     trackingViewModel: TrackingViewModel,
     statisticsViewModel: StatisticsViewModel,
     friendViewModel: FriendViewModel,
+    openShop: () -> Unit,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState,
     soundManager: SoundManager
@@ -91,6 +92,7 @@ fun AppNavHost(
                     navController.navigate("add_goal")
                 },
                 setTopBar = setTopBar,
+                openShop = openShop,
                 soundManager = soundManager
             )
         }
@@ -246,6 +248,7 @@ fun AppNavHost(
                         navController.navigate("auth?redirect=friends")
                     }
                 },
+                openShop = openShop,
                 soundManager = soundManager
             )
         }

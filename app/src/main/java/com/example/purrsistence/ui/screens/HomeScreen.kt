@@ -42,6 +42,7 @@ fun HomeScreen(
     onStartTracking: (Int, String, Int, Boolean) -> Unit,
     onAddGoalClick: () -> Unit,
     setTopBar: (TopBarState) -> Unit,
+    openShop: () -> Unit,
     soundManager: SoundManager
 ) {
     val configuration = LocalConfiguration.current
@@ -82,7 +83,10 @@ fun HomeScreen(
     setTopBar(
         TopBarState(
             title = "Home",
-            actions = { CurrencyBadge(balance = balance) }
+            actions = { CurrencyBadge(
+                balance = balance,
+                onClick = openShop
+            ) }
         )
     )
 

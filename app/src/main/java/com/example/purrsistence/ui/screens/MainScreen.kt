@@ -44,7 +44,9 @@ fun MainScreen(
     val topBarState = remember { mutableStateOf(TopBarState()) }
 
     val context = LocalContext.current
-    val soundManager = remember { SoundManager(context) }
+    val soundManager = remember(context) {
+        SoundManager(context)
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -66,6 +68,19 @@ fun MainScreen(
                 restoreState = true
             }
             onTrackingNotificationHandled()
+        }
+    }
+
+    // open ShopScreen (for onClick CurrencyBadge in TopBar)
+    val openShop: () -> Unit = {
+        navController.navigate("shop") {
+            // avoid building up a large stack of destinations (backstack)
+            // so you can always navigate back to the start destination via NavBar (e.g. home)
+            popUpTo(navController.graph.startDestinationId) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
         }
     }
 
@@ -119,6 +134,7 @@ fun MainScreen(
             trackingViewModel = trackingViewModel,
             statisticsViewModel = statisticsViewModel,
             friendViewModel = friendViewModel,
+            openShop = openShop,
             modifier = Modifier.padding(padding),
             snackbarHostState = snackbarHostState,
             soundManager = soundManager

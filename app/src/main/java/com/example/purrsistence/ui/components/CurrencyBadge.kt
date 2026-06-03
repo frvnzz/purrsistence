@@ -1,7 +1,7 @@
 package com.example.purrsistence.ui.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -24,16 +23,25 @@ import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.util.formatLocalizedInteger
 
 @Composable
-fun CurrencyBadge(balance: Int) {
+fun CurrencyBadge(
+    balance: Int,
+    onClick: (() -> Unit)? = null
+) {
     Surface(
         modifier = Modifier
             .height(40.dp)
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable { onClick() }
+                } else {
+                    Modifier
+                }
+            )
             .clearAndSetSemantics {
                 contentDescription = "$balance fish"
             },
         shape = MaterialTheme.shapes.large,
-        color = Color.Transparent,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+        color = MaterialTheme.colorScheme.tertiaryContainer,
         tonalElevation = 0.dp
     ) {
         Row(
@@ -41,8 +49,7 @@ fun CurrencyBadge(balance: Int) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                // TODO: replace with actual currency icon later
-                painter = painterResource(id = R.drawable.fish_blue2_24),
+                painter = painterResource(R.drawable.fish_blue2_24),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp)
             )
@@ -52,7 +59,7 @@ fun CurrencyBadge(balance: Int) {
             Text(
                 text = formatLocalizedInteger(balance),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onTertiaryContainer
             )
         }
     }

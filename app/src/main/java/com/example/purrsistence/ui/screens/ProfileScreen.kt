@@ -34,6 +34,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.example.purrsistence.domain.model.ShopItem
+import com.example.purrsistence.ui.components.CurrencyBadge
 import com.example.purrsistence.ui.components.profileScreen.CatCloseupDialog
 import com.example.purrsistence.ui.components.profileScreen.InventorySection
 import com.example.purrsistence.ui.components.profileScreen.ProfileActionButtons
@@ -51,18 +52,11 @@ fun ProfileScreen(
     setTopBar: (TopBarState) -> Unit,
     onNavigateToSettings: () -> Unit = {},
     onNavigateToFriends: () -> Unit = {},
+    openShop: () -> Unit,
     soundManager: SoundManager? = null
 ) {
-    // set TopBar content (header only)
-    LaunchedEffect(Unit) {
-        setTopBar(
-            TopBarState(
-                title = "Profile"
-            )
-        )
-    }
-
     val user by userViewModel.user.collectAsState()
+    val balance = user?.balance ?: 0
     var usernameError by remember { mutableStateOf<String?>(null) }
     var isEditingName by remember { mutableStateOf(false) }
     var editedUsername by remember(user?.username) { mutableStateOf(user?.username ?: "") }
@@ -139,6 +133,17 @@ fun ProfileScreen(
         onSaveUsername = onSaveUsername,
         onPickProfileImage = onPickProfileImage,
         onRemoveProfileImage = onRemoveProfileImage
+    )
+
+    // TopBar with CurrencyBadge
+    setTopBar(
+        TopBarState(
+            title = "Profile",
+            actions = { CurrencyBadge(
+                balance = balance,
+                onClick = openShop
+            ) }
+        )
     )
 
     if (isLandscape) {
