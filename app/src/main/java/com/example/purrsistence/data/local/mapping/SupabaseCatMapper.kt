@@ -41,7 +41,7 @@ fun List<SelectedCatDto>.toSelectedCatIds(): List<String> {
 fun List<String>.toSelectedCatDtos(
     supabaseUserId: String
 ): List<SelectedCatDto> {
-    return take(3)
+    return take(5)
         .mapIndexed { index, catId ->
             catId.toSelectedCatDto(
                 supabaseUserId = supabaseUserId,

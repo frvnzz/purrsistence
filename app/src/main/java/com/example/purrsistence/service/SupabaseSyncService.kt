@@ -225,7 +225,7 @@ class SupabaseSyncService(
             (localUser.selectedCatIds + remoteData.selectedCatIds)
                 .distinct()
                 .filter { catId -> catId in mergedCollectedCatIds }
-                .take(3)
+                .take(5)
 
         val mergedUsername =
             if (useLocalData || remoteData.profile.username.isBlank()) {
@@ -632,7 +632,7 @@ class SupabaseSyncService(
                 .filter { catId ->
                     catId in collectedCatIds
                 }
-                .take(3)
+                .take(5)
 
         return FriendProfileDetails(
             profile = profile,

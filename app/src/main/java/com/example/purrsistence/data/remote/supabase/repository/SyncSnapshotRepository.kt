@@ -48,7 +48,7 @@ class SyncSnapshotRepositoryImpl(
             catRepository
                 .getSelectedCatIds(supabaseUserId)
                 .distinct()
-                .take(3)
+                .take(5)
 
         val goals =
             goalTrackingRepository.getGoals(
