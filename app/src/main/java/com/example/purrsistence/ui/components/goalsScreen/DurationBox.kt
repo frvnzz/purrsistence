@@ -1,4 +1,4 @@
-package com.example.purrsistence.ui.components.addEditGoal
+package com.example.purrsistence.ui.components.goalsScreen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

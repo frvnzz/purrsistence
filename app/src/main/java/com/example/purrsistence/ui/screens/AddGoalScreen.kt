@@ -45,7 +45,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.components.DeepFocusAccessibilityDialog
-import com.example.purrsistence.ui.components.addEditGoal.DurationBox
+import com.example.purrsistence.ui.components.goalsScreen.DurationBox
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
