@@ -16,17 +16,17 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.R
 import kotlinx.coroutines.launch
-import kotlin.random.Random
-
-import androidx.compose.ui.unit.Dp
 import java.util.UUID
+import kotlin.random.Random
 
 data class HeartBurstState(
     val id: String = UUID.randomUUID().toString(),
+    val catId: String? = null,
     val x: Dp,
     val y: Dp,
     val zIndex: Float

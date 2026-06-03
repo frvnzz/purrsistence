@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -26,7 +27,6 @@ import com.example.purrsistence.domain.model.PlacedCat
 import com.example.purrsistence.domain.model.RoomSpot
 import com.example.purrsistence.ui.components.HeartBurstState
 import com.example.purrsistence.ui.components.HeartParticleEffect
-import java.util.UUID
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
@@ -40,6 +40,12 @@ fun RoomView(
     val imageSize = painter.intrinsicSize
 
     val activeBursts = remember { mutableStateListOf<HeartBurstState>() }
+
+    //clean up bursts for cats that are no longer present
+    LaunchedEffect(placedCats) {
+        val currentCatIds = placedCats.map { it.catId }.toSet()
+        activeBursts.removeAll { it.catId != null && (it.catId !in currentCatIds) }
+    }
 
     BoxWithConstraints(
         modifier = modifier.fillMaxSize(),
@@ -93,13 +99,14 @@ fun RoomView(
                             y = (actualHeight * spot.yPercent) - 100.dp
                         )
                         .zIndex(spot.yPercent)
-                        .pointerInput(Unit) {
+                        .pointerInput(placedCat.catId) {
                             detectTapGestures {
                                 onCatTap()
                                 activeBursts.add(
                                     HeartBurstState(
-                                        x = (actualWidth * spot.xPercent),
-                                        y = (actualHeight * spot.yPercent) - 80.dp,
+                                        catId = placedCat.catId,
+                                        x = 50.dp,
+                                        y = 20.dp,
                                         zIndex = spot.yPercent
                                     )
                                 )
@@ -111,17 +118,18 @@ fun RoomView(
                         isMirrored = placedCat.isMirrored,
                         modifier = Modifier.size(82.dp)
                     )
-                }
-            }
 
-            activeBursts.forEach { burst ->
-                key(burst.id) {
-                    HeartParticleEffect(
-                        onAnimationComplete = { activeBursts.remove(burst) },
-                        modifier = Modifier
-                            .zIndex(burst.zIndex)
-                            .offset(x = burst.x, y = burst.y)
-                    )
+                    // render bursts tied to this specific cat
+                    activeBursts.filter { it.catId == placedCat.catId }.forEach { burst ->
+                        key(burst.id) {
+                            HeartParticleEffect(
+                                onAnimationComplete = { activeBursts.remove(burst) },
+                                modifier = Modifier
+                                    .zIndex(burst.zIndex)
+                                    .offset(x = burst.x, y = burst.y)
+                            )
+                        }
+                    }
                 }
             }
         }
