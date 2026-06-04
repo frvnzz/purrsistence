@@ -116,6 +116,7 @@ fun RoomView(
                     CatImage(
                         catId = placedCat.catId,
                         isMirrored = placedCat.isMirrored,
+                        initialFrame = placedCat.initialFrame,
                         modifier = Modifier.size(82.dp)
                     )
 

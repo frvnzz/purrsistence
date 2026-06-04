@@ -14,7 +14,8 @@ fun CatImage(
     catId: String,
     modifier: Modifier = Modifier,
     isMirrored: Boolean = false,
-    isAnimated: Boolean = true
+    isAnimated: Boolean = true,
+    initialFrame: Int = 0
 ) {
     val cat = CatList.getCatById(catId)
     if (cat != null) {
@@ -22,7 +23,8 @@ fun CatImage(
             cat = cat,
             modifier = modifier,
             isMirrored = isMirrored,
-            isAnimated = isAnimated
+            isAnimated = isAnimated,
+            initialFrame = initialFrame
         )
     }
 }
@@ -32,7 +34,8 @@ fun CatImage(
     cat: ShopItem,
     modifier: Modifier = Modifier,
     isMirrored: Boolean = false,
-    isAnimated: Boolean = true
+    isAnimated: Boolean = true,
+    initialFrame: Int = 0
 ) {
     val finalModifier = modifier
         .graphicsLayer {
@@ -47,6 +50,7 @@ fun CatImage(
             data = cat.animationData,
             modifier = finalModifier,
             contentDescription = cat.name,
+            initialFrame = initialFrame,
             isAnimated = isAnimated
         )
     } else {

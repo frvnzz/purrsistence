@@ -24,10 +24,10 @@ fun SpriteAnimation(
     isAnimated: Boolean = true
 ) {
     val bitmap = ImageBitmap.imageResource(id = spriteSheetRes)
-    var currentFrame by remember { mutableIntStateOf(initialFrame) }
+    var currentFrame by remember(data, initialFrame) { mutableIntStateOf(initialFrame) }
 
     if (isAnimated && data.frameDurationMs < Long.MAX_VALUE) {
-        LaunchedEffect(data) {
+        LaunchedEffect(data, initialFrame) {
             while (true) {
                 delay(data.frameDurationMs)
                 currentFrame = (currentFrame + 1) % data.totalFrames

@@ -25,15 +25,20 @@ class RoomService {
         // Randomize spot assignment
         val shuffledSpots = spots.shuffled()
 
+        // 10 frames possible in spritesheet
+        val frameOffsets = (0 until 10).shuffled()
+
         return ownedCatIds.mapIndexed { index, catId ->
             val spot = shuffledSpots[index % shuffledSpots.size]
+            val initialFrame = frameOffsets.getOrElse(index % frameOffsets.size) { 0 }
 
             PlacedCat(
                 catId = catId,
                 spotId = spot.id,
 
                 // Mirror orientation belongs to the spot
-                isMirrored = spot.isMirrored
+                isMirrored = spot.isMirrored,
+                initialFrame = initialFrame
             )
         }
     }
