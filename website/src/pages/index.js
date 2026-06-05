@@ -145,11 +145,13 @@ function DownloadSection() {
         <p className="margin-bottom--lg">
           Download Purrsistence today and turn your daily and weekly goals into a rewarding adventure.
         </p>
-        <Link
-          className="button button--primary button--lg"
-          to="https://github.com/frvnzz/purrsistence/releases">
-          Download the latest Release (APK)
-        </Link>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <Link
+            className="button button--primary button--lg"
+            to="https://github.com/frvnzz/purrsistence/releases">
+            Download the latest Release (APK)
+          </Link>
+        </div>
       </div>
     </section>
   );
