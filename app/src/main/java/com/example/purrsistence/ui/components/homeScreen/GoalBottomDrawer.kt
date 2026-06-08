@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -338,7 +337,6 @@ fun GoalBottomDrawer(
                             Icon(
                                 if (activeGoals.isEmpty()) Icons.Default.Add else Icons.Default.PlayArrow,
                                 contentDescription = if (activeGoals.isEmpty()) "Add new goal" else "Start tracking",
-                                modifier = Modifier.size(32.dp),
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
