@@ -40,7 +40,7 @@ jobs:
         run: ./gradlew testDebugUnitTest jacocoTestReport --stacktrace
 
       - name: Upload JaCoCo XML report to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           files: app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
           flags: unittests
