@@ -8,6 +8,7 @@ import com.example.purrsistence.service.TrackingSyncService
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.time.Instant
 
 class FakeSupabaseSyncService(
     initialSignedIn: Boolean = false,
@@ -241,7 +242,9 @@ class FakeSupabaseSyncService(
     }
 
     override suspend fun getFriendProfileDetails(
-        friendUserId: String
+        friendUserId: String,
+        weekStart: Instant,
+        weekEnd: Instant
     ): FriendProfileDetails {
         return FriendProfileDetails(
             profile = FriendProfile(
@@ -249,7 +252,8 @@ class FakeSupabaseSyncService(
                 username = ""
             ),
             collectedCatIds = emptyList(),
-            selectedCatIds = emptyList()
+            selectedCatIds = emptyList(),
+            weeklyTrackedMinutes = 0
         )
     }
 

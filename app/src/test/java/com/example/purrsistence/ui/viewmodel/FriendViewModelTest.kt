@@ -5,9 +5,11 @@ import com.example.purrsistence.domain.model.FriendProfileDetails
 import com.example.purrsistence.domain.model.Friendship
 import com.example.purrsistence.domain.model.types.FriendshipStatus
 import com.example.purrsistence.domain.service.fakes.FakeFriendSupabaseSyncService
+import com.example.purrsistence.domain.time.FakeWeekWindowProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -22,6 +24,7 @@ import org.junit.Test
 class FriendViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private val weekWindowProvider = FakeWeekWindowProvider()
 
     @Before
     fun setup() {
@@ -56,7 +59,7 @@ class FriendViewModelTest {
             )
         }
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService, weekWindowProvider)
 
         viewModel.loadFriendsData()
         runCurrent()
@@ -83,7 +86,7 @@ class FriendViewModelTest {
             )
         }
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService,weekWindowProvider)
 
         viewModel.loadFriendsData()
         runCurrent()
@@ -103,7 +106,7 @@ class FriendViewModelTest {
             )
         }
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService,weekWindowProvider)
 
         viewModel.searchProfiles("a")
         runCurrent()
@@ -150,7 +153,7 @@ class FriendViewModelTest {
             )
         }
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService,weekWindowProvider)
 
         viewModel.loadFriendsData()
         runCurrent()
@@ -183,7 +186,7 @@ class FriendViewModelTest {
             )
         }
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService,weekWindowProvider)
 
         viewModel.searchProfiles("target")
         runCurrent()
@@ -209,7 +212,7 @@ class FriendViewModelTest {
             )
         }
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService,weekWindowProvider)
 
         viewModel.acceptFriendRequest(99)
         runCurrent()
@@ -223,7 +226,7 @@ class FriendViewModelTest {
     fun declineFriendRequest_callsServiceAndRefreshesFriendsData() = runTest {
         val syncService = FakeFriendSupabaseSyncService()
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService,weekWindowProvider)
 
         viewModel.declineFriendRequest(88)
         runCurrent()
@@ -239,7 +242,7 @@ class FriendViewModelTest {
     fun deleteFriendship_callsServiceAndRefreshesFriendsData() = runTest {
         val syncService = FakeFriendSupabaseSyncService()
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService,weekWindowProvider)
 
         viewModel.deleteFriendship(77)
         runCurrent()
@@ -254,20 +257,27 @@ class FriendViewModelTest {
     @Test
     fun loadFriendProfile_loadsFriendProfileDetails() = runTest {
         val syncService = FakeFriendSupabaseSyncService().apply {
+            signedIn = true
+            currentUserId = "current-user-id"
+
             friendProfileDetailsResult = FriendProfileDetails(
                 profile = FriendProfile(
                     id = "friend-id",
                     username = "alice"
                 ),
                 collectedCatIds = listOf("cat_1", "cat_2"),
-                selectedCatIds = listOf("cat_1")
+                selectedCatIds = listOf("cat_1"),
+                weeklyTrackedMinutes = 125
             )
         }
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(
+            trackingSyncService = syncService,
+            weekWindowProvider = FakeWeekWindowProvider()
+        )
 
         viewModel.loadFriendProfile("friend-id")
-        runCurrent()
+        advanceUntilIdle()
 
         assertEquals(1, syncService.getFriendProfileDetailsCalls)
         assertEquals("friend-id", syncService.lastLoadedFriendUserId)
@@ -286,13 +296,18 @@ class FriendViewModelTest {
             listOf("cat_1"),
             viewModel.selectedFriendProfile.value?.selectedCatIds
         )
+
+        assertEquals(
+            125L,
+            viewModel.selectedFriendProfile.value?.weeklyTrackedMinutes
+        )
     }
 
     @Test
     fun clearSelectedFriendProfile_setsSelectedFriendProfileToNull() = runTest {
         val syncService = FakeFriendSupabaseSyncService()
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService,weekWindowProvider)
 
         viewModel.loadFriendProfile("friend-id")
         runCurrent()
@@ -308,7 +323,7 @@ class FriendViewModelTest {
             throwOnSearch = IllegalStateException("Search failed")
         }
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService,weekWindowProvider)
 
         viewModel.searchProfiles("alice")
         runCurrent()
@@ -323,7 +338,7 @@ class FriendViewModelTest {
             throwOnSendRequest = IllegalStateException("Request failed")
         }
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService,weekWindowProvider)
 
         viewModel.sendFriendRequest("target-user-id")
         runCurrent()
@@ -338,7 +353,7 @@ class FriendViewModelTest {
             throwOnSearch = IllegalStateException("Search failed")
         }
 
-        val viewModel = FriendViewModel(syncService)
+        val viewModel = FriendViewModel(syncService,weekWindowProvider)
 
         viewModel.searchProfiles("alice")
         runCurrent()
