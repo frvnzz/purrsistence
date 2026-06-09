@@ -108,7 +108,7 @@ class SupabaseFriendshipRemoteDataSource(
     }
 
     override suspend fun declineFriendRequest(friendshipId: Long) {
-        updateFriendshipStatus(friendshipId, "declined")
+        deleteFriendship(friendshipId)
     }
 
     override suspend fun deleteFriendship(friendshipId: Long) {

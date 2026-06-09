@@ -18,6 +18,7 @@ const sidebars = {
   tutorialSidebar: [
     'intro',
     'fssd-decisions',
+    'used-resources',
     {
       type: 'category',
       label: 'Developer Documentation',
