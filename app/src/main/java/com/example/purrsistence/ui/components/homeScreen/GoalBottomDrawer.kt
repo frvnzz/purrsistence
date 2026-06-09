@@ -79,15 +79,15 @@ fun GoalBottomDrawer(
     val selectedGoal = activeGoals.find { it.goal.id == selectedGoalId }?.goal
     val hasSelectedGoal = selectedGoal != null
 
-    // TODO: change this to be responsible (hardcoded height of the drawer)
-    val collapsedHeight = 127.dp
-    val expandedHeight = 500.dp
-
     val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
 
-    // progress: 0f = collapsed, 1f = expanded
+    // HEIGHT
+    val collapsedHeight = 127.dp
+    val expandedHeight = 500.dp
+
+    // PROGRESS: 0f = collapsed, 1f = expanded
     val progressAnimatable = remember {
         Animatable(if (alwaysExpanded) 1f else 0f)
     }
@@ -299,7 +299,7 @@ fun GoalBottomDrawer(
                         label = "SelectedGoalTransition"
                     ) { goal ->
                         GoalListItem(
-                            title = goal?.title ?: "Create or select a Goal",
+                            title = goal?.title ?: "Create a Goal to select here",
                             type = goal?.type,
                             targetDuration = goal?.targetDuration,
                             deepFocus = goal?.deepFocus ?: false,

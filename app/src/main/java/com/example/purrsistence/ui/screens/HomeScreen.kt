@@ -69,12 +69,24 @@ fun HomeScreen(
         roomService.assignCatsToSpots(catsToDisplay, spots)
     }
 
+    // SELECTED GOAL (GoalBottomDrawer)
     val goals by goalViewModel.goals(1).collectAsState(initial = emptyList())
     val selectedGoalId = goalViewModel.selectedGoalId
 
-    LaunchedEffect(goals) {
-        if (selectedGoalId == null && goals.isNotEmpty()) {
-            goalViewModel.selectGoal(goals.first().goal.id)
+    LaunchedEffect(goals, selectedGoalId) {
+        val activeGoals = goals.filter { !it.goal.inactive }
+        // Case A: GoalBottomDrawer is empty, no goals to select
+        if (activeGoals.isEmpty()) {
+            return@LaunchedEffect
+        }
+        // Case B: No Goal is selected, select the first one
+        val selectedStillExists =
+            activeGoals.any { it.goal.id == selectedGoalId }
+        // Case C: Selected Goal no longer exists, select the first one
+        if (!selectedStillExists) {
+            goalViewModel.selectGoal(
+                activeGoals.first().goal.id
+            )
         }
     }
     val selectedGoal = goals.find { it.goal.id == selectedGoalId }?.goal
@@ -105,7 +117,7 @@ fun HomeScreen(
                         start = Spacing.lg,
                         top = Spacing.lg,
                         end = Spacing.lg,
-                        bottom = 100.dp // same as collapsedHeight from GoalBottomDrawer
+                        bottom = 127.dp // same as collapsedHeight from GoalBottomDrawer
                     )
             ) {
                 SelectCatsButton(
