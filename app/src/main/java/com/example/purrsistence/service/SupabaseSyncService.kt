@@ -85,7 +85,7 @@ interface TrackingSyncService {
 
     suspend fun declineFriendRequest(friendshipId: Long)
 
-    suspend fun getFriendProfileDetails(friendUserId: String): FriendProfileDetails
+    suspend fun getFriendProfileDetails(friendUserId: String, weekStart: Instant, weekEnd: Instant): FriendProfileDetails
 
     suspend fun deleteFriendship(
         friendshipId: Long
@@ -654,8 +654,10 @@ class SupabaseSyncService(
     }
 
     override suspend fun getFriendProfileDetails(
-        friendUserId: String
-    ): FriendProfileDetails {
+        friendUserId: String,
+        weekStart: Instant,
+        weekEnd: Instant
+    ): FriendProfileDetails  {
         require(friendUserId.isNotBlank()) {
             "Friend user id must not be blank."
         }
@@ -680,12 +682,19 @@ class SupabaseSyncService(
                 .filter { catId ->
                     catId in collectedCatIds
                 }
-                .take(5)
+
+        val weeklyTrackedMinutes =
+            goalTrackingRepository.fetchWeeklyTrackedMinutes(
+                userId = friendUserId,
+                weekStart = weekStart,
+                weekEnd = weekEnd
+            )
 
         return FriendProfileDetails(
             profile = profile,
             collectedCatIds = collectedCatIds,
-            selectedCatIds = selectedCatIds
+            selectedCatIds = selectedCatIds,
+            weeklyTrackedMinutes = weeklyTrackedMinutes
         )
     }
 

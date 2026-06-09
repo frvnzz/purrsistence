@@ -46,8 +46,11 @@ import com.example.purrsistence.service.TrackingService
 import com.example.purrsistence.service.TrackingServiceImpl
 import com.example.purrsistence.controller.TrackingNotificationController
 import com.example.purrsistence.controller.TrackingNotificationControllerImpl
+import com.example.purrsistence.domain.time.CurrentWeekWindowProvider
+import com.example.purrsistence.domain.time.WeekWindowProvider
 import com.example.purrsistence.notifications.SessionReminderScheduler
 import com.example.purrsistence.notifications.SessionReminderSchedulerImpl
+import java.time.ZoneId
 
 class AppContainer(
     private val context: Context,
@@ -64,6 +67,13 @@ class AppContainer(
 
     // Core utilities
     val timeProvider: TimeProvider by lazy { SystemTimeProvider() }
+
+    val weekWindowProvider: WeekWindowProvider by lazy {
+        CurrentWeekWindowProvider(
+            timeProvider = timeProvider,
+            zoneId = ZoneId.systemDefault()
+        )
+    }
 
     val focusPrefs: SharedPreferences by lazy {
         context.getSharedPreferences(DeepFocusConfig.PREFS_NAME, Context.MODE_PRIVATE)

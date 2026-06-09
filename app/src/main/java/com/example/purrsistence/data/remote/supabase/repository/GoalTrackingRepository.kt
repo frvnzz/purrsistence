@@ -5,6 +5,7 @@ import com.example.purrsistence.data.local.mapping.toSupabaseDto
 import com.example.purrsistence.data.remote.supabase.datasource.SupabaseGoalTrackingRemoteDataSource
 import com.example.purrsistence.domain.model.Goal
 import com.example.purrsistence.domain.model.TrackingSession
+import java.time.Instant
 
 interface GoalTrackingRepository {
     suspend fun getGoals(supabaseUserId: String, localUserId: Int): List<Goal>
@@ -12,6 +13,7 @@ interface GoalTrackingRepository {
     suspend fun deleteTrackingSessions(supabaseUserId: String)
     suspend fun upsertGoals(supabaseUserId: String, goals: List<Goal>)
     suspend fun upsertTrackingSessions(supabaseUserId: String, sessions: List<TrackingSession>)
+    suspend fun fetchWeeklyTrackedMinutes(userId: String, weekStart: Instant, weekEnd: Instant): Long
 }
 
 class GoalTrackingRepositoryImpl(
@@ -71,6 +73,18 @@ class GoalTrackingRepositoryImpl(
             sessions.map { session ->
                 session.toSupabaseDto(supabaseUserId)
             }
+        )
+    }
+
+    override suspend fun fetchWeeklyTrackedMinutes(
+        userId: String,
+        weekStart: Instant,
+        weekEnd: Instant
+    ): Long {
+        return remoteDataSource.fetchWeeklyTrackedMinutes(
+            userId = userId,
+            weekStart = weekStart,
+            weekEnd = weekEnd
         )
     }
 }

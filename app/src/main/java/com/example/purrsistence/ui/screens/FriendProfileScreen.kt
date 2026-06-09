@@ -1,11 +1,15 @@
 package com.example.purrsistence.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.domain.model.FriendProfileDetails
 import com.example.purrsistence.domain.model.ShopItem
@@ -90,18 +94,21 @@ fun FriendProfileDetailsContent(
                 style = MaterialTheme.typography.headlineSmall
             )
 
-            Spacer(
-                modifier = Modifier.height(Spacing.md)
+            Spacer(modifier = Modifier.height(Spacing.sm))
+
+            Text(
+                text = "Tracked this week: ${formatTrackedMinutes(details.weeklyTrackedMinutes)}",
+                style = MaterialTheme.typography.titleMedium
             )
+
+            Spacer(modifier = Modifier.height(Spacing.lg))
 
             Text(
                 text = "Selected Cats",
                 style = MaterialTheme.typography.titleMedium
             )
 
-            Spacer(
-                modifier = Modifier.height(Spacing.sm)
-            )
+            Spacer(modifier = Modifier.height(Spacing.sm))
         }
 
         if (selectedCats.isEmpty()) {
@@ -115,18 +122,14 @@ fun FriendProfileDetailsContent(
         }
 
         item {
-            Spacer(
-                modifier = Modifier.height(Spacing.lg)
-            )
+            Spacer(modifier = Modifier.height(Spacing.lg))
 
             Text(
                 text = "Cat Collection",
                 style = MaterialTheme.typography.titleMedium
             )
 
-            Spacer(
-                modifier = Modifier.height(Spacing.sm)
-            )
+            Spacer(modifier = Modifier.height(Spacing.sm))
         }
 
         if (collectedCats.isEmpty()) {
@@ -150,13 +153,32 @@ fun FriendCatItem(
             .fillMaxWidth()
             .padding(vertical = Spacing.xs)
     ) {
-        Column(
-            modifier = Modifier.padding(Spacing.md)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Spacing.md),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = cat.name,
-                style = MaterialTheme.typography.bodyLarge
+            Image(
+                painter = painterResource(id = cat.imageRes),
+                contentDescription = cat.name,
+                modifier = Modifier.size(64.dp)
             )
+
+            Spacer(modifier = Modifier.width(Spacing.md))
+
+            Column {
+                Text(
+                    text = cat.name,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Text(
+                    text = "${cat.price} coins",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -171,4 +193,17 @@ private fun EmptyText(
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.padding(vertical = Spacing.sm)
     )
+}
+
+private fun formatTrackedMinutes(
+    totalMinutes: Long
+): String {
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+
+    return when {
+        hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
+        hours > 0 -> "${hours}h"
+        else -> "${minutes}m"
+    }
 }

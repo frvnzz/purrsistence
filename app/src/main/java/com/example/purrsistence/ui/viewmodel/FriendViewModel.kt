@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.domain.model.FriendProfile
 import com.example.purrsistence.domain.model.FriendProfileDetails
 import com.example.purrsistence.domain.model.Friendship
+import com.example.purrsistence.domain.time.WeekWindowProvider
 import com.example.purrsistence.service.TrackingSyncService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class FriendViewModel(
-    private val trackingSyncService: TrackingSyncService
+    private val trackingSyncService: TrackingSyncService,
+    private val weekWindowProvider: WeekWindowProvider
 ) : ViewModel() {
 
     private val _friends =
@@ -108,17 +110,19 @@ class FriendViewModel(
             try {
                 if (!trackingSyncService.isSignedIn()) {
                     _selectedFriendProfile.value = null
-                    _error.value = "Please sign in to view friend profiles."
                     return@launch
                 }
 
+                val weekWindow = weekWindowProvider.currentWeek()
+
                 _selectedFriendProfile.value =
-                    trackingSyncService.getFriendProfileDetails(friendUserId)
-            } catch (exception: CancellationException) {
-                throw exception
+                    trackingSyncService.getFriendProfileDetails(
+                        friendUserId = friendUserId,
+                        weekStart = weekWindow.start,
+                        weekEnd = weekWindow.end
+                    )
             } catch (exception: Exception) {
-                _selectedFriendProfile.value = null
-                handleFriendError("loading this friend profile", exception)
+                _error.value = exception.message
             } finally {
                 _isLoading.value = false
             }

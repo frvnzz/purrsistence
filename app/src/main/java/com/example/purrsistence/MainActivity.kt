@@ -84,7 +84,8 @@ class MainActivity : ComponentActivity() {
             ViewModelProvider(
                 this,
                 FriendViewModelFactory(
-                    supabaseSyncService = appContainer.supabaseSyncService
+                    supabaseSyncService = appContainer.supabaseSyncService,
+                    weekWindowProvider = appContainer.weekWindowProvider
                 )
             )[FriendViewModel::class.java]
 
