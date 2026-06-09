@@ -1,6 +1,8 @@
 package com.example.purrsistence
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -53,7 +55,8 @@ class MainActivity : ComponentActivity() {
         userViewModel = UserViewModel(
             shopService = appContainer.shopService,
             supabaseSyncService = appContainer.supabaseSyncService,
-            profileService = appContainer.profileService
+            profileService = appContainer.profileService,
+            sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         )
 
         goalViewModel = GoalViewModel(

@@ -1,6 +1,8 @@
 package com.example.purrsistence.ui.viewmodel
 
+import android.content.SharedPreferences
 import android.util.Log
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.domain.model.types.SyncStatus
@@ -12,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -19,8 +22,28 @@ import kotlinx.coroutines.launch
 class UserViewModel(
     private val shopService: ShopService,
     private val supabaseSyncService: TrackingSyncService,
-    private val profileService: ProfileService? = null
+    private val profileService: ProfileService? = null,
+    private val sharedPreferences: SharedPreferences? = null
 ) : ViewModel() {
+
+    private val _tutorialCompleted = MutableStateFlow(
+        sharedPreferences?.getBoolean("tutorial_completed", false) ?: true
+    )
+    val tutorialCompleted: StateFlow<Boolean> = _tutorialCompleted.asStateFlow()
+
+    private val _tutorialStepIndex = MutableStateFlow(0)
+    val tutorialStepIndex: StateFlow<Int> = _tutorialStepIndex.asStateFlow()
+
+    fun nextTutorialStep() {
+        _tutorialStepIndex.value += 1
+    }
+
+    fun completeTutorial() {
+        sharedPreferences?.edit {
+            putBoolean("tutorial_completed", true)
+        }
+        _tutorialCompleted.value = true
+    }
 
     // Centralized source of truth for the current local user
     val currentUserId: Int = 1

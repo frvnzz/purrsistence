@@ -44,6 +44,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
@@ -67,7 +69,8 @@ fun GoalBottomDrawer(
     onGoalSelected: (Int) -> Unit,
     onStartClick: (Int, String) -> Unit,
     onAddGoalClick: () -> Unit,
-    alwaysExpanded: Boolean = false
+    alwaysExpanded: Boolean = false,
+    onStartButtonPositioned: (LayoutCoordinates) -> Unit = {}
 ) {
     // get all inactive = false goals
     val activeGoals = goals.filter { !it.goal.inactive }
@@ -315,7 +318,8 @@ fun GoalBottomDrawer(
                     Surface(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.primary,
-                        tonalElevation = Elevation.Lvl2
+                        tonalElevation = Elevation.Lvl2,
+                        modifier = Modifier.onGloballyPositioned { onStartButtonPositioned(it) }
                     ) {
                         IconButton(
                             modifier = Modifier

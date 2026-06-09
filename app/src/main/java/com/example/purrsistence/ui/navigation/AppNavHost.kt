@@ -8,6 +8,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,7 +47,11 @@ fun AppNavHost(
     openShop: () -> Unit,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState,
-    soundManager: SoundManager
+    soundManager: SoundManager,
+    onRoomViewPositioned: (LayoutCoordinates) -> Unit = {},
+    onCurrencyBadgePositioned: (LayoutCoordinates) -> Unit = {},
+    onSelectCatsPositioned: (LayoutCoordinates) -> Unit = {},
+    onStartButtonPositioned: (LayoutCoordinates) -> Unit = {}
 ) {
     LaunchedEffect(Unit) {
         trackingViewModel.events.collect { event ->
@@ -93,7 +98,11 @@ fun AppNavHost(
                 },
                 setTopBar = setTopBar,
                 openShop = openShop,
-                soundManager = soundManager
+                soundManager = soundManager,
+                onRoomViewPositioned = onRoomViewPositioned,
+                onCurrencyBadgePositioned = onCurrencyBadgePositioned,
+                onSelectCatsPositioned = onSelectCatsPositioned,
+                onStartButtonPositioned = onStartButtonPositioned
             )
         }
 

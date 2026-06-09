@@ -15,6 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.paneTitle
@@ -23,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import com.example.purrsistence.service.RoomService
 import com.example.purrsistence.ui.components.CurrencyBadge
 import com.example.purrsistence.ui.components.DeepFocusAccessibilityDialog
+import com.example.purrsistence.ui.components.TutorialOverlay
+import com.example.purrsistence.ui.components.TutorialStep
 import com.example.purrsistence.ui.components.homeScreen.CatSelectionDialog
 import com.example.purrsistence.ui.components.homeScreen.GoalBottomDrawer
 import com.example.purrsistence.ui.components.homeScreen.RoomView
@@ -43,7 +47,11 @@ fun HomeScreen(
     onAddGoalClick: () -> Unit,
     setTopBar: (TopBarState) -> Unit,
     openShop: () -> Unit,
-    soundManager: SoundManager
+    soundManager: SoundManager,
+    onRoomViewPositioned: (LayoutCoordinates) -> Unit = {},
+    onCurrencyBadgePositioned: (LayoutCoordinates) -> Unit = {},
+    onSelectCatsPositioned: (LayoutCoordinates) -> Unit = {},
+    onStartButtonPositioned: (LayoutCoordinates) -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape =
@@ -54,6 +62,8 @@ fun HomeScreen(
     var showCatSelectionDialog by remember { mutableStateOf(false) }
 
     val user by userViewModel.user.collectAsState()
+    val tutorialCompleted by userViewModel.tutorialCompleted.collectAsState()
+
     val balance = user?.balance ?: 0
     val collectedCats = user?.collectedCatsIds ?: emptyList()
     val selectedCatIds = user?.selectedCatIds ?: emptyList()
@@ -85,7 +95,8 @@ fun HomeScreen(
             title = "Home",
             actions = { CurrencyBadge(
                 balance = balance,
-                onClick = openShop
+                onClick = openShop,
+                modifier = Modifier.onGloballyPositioned { onCurrencyBadgePositioned(it) }
             ) }
         )
     )
@@ -113,12 +124,14 @@ fun HomeScreen(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(bottom = Spacing.md)
+                        .onGloballyPositioned { onSelectCatsPositioned(it) }
                 )
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .weight(1f)
+                        .onGloballyPositioned { onRoomViewPositioned(it) },
                     contentAlignment = Alignment.Center
                 ) {
                     RoomView(
@@ -145,7 +158,8 @@ fun HomeScreen(
                 )
             },
             onAddGoalClick = onAddGoalClick,
-            alwaysExpanded = isLandscape
+            alwaysExpanded = isLandscape,
+            onStartButtonPositioned = onStartButtonPositioned
         )
 
         if (showAccessibilityDialog) {
