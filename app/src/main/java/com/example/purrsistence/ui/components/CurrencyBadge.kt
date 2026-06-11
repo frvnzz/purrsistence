@@ -25,10 +25,11 @@ import com.example.purrsistence.ui.util.formatLocalizedInteger
 @Composable
 fun CurrencyBadge(
     balance: Int,
+    modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null
 ) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .height(40.dp)
             .then(
                 if (onClick != null) {

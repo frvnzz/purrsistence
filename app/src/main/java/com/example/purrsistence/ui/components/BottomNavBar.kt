@@ -24,6 +24,8 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -32,7 +34,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 @Composable
 fun BottomNavBar(
     navController: NavController,
-    onStatisticsClick: () -> Unit = {}
+    onStatisticsClick: () -> Unit = {},
+    onPositioned: (LayoutCoordinates) -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -46,7 +49,8 @@ fun BottomNavBar(
 
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = if (isLandscape) Modifier.height(80.dp) else Modifier,
+        modifier = (if (isLandscape) Modifier.height(80.dp) else Modifier)
+            .onGloballyPositioned { onPositioned(it) },
         windowInsets = if (isLandscape) WindowInsets(0, 0, 0, 46) else NavigationBarDefaults.windowInsets
     ) {
         items.forEach { screen ->
