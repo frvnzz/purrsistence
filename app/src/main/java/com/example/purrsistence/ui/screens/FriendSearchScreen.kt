@@ -11,6 +11,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.purrsistence.domain.model.FriendProfile
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.theme.Elevation
+import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.viewmodel.FriendViewModel
 
@@ -58,7 +60,8 @@ fun FriendSearchScreen(
                     contentDescription = null
                 )
             },
-            singleLine = true
+            singleLine = true,
+            shape = Shapes.inputs
         )
 
         Spacer(
@@ -128,7 +131,10 @@ fun SearchResultItem(
     profile: FriendProfile,
     onAddClick: () -> Unit
 ) {
-    Card(
+    Surface(
+        shape = Shapes.cards,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = Elevation.Lvl2,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = Spacing.xs)
@@ -143,18 +149,24 @@ fun SearchResultItem(
             Column {
                 Text(
                     text = profile.username,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Text(
                     text = "Send friend request",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
             Button(
-                onClick = onAddClick
+                onClick = onAddClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = Shapes.buttons
             ) {
                 Text("Add")
             }

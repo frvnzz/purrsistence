@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,6 +29,8 @@ import com.example.purrsistence.domain.model.FriendProfileDetails
 import com.example.purrsistence.domain.model.ShopItem
 import com.example.purrsistence.ui.components.homeScreen.CatImage
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.theme.Elevation
+import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.viewmodel.FriendViewModel
 
@@ -163,7 +165,10 @@ fun FriendProfileDetailsContent(
 fun FriendCatItem(
     cat: ShopItem
 ) {
-    Card(
+    Surface(
+        shape = Shapes.cards,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = Elevation.Lvl4,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = Spacing.xs)
@@ -185,12 +190,13 @@ fun FriendCatItem(
             Column {
                 Text(
                     text = cat.name,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
                     text = "${cat.price} coins",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.ui.theme.Elevation
+import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import java.time.Duration
 import java.util.Locale
@@ -64,7 +65,7 @@ fun GoalListItem(
         }
 
     Surface(
-        shape = MaterialTheme.shapes.large,
+        shape = Shapes.cards,
         color = backgroundColor,
         tonalElevation = Elevation.Lvl2,
         modifier = modifier.then(

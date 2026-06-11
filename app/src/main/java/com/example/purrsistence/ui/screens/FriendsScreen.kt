@@ -27,7 +27,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,9 +39,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.model.FriendProfile
 import com.example.purrsistence.domain.model.Friendship
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.viewmodel.FriendViewModel
@@ -320,9 +322,13 @@ fun OutgoingFriendRequestItem(
     request: Friendship,
     onCancel: (Long) -> Unit
 ) {
-    Card(
+    Surface(
+        shape = Shapes.cards,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = Elevation.Lvl2,
         modifier = Modifier
             .fillMaxWidth()
+            .height(80.dp)
             .padding(vertical = Spacing.xs)
     ) {
         Row(
@@ -335,12 +341,14 @@ fun OutgoingFriendRequestItem(
             Column {
                 Text(
                     text = "Pending request",
-                    style = MaterialTheme.typography.labelSmall
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Text(
                     text = request.addresseeUsername ?: request.addresseeId,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -366,9 +374,13 @@ fun FriendListItem(
     onClick: () -> Unit,
     onDelete: (() -> Unit)?
 ) {
-    Card(
+    Surface(
+        shape = Shapes.cards,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = Elevation.Lvl4,
         modifier = Modifier
             .fillMaxWidth()
+            .height(80.dp)
             .padding(vertical = Spacing.xs)
             .clickable(onClick = onClick)
     ) {
@@ -382,7 +394,8 @@ fun FriendListItem(
             Column {
                 Text(
                     text = friend.username,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
