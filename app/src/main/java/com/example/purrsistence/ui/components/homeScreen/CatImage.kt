@@ -8,6 +8,7 @@ import androidx.compose.ui.res.painterResource
 import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.domain.model.ShopItem
 import com.example.purrsistence.ui.components.animation.SpriteAnimation
+import com.example.purrsistence.ui.components.animation.SpriteSheetData
 
 @Composable
 fun CatImage(
@@ -15,7 +16,8 @@ fun CatImage(
     modifier: Modifier = Modifier,
     isMirrored: Boolean = false,
     isAnimated: Boolean = true,
-    initialFrame: Int = 0
+    initialFrame: Int = 0,
+    isSleeping: Boolean = false
 ) {
     val cat = CatList.getCatById(catId)
     if (cat != null) {
@@ -24,7 +26,8 @@ fun CatImage(
             modifier = modifier,
             isMirrored = isMirrored,
             isAnimated = isAnimated,
-            initialFrame = initialFrame
+            initialFrame = initialFrame,
+            isSleeping = isSleeping
         )
     }
 }
@@ -35,7 +38,8 @@ fun CatImage(
     modifier: Modifier = Modifier,
     isMirrored: Boolean = false,
     isAnimated: Boolean = true,
-    initialFrame: Int = 0
+    initialFrame: Int = 0,
+    isSleeping: Boolean = false
 ) {
     val finalModifier = modifier
         .graphicsLayer {
@@ -44,10 +48,21 @@ fun CatImage(
             }
         }
 
-    if (cat.animationData != null) {
+    val imageRes: Int
+    val animData: SpriteSheetData?
+
+    if (isSleeping && cat.sleepingImageRes != null) {
+        imageRes = cat.sleepingImageRes
+        animData = cat.sleepingAnimationData // This is likely null for static images
+    } else {
+        imageRes = cat.imageRes
+        animData = cat.animationData
+    }
+
+    if (animData != null) {
         SpriteAnimation(
-            spriteSheetRes = cat.imageRes,
-            data = cat.animationData,
+            spriteSheetRes = imageRes,
+            data = animData,
             modifier = finalModifier,
             contentDescription = cat.name,
             initialFrame = initialFrame,
@@ -55,7 +70,7 @@ fun CatImage(
         )
     } else {
         Image(
-            painter = painterResource(cat.imageRes),
+            painter = painterResource(imageRes),
             contentDescription = cat.name,
             modifier = finalModifier
         )

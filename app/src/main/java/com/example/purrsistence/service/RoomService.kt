@@ -31,6 +31,7 @@ class RoomService {
         return ownedCatIds.mapIndexed { index, catId ->
             val spot = shuffledSpots[index % shuffledSpots.size]
             val initialFrame = frameOffsets.getOrElse(index % frameOffsets.size) { 0 }
+            val isSleeping = Math.random() < 0.2 // 20% chance of sleeping
 
             PlacedCat(
                 catId = catId,
@@ -38,7 +39,8 @@ class RoomService {
 
                 // Mirror orientation belongs to the spot
                 isMirrored = spot.isMirrored,
-                initialFrame = initialFrame
+                initialFrame = initialFrame,
+                isSleeping = isSleeping
             )
         }
     }

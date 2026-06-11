@@ -4,5 +4,6 @@ data class PlacedCat(
     val catId: String,
     val spotId: String,
     val isMirrored: Boolean = false,
-    val initialFrame: Int = 0
+    val initialFrame: Int = 0,
+    val isSleeping: Boolean = false
 )

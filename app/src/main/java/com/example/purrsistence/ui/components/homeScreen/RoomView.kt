@@ -27,6 +27,7 @@ import com.example.purrsistence.domain.model.PlacedCat
 import com.example.purrsistence.domain.model.RoomSpot
 import com.example.purrsistence.ui.components.HeartBurstState
 import com.example.purrsistence.ui.components.HeartParticleEffect
+import com.example.purrsistence.ui.components.ZzzParticleEffect
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
@@ -101,7 +102,9 @@ fun RoomView(
                         .zIndex(spot.yPercent)
                         .pointerInput(placedCat.catId) {
                             detectTapGestures {
-                                onCatTap()
+                                if (!placedCat.isSleeping) {
+                                    onCatTap()
+                                }
                                 activeBursts.add(
                                     HeartBurstState(
                                         catId = placedCat.catId,
@@ -117,8 +120,16 @@ fun RoomView(
                         catId = placedCat.catId,
                         isMirrored = placedCat.isMirrored,
                         initialFrame = placedCat.initialFrame,
+                        isSleeping = placedCat.isSleeping,
                         modifier = Modifier.size(82.dp)
                     )
+
+                    if (placedCat.isSleeping) {
+                        ZzzParticleEffect(
+                            modifier = Modifier
+                                .offset(x = 40.dp, y = 10.dp)
+                        )
+                    }
 
                     // render bursts tied to this specific cat
                     activeBursts.filter { it.catId == placedCat.catId }.forEach { burst ->
