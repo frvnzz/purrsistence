@@ -96,9 +96,12 @@ class SyncSnapshotRepositoryImpl(
             catIds = localUser.collectedCatsIds
         )
 
+        val validSelectedCatIds = localUser.selectedCatIds
+            .filter { it in localUser.collectedCatsIds }
+
         catRepository.replaceSelectedCats(
             userId = supabaseUserId,
-            selectedCatIds = localUser.selectedCatIds
+            selectedCatIds = validSelectedCatIds
         )
 
         uploadGoalsAndTracking(

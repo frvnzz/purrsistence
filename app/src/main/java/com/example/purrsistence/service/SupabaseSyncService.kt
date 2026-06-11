@@ -518,6 +518,11 @@ class SupabaseSyncService(
             .filter { catId -> catId in localUser.collectedCatsIds }
             .take(5)
 
+        catRepository.uploadCollectedCats(
+            userId = supabaseUserId,
+            catIds = localUser.collectedCatsIds
+        )
+
         catRepository.replaceSelectedCats(
             userId = supabaseUserId,
             selectedCatIds = validSelectedCatIds
