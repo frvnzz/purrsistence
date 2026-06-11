@@ -258,102 +258,10 @@ class SupabaseSyncService(
             localUserId = localUserId
         )
 
-        val localUpdatedAt = localUser.localUpdatedAt ?: Instant.EPOCH
-        val remoteUpdatedAt = remoteData.remoteUpdatedAt
-
-        val useLocalData =
-            localUser.hasPendingLocalChanges &&
-                    localUpdatedAt.isAfter(remoteUpdatedAt)
-
-        val mergedCollectedCatIds =
-            (localUser.collectedCatsIds + remoteData.collectedCatIds)
-                .distinct()
-
-        val mergedSelectedCatIds =
-            (localUser.selectedCatIds + remoteData.selectedCatIds)
-                .distinct()
-                .filter { catId -> catId in mergedCollectedCatIds }
-                .take(5)
-
-        val mergedUsername =
-            if (useLocalData || remoteData.profile.username.isBlank()) {
-                localUser.username
-            } else {
-                remoteData.profile.username
-            }
-
-        val mergedAvatarPath =
-            if (useLocalData || remoteData.profile.avatarPath == null) {
-                localUser.profileImageUrl?.toString()
-            } else {
-                remoteData.profile.avatarPath
-            }
-
-        val localGoals =
-            goalRepository.getGoalsForSync(localUserId)
-
-        val localTrackingSessions =
-            trackingRepository.getTrackingSessionsForSync(localUserId)
-
-        val mergedGoals =
-            mergeGoals(
-                localGoals = localGoals,
-                remoteGoals = remoteData.goals,
-                localWinsOnConflict = useLocalData
-            )
-
-        val mergedTrackingSessions =
-            mergeTrackingSessions(
-                localSessions = localTrackingSessions,
-                remoteSessions = remoteData.trackingSessions,
-                localWinsOnConflict = useLocalData
-            )
-
-        profileRepository.updateUsername(
-            userId = supabaseUserId,
-            username = mergedUsername
-        )
-
-        profileRepository.updateAvatarPath(
-            userId = supabaseUserId,
-            avatarPath = mergedAvatarPath
-        )
-
-        catRepository.uploadCollectedCats(
-            userId = supabaseUserId,
-            catIds = mergedCollectedCatIds
-        )
-
-        catRepository.replaceSelectedCats(
-            userId = supabaseUserId,
-            selectedCatIds = mergedSelectedCatIds
-        )
-
-        syncSnapshotRepository.uploadGoalsAndTracking(
+        applyRemoteDatasetToLocal(
+            localUser = localUser,
             supabaseUserId = supabaseUserId,
-            goals = mergedGoals,
-            trackingSessions = mergedTrackingSessions
-        )
-
-        val mergedUser = localUser.copy(
-            username = mergedUsername,
-            profileImageUrl = mergedAvatarPath.toUrlOrNull(),
-            collectedCatsIds = mergedCollectedCatIds,
-            selectedCatIds = mergedSelectedCatIds,
-            isSupabaseLinked = true,
-            supabaseUserId = supabaseUserId
-        )
-
-        userRepository.updateUserFromRemoteSync(mergedUser)
-
-        goalRepository.replaceGoalsFromRemoteSync(
-            userId = localUserId,
-            goals = mergedGoals
-        )
-
-        trackingRepository.replaceTrackingSessionsFromRemoteSync(
-            userId = localUserId,
-            sessions = mergedTrackingSessions
+            remoteData = remoteData
         )
 
         userRepository.markUserSynced(localUserId)
@@ -807,62 +715,6 @@ class SupabaseSyncService(
             ?.let { value ->
                 runCatching { URL(value) }.getOrNull()
             }
-    }
-
-    private fun mergeGoals(
-        localGoals: List<Goal>,
-        remoteGoals: List<Goal>,
-        localWinsOnConflict: Boolean
-    ): List<Goal> {
-        val result = linkedMapOf<Int, Goal>()
-
-        if (localWinsOnConflict) {
-            remoteGoals.forEach { goal ->
-                result[goal.id] = goal
-            }
-
-            localGoals.forEach { goal ->
-                result[goal.id] = goal
-            }
-        } else {
-            localGoals.forEach { goal ->
-                result[goal.id] = goal
-            }
-
-            remoteGoals.forEach { goal ->
-                result[goal.id] = goal
-            }
-        }
-
-        return result.values.toList()
-    }
-
-    private fun mergeTrackingSessions(
-        localSessions: List<TrackingSession>,
-        remoteSessions: List<TrackingSession>,
-        localWinsOnConflict: Boolean
-    ): List<TrackingSession> {
-        val result = linkedMapOf<Int, TrackingSession>()
-
-        if (localWinsOnConflict) {
-            remoteSessions.forEach { session ->
-                result[session.id] = session
-            }
-
-            localSessions.forEach { session ->
-                result[session.id] = session
-            }
-        } else {
-            localSessions.forEach { session ->
-                result[session.id] = session
-            }
-
-            remoteSessions.forEach { session ->
-                result[session.id] = session
-            }
-        }
-
-        return result.values.toList()
     }
 
     private data class SyncComparableUserData(
