@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import com.example.purrsistence.domain.cats.CatList
+import com.example.purrsistence.domain.model.AnimationState
 import com.example.purrsistence.domain.model.ShopItem
 import com.example.purrsistence.ui.components.animation.SpriteAnimation
 import com.example.purrsistence.ui.components.animation.SpriteSheetData
@@ -17,7 +18,7 @@ fun CatImage(
     isMirrored: Boolean = false,
     isAnimated: Boolean = true,
     initialFrame: Int = 0,
-    isSleeping: Boolean = false
+    animationState: AnimationState = AnimationState.IDLE
 ) {
     val cat = CatList.getCatById(catId)
     if (cat != null) {
@@ -27,7 +28,7 @@ fun CatImage(
             isMirrored = isMirrored,
             isAnimated = isAnimated,
             initialFrame = initialFrame,
-            isSleeping = isSleeping
+            animationState = animationState
         )
     }
 }
@@ -39,7 +40,7 @@ fun CatImage(
     isMirrored: Boolean = false,
     isAnimated: Boolean = true,
     initialFrame: Int = 0,
-    isSleeping: Boolean = false
+    animationState: AnimationState = AnimationState.IDLE
 ) {
     val finalModifier = modifier
         .graphicsLayer {
@@ -51,12 +52,19 @@ fun CatImage(
     val imageRes: Int
     val animData: SpriteSheetData?
 
-    if (isSleeping && cat.sleepingImageRes != null) {
-        imageRes = cat.sleepingImageRes
-        animData = cat.sleepingAnimationData // This is likely null for static images
-    } else {
-        imageRes = cat.imageRes
-        animData = cat.animationData
+    when (animationState) {
+        AnimationState.SLEEPING -> {
+            imageRes = cat.sleepingImageRes ?: cat.imageRes
+            animData = if (cat.sleepingImageRes != null) cat.sleepingAnimationData else cat.animationData
+        }
+        AnimationState.SITTING -> {
+            imageRes = cat.sittingImageRes ?: cat.imageRes
+            animData = if (cat.sittingImageRes != null) cat.sittingAnimationData else cat.animationData
+        }
+        AnimationState.IDLE -> {
+            imageRes = cat.imageRes
+            animData = cat.animationData
+        }
     }
 
     if (animData != null) {

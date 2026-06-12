@@ -1,5 +1,6 @@
 package com.example.purrsistence.service
 
+import com.example.purrsistence.domain.model.AnimationState
 import com.example.purrsistence.domain.model.PlacedCat
 import com.example.purrsistence.domain.model.RoomSpot
 
@@ -31,7 +32,13 @@ class RoomService {
         return ownedCatIds.mapIndexed { index, catId ->
             val spot = shuffledSpots[index % shuffledSpots.size]
             val initialFrame = frameOffsets.getOrElse(index % frameOffsets.size) { 0 }
-            val isSleeping = Math.random() < 0.2 // 20% chance of sleeping
+            
+            val random = Math.random()
+            val animationState = when {
+                random < 0.2 -> AnimationState.SLEEPING
+                random < 0.4 -> AnimationState.SITTING
+                else -> AnimationState.IDLE
+            }
 
             PlacedCat(
                 catId = catId,
@@ -40,7 +47,7 @@ class RoomService {
                 // Mirror orientation belongs to the spot
                 isMirrored = spot.isMirrored,
                 initialFrame = initialFrame,
-                isSleeping = isSleeping
+                animationState = animationState
             )
         }
     }

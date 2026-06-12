@@ -6,6 +6,7 @@ import com.example.purrsistence.ui.components.animation.SpriteSheetData
 
 object CatList {
     private val defaultAnimation = SpriteSheetData(columns = 4, rows = 3, totalFrames = 10, frameDurationMs = 400L)
+    private val sittingAnimation = SpriteSheetData(columns = 2, rows = 1, totalFrames = 2, frameDurationMs = 600L)
 
     // List of all cats the user can buy in the Shop
     val cats = listOf(
@@ -17,7 +18,8 @@ object CatList {
             R.drawable.black_sleeping, null),
         ShopItem("cat_3", "Creme Cat", 20,
             R.drawable.creme_idle, defaultAnimation,
-            R.drawable.creme_sleeping, null),
+            R.drawable.creme_sleeping, null,
+            R.drawable.creme_sitting, sittingAnimation),
         ShopItem("cat_4", "Brown Cat", 10,
             R.drawable.brown_idle, defaultAnimation,
             R.drawable.brown_sleeping, null),

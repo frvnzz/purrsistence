@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.purrsistence.R
+import com.example.purrsistence.domain.model.AnimationState
 import com.example.purrsistence.domain.model.PlacedCat
 import com.example.purrsistence.domain.model.RoomSpot
 import com.example.purrsistence.ui.components.HeartBurstState
@@ -102,7 +103,7 @@ fun RoomView(
                         .zIndex(spot.yPercent)
                         .pointerInput(placedCat.catId) {
                             detectTapGestures {
-                                if (!placedCat.isSleeping) {
+                                if (placedCat.animationState != AnimationState.SLEEPING) {
                                     onCatTap()
                                 }
                                 activeBursts.add(
@@ -120,11 +121,11 @@ fun RoomView(
                         catId = placedCat.catId,
                         isMirrored = placedCat.isMirrored,
                         initialFrame = placedCat.initialFrame,
-                        isSleeping = placedCat.isSleeping,
+                        animationState = placedCat.animationState,
                         modifier = Modifier.size(82.dp)
                     )
 
-                    if (placedCat.isSleeping) {
+                    if (placedCat.animationState == AnimationState.SLEEPING) {
                         ZzzParticleEffect(
                             modifier = Modifier
                                 .offset(x = 40.dp, y = 10.dp)

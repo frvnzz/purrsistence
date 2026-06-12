@@ -5,5 +5,5 @@ data class PlacedCat(
     val spotId: String,
     val isMirrored: Boolean = false,
     val initialFrame: Int = 0,
-    val isSleeping: Boolean = false
+    val animationState: AnimationState = AnimationState.IDLE
 )
