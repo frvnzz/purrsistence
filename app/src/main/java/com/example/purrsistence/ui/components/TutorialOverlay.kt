@@ -1,11 +1,6 @@
 package com.example.purrsistence.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -15,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -39,7 +35,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.example.purrsistence.ui.theme.Spacing
@@ -66,15 +61,6 @@ fun TutorialOverlay(
         modifier = Modifier
             .fillMaxSize()
             .onGloballyPositioned { overlayCoords = it }
-            .pointerInput(Unit) {
-                //consume all touch events to prevent background interaction
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        event.changes.forEach { it.consume() }
-                    }
-                }
-            }
             .graphicsLayer(alpha = 0.99f)
     ) {
         val screenHeight = constraints.maxHeight.toFloat()
@@ -104,6 +90,19 @@ fun TutorialOverlay(
             }
         }
 
+        Box( //box for consuming touch inputs
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            event.changes.forEach { it.consume() }
+                        }
+                    }
+                }
+        )
+
         // Info Box logic
         val targetPosition = currentStep.targetCoordinates?.let { coords ->
             if (coords.isAttached && overlayCoords != null) {
@@ -120,6 +119,7 @@ fun TutorialOverlay(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .safeDrawingPadding()
                 .padding(Spacing.xl),
             contentAlignment = alignment
         ) {
