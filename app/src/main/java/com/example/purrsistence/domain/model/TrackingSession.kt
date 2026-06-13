@@ -62,14 +62,18 @@ data class TrackingSession(
 
     //calculates time since the last multiplier reset has occured
     fun getEffectiveMinutesSinceLastReset(now: Instant): Int {
+        return (getEffectiveMillisSinceLastReset(now)/60000)
+    }
+
+    fun getEffectiveMillisSinceLastReset(now: Instant): Int{
         val referenceTime = lastResetTime ?: startTime
         val totalElapsedDuration = Duration.between(referenceTime, now).toMillis()
-        
+
         // Calculate paused time ONLY since referenceTime
         val pausedSinceReset = getPauseIntervals()
             .filter { it.first.isAfter(referenceTime.minusMillis(1)) }
             .sumOf { Duration.between(it.first, it.second).toMillis() }
-        
+
         val currentPauseAddition = currentPauseStart?.let {
             if (it.isAfter(referenceTime.minusMillis(1))) {
                 Duration.between(it, now).toMillis()
@@ -77,7 +81,7 @@ data class TrackingSession(
         } ?: 0L
 
         val effectiveMillis = (totalElapsedDuration - pausedSinceReset - currentPauseAddition).coerceAtLeast(0L)
-        return Duration.ofMillis(effectiveMillis).toMinutes().toInt()
+        return Duration.ofMillis(effectiveMillis).toMillis().toInt()
     }
 
     fun effectiveDuration(now: Instant): Duration { //total duration minus paused time

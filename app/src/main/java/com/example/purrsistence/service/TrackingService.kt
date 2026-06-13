@@ -70,12 +70,12 @@ class TrackingServiceImpl(
             endTimeMillis = now.toEpochMilli()
         ) ?: return null
 
-        val effectiveMinutes = finishedSession.getEffectiveMinutesSinceLastReset(now)
+        val effectiveMillisSinceReset = finishedSession.getEffectiveMillisSinceLastReset(now)
         val hasLongPause = finishedSession.hasLongPause(now)
         val checkpointed = finishedSession.getCheckpointedCurrency()
 
         val (coins, multiplier) = rewardService.calculateReward(
-            duration = Duration.ofMinutes(effectiveMinutes.toLong()),
+            duration = Duration.ofMillis(effectiveMillisSinceReset.toLong()),
             hasLongPause = hasLongPause,
             checkpointedCurrency = checkpointed
         )
@@ -142,9 +142,14 @@ class TrackingServiceImpl(
         
         //Sectioned Reward: If this pause was > 15 min, checkpoint the coins/currency
         if (Duration.between(pauseStart, now).toMinutes() >= 15) {
-            val minutesBeforePause = session.getEffectiveMinutesSinceLastReset(pauseStart)
-            val currentMultiplier = rewardService.calculateRewardMultiplier(minutesBeforePause)
-            val earnedCoins = (minutesBeforePause * currentMultiplier).roundToInt()
+            val millisBeforePause = session.getEffectiveMillisSinceLastReset(pauseStart)
+
+            val (earnedCoins, _) = rewardService.calculateReward(
+                duration = Duration.ofMillis(millisBeforePause.toLong()),
+                hasLongPause = false,
+                checkpointedCurrency = 0
+            )
+
             checkpointed += earnedCoins
             lastReset = now
         }

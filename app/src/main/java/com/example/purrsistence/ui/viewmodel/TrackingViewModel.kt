@@ -42,6 +42,14 @@ class TrackingViewModel(
     private var timerJob: Job? = null
     private var pauseJob: Job? = null //for auto stop
 
+    private companion object {
+        const val REWARD_INTERVAL_MILLIS = 30_000L
+        const val LONG_PAUSE_RESET_MINUTES = 15L
+        const val AUTO_STOP_WARNING_DELAY_MILLIS = 55 * 60 * 1000L
+        const val AUTO_STOP_FINAL_DELAY_MILLIS = 5 * 60 * 1000L
+    }
+
+
     init {
         restoreTrackingSession()
     }
@@ -91,7 +99,7 @@ class TrackingViewModel(
     fun stopTracking() {
         val state = _uiState.value
 
-        if (state.elapsedMillis < 60_000L) {
+        if (state.elapsedMillis < REWARD_INTERVAL_MILLIS) {
             _uiState.update {
                 it.copy(showStopWarning = true)
             }
@@ -161,6 +169,22 @@ class TrackingViewModel(
         }
     }
 
+    private fun calculateMultiplierProgress(
+        trackedMillisSinceReset: Int,
+        liveMultiplier: Double
+    ): Float {
+        if (liveMultiplier >= 2.0) {
+            return 1f
+        }
+
+        return ((trackedMillisSinceReset % REWARD_INTERVAL_MILLIS).toFloat() / REWARD_INTERVAL_MILLIS)
+            .coerceIn(0f, 1f)
+    }
+
+    private fun rewardIntervalsFromMillis(millis: Int): Int {
+        return (millis.coerceAtLeast(0) / REWARD_INTERVAL_MILLIS).toInt()
+    }
+
     private fun restoreTrackingSession() {
         viewModelScope.launch {
 
@@ -172,16 +196,17 @@ class TrackingViewModel(
 
             val effectiveElapsed = session.effectiveDuration(now).toMillis()
 
-            val trackedMinutes = session.getEffectiveMinutesSinceLastReset(now)
+            val trackedMillisSinceReset = session.getEffectiveMillisSinceLastReset(now)
+            val rewardIntervalsSinceReset = rewardIntervalsFromMillis(trackedMillisSinceReset)
 
-            val liveMultiplier = rewardService.calculateRewardMultiplier(trackedMinutes)
 
-            val progressToNextMultiplier =
-                if (liveMultiplier >= 2.0) {
-                    1f
-                } else {
-                    (trackedMinutes % 15) / 15f
-                }
+            val liveMultiplier = rewardService.calculateRewardMultiplier(trackedMillisSinceReset)
+
+
+            val progressToNextMultiplier = calculateMultiplierProgress(
+                trackedMillisSinceReset = trackedMillisSinceReset,
+                liveMultiplier = liveMultiplier
+            )
 
             val resetWarning = if (session.hasLongPause(now)) "Multiplier reset due to long pause" else null
 
@@ -200,7 +225,7 @@ class TrackingViewModel(
                     currentPauseStart = session.currentPauseStart,
                     multiplierResetWarning = resetWarning,
                     checkpointedCurrency = session.getCheckpointedCurrency(),
-                    minutesSinceReset = trackedMinutes
+                    minutesSinceReset = rewardIntervalsSinceReset
                 )
             }
 
@@ -234,6 +259,7 @@ class TrackingViewModel(
     // Realtime session updater (elapsed time)
     private fun startTicker(startTime: Instant) {
         timerJob?.cancel()
+
         timerJob = viewModelScope.launch {
             while (coroutineContext.isActive) {
                 val session = trackingService.getActiveTrackingSession() ?: break // Stop ticker if no session is active
@@ -243,15 +269,20 @@ class TrackingViewModel(
                 val totalPaused = session.getTotalPausedMillis(now)
                 val effectiveElapsedTotal = (totalElapsedDuration - totalPaused).coerceAtLeast(0L)
 
-                val trackedMinutesSinceReset = session.getEffectiveMinutesSinceLastReset(now)
-                val liveMultiplier = rewardService.calculateRewardMultiplier(trackedMinutesSinceReset)
+                val trackedMillisSinceReset =
+                    session.getEffectiveMillisSinceLastReset(now)
+
+                val rewardIntervalsSinceReset =
+                    rewardIntervalsFromMillis(trackedMillisSinceReset)
+
+                val liveMultiplier =
+                    rewardService.calculateRewardMultiplier(trackedMillisSinceReset)
 
                 val progressToNextMultiplier =
-                    if (liveMultiplier >= 2.0) {
-                        1f
-                    } else {
-                        (trackedMinutesSinceReset % 15) / 15f
-                    }
+                    calculateMultiplierProgress(
+                        trackedMillisSinceReset = trackedMillisSinceReset,
+                        liveMultiplier = liveMultiplier
+                    )
 
                 _uiState.update { state ->
                     val currentPauseDuration = if (state.isPaused) Duration.between(state.currentPauseStart!!, now).toMinutes() else 0L
@@ -259,7 +290,7 @@ class TrackingViewModel(
                     val isResetByCurrentPause = currentPauseDuration >= 15 //if 15 min limit is reached
                     val finalMultiplier = if (isResetByCurrentPause) 1.0 else liveMultiplier //if reset occurred set to 1 otherwise set to current
                     val finalProgress = if (isResetByCurrentPause) 0f else progressToNextMultiplier //set progress to 0 if reset
-                    val finalMinutes = if (isResetByCurrentPause) 0 else trackedMinutesSinceReset
+                    val finalRewardsInterval = if (isResetByCurrentPause) 0 else rewardIntervalsSinceReset
                     val resetWarning = if (isResetByCurrentPause || state.multiplierResetWarning != null) "Multiplier reset due to long pause" else null
 
                     // update TrackingUIState
@@ -270,11 +301,11 @@ class TrackingViewModel(
                         multiplierResetWarning = resetWarning,
                         totalPausedMillis = totalPaused,
                         checkpointedCurrency = session.getCheckpointedCurrency(),
-                        minutesSinceReset = finalMinutes
+                        minutesSinceReset = finalRewardsInterval
                     )
                 }
 
-                delay(1000)
+                delay(250L)
             }
         }
     }
@@ -320,10 +351,16 @@ class TrackingViewModel(
                 val resetWarning = if (isReset) "Multiplier reset due to long pause" else null
 
                 //reset multiplier and progress if it was a long pause
-                val newMultiplier = if (isReset) 1.0 else state.liveMultiplier
-                val newProgress = if (isReset) 0f else state.multiplierProgress
-                val newMinutes = if (isReset) 0 else state.minutesSinceReset
+                val trackedMillisSinceReset =
+                    session?.getEffectiveMillisSinceLastReset(now) ?: 0
 
+                val rewardIntervalsSinceReset =if (isReset) 0 else rewardIntervalsFromMillis(trackedMillisSinceReset)
+
+                val newMultiplier = if (isReset) 1.0 else rewardService.calculateRewardMultiplier(trackedMillisSinceReset)
+                val newProgress = if (isReset) 0f else calculateMultiplierProgress(
+                    trackedMillisSinceReset = trackedMillisSinceReset,
+                    liveMultiplier = newMultiplier
+                )
                 _uiState.update {
                     it.copy(
                         isPaused = false,
@@ -333,7 +370,7 @@ class TrackingViewModel(
                         pauseAutoStopWarning = null,
                         liveMultiplier = newMultiplier,
                         multiplierProgress = newProgress,
-                        minutesSinceReset = newMinutes,
+                        minutesSinceReset = rewardIntervalsSinceReset,
                         checkpointedCurrency = session?.getCheckpointedCurrency() ?: it.checkpointedCurrency
                     )
                 }
@@ -381,20 +418,46 @@ class TrackingViewModel(
             }
 
             val goalTitle = trackingService.getTrackingGoalTitle(activeSession.goalId)
+            val now = timeProvider.now()
 
-            // Update entire UI state, but keep goalTitle since that doesn't change
+            val trackedMillisSinceReset =
+                activeSession.getEffectiveMillisSinceLastReset(now)
+
+            val rewardIntervalsSinceReset =
+                rewardIntervalsFromMillis(trackedMillisSinceReset)
+
+            val liveMultiplier =
+                rewardService.calculateRewardMultiplier(trackedMillisSinceReset)
+
+            val progressToNextMultiplier =
+                calculateMultiplierProgress(
+                    trackedMillisSinceReset = trackedMillisSinceReset,
+                    liveMultiplier = liveMultiplier
+                )
+
             _uiState.update {
                 it.copy(
                     trackingId = activeSession.id,
                     goalId = activeSession.goalId,
                     goalTitle = goalTitle,
                     startTime = activeSession.startTime,
-                    elapsedMillis = activeSession.effectiveDuration(timeProvider.now()).toMillis(),
-                    isTracking = true
+                    elapsedMillis = activeSession.effectiveDuration(now).toMillis(),
+                    isTracking = true,
+                    liveMultiplier = liveMultiplier,
+                    multiplierProgress = progressToNextMultiplier,
+                    isPaused = activeSession.currentPauseStart != null,
+                    totalPausedMillis = activeSession.getTotalPausedMillis(now),
+                    currentPauseStart = activeSession.currentPauseStart,
+                    checkpointedCurrency = activeSession.getCheckpointedCurrency(),
+                    minutesSinceReset = rewardIntervalsSinceReset
                 )
             }
 
             startTicker(activeSession.startTime)
+
+            if (activeSession.currentPauseStart != null) {
+                startPauseTimer()
+            }
         }
     }
 }
