@@ -18,14 +18,12 @@ import com.example.purrsistence.notifications.TrackingNotificationManager
 import com.example.purrsistence.service.TrackingForegroundService
 import com.example.purrsistence.ui.screens.MainScreen
 import com.example.purrsistence.ui.theme.PurrsistenceTheme
+import com.example.purrsistence.ui.viewmodel.AppViewModelFactory
 import com.example.purrsistence.ui.viewmodel.GoalViewModel
 import com.example.purrsistence.ui.viewmodel.StatisticsViewModel
-import com.example.purrsistence.ui.viewmodel.StatisticsViewModelFactory
 import com.example.purrsistence.ui.viewmodel.TrackingViewModel
-import com.example.purrsistence.ui.viewmodel.TrackingViewModelFactory
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 import com.example.purrsistence.ui.viewmodel.FriendViewModel
-import com.example.purrsistence.ui.viewmodel.FriendViewModelFactory
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
@@ -52,45 +50,13 @@ class MainActivity : ComponentActivity() {
         // Optional place for notification channel creation later, for example:
         // TrackingNotificationManager(this).createChannels()
 
-        userViewModel = UserViewModel(
-            shopService = appContainer.shopService,
-            supabaseSyncService = appContainer.supabaseSyncService,
-            profileService = appContainer.profileService,
-            sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        )
+        val factory = AppViewModelFactory(appContainer, this)
 
-        goalViewModel = GoalViewModel(
-            goalService = appContainer.goalService,
-            sharedPreferences = appContainer.focusPrefs,
-            supabaseSyncService = appContainer.supabaseSyncService
-        )
-
-        trackingViewModel = ViewModelProvider(
-            this,
-            TrackingViewModelFactory(
-                trackingService = appContainer.trackingService,
-                rewardService = appContainer.rewardService,
-                timeProvider = appContainer.timeProvider,
-                focusBlocker = appContainer.focusBlocker,
-                trackingNotificationController = appContainer.trackingNotificationController,
-                sessionReminderScheduler = appContainer.sessionReminderScheduler,
-                supabaseSyncService = appContainer.supabaseSyncService
-            )
-        )[TrackingViewModel::class.java]
-
-        statisticsViewModel = ViewModelProvider(
-            this,
-            StatisticsViewModelFactory(appContainer.statisticsService)
-        )[StatisticsViewModel::class.java]
-
-        friendViewModel =
-            ViewModelProvider(
-                this,
-                FriendViewModelFactory(
-                    supabaseSyncService = appContainer.supabaseSyncService,
-                    weekWindowProvider = appContainer.weekWindowProvider
-                )
-            )[FriendViewModel::class.java]
+        userViewModel = ViewModelProvider(this, factory)[UserViewModel::class.java]
+        goalViewModel = ViewModelProvider(this, factory)[GoalViewModel::class.java]
+        trackingViewModel = ViewModelProvider(this, factory)[TrackingViewModel::class.java]
+        statisticsViewModel = ViewModelProvider(this, factory)[StatisticsViewModel::class.java]
+        friendViewModel = ViewModelProvider(this, factory)[FriendViewModel::class.java]
 
         handleNotificationIntent(intent)
 
