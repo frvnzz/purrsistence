@@ -66,7 +66,7 @@ class TrackingServiceTest {
                 balance = 0,
                 friends = emptyList(),
                 collectedCatsIds = emptyList(),
-                selectedCatIds =  emptyList(),
+                selectedCatIds = emptyList(),
                 profileImageUrl = URL("https://example.com/profile.png"),
                 isSupabaseLinked = true,
                 supabaseUserId = "supabase-123",
@@ -92,17 +92,21 @@ class TrackingServiceTest {
             deepFocus = false
         )
 
-        timeProvider.setNow(Instant.ofEpochMilli(901000L))
+        timeProvider.setNow(Instant.ofEpochMilli(901_000L))
 
         val result = service.stopTracking(session.id)
 
         assertNotNull(result)
-        assertEquals(17, result!!.rewardedCurrency)
-        assertEquals(1.15, result.multiplier, 0.0001)
-        assertEquals(900000L, result.sessionDurationMillis)
+
+        // 900_000 ms = 15 minutes = 30 reward intervals
+        // multiplier capped at 2.0
+        // 30 * 2.0 = 60
+        assertEquals(60, result!!.rewardedCurrency)
+        assertEquals(2.0, result.multiplier, 0.0001)
+        assertEquals(900_000L, result.sessionDurationMillis)
 
         val updatedUser = userRepository.getUser(1)
-        assertEquals(17, updatedUser.first()?.balance)
+        assertEquals(60, updatedUser.first()?.balance)
     }
 
     @Test
@@ -181,7 +185,7 @@ class TrackingServiceTest {
     }
 
     @Test
-    fun stopTracking_shortSessionBelowThreshold_usesBaseMultiplier() = runBlocking {
+    fun stopTracking_sessionBelowRewardInterval_givesZeroCoins() = runBlocking {
         val trackingRepository = FakeTrackingRepository()
         val userRepository = FakeUserRepository()
         val goalRepository = FakeGoalRepository()
@@ -195,7 +199,7 @@ class TrackingServiceTest {
                 balance = 0,
                 friends = emptyList(),
                 collectedCatsIds = emptyList(),
-                selectedCatIds =  emptyList(),
+                selectedCatIds = emptyList(),
                 profileImageUrl = URL("https://example.com/profile.png"),
                 isSupabaseLinked = true,
                 supabaseUserId = "supabase-123",
@@ -221,16 +225,18 @@ class TrackingServiceTest {
             deepFocus = false
         )
 
-        timeProvider.setNow(Instant.ofEpochMilli(841_000L)) // 14 minutes after 1_000
+        // Start was at 1_000L, so this is 29 seconds of effective tracking.
+        timeProvider.setNow(Instant.ofEpochMilli(30_000L))
 
         val result = service.stopTracking(session.id)
 
-        assertEquals(14, result!!.rewardedCurrency)
+        assertNotNull(result)
+        assertEquals(0, result!!.rewardedCurrency)
         assertEquals(1.0, result.multiplier, 0.0001)
-        assertEquals(840_000L, result.sessionDurationMillis)
+        assertEquals(29_000L, result.sessionDurationMillis)
 
         val updatedUser = userRepository.getUser(1).firstOrNull()
-        assertEquals(14, updatedUser!!.balance)
+        assertEquals(0, updatedUser!!.balance)
     }
 
     @Test
@@ -248,7 +254,7 @@ class TrackingServiceTest {
                 balance = 0,
                 friends = emptyList(),
                 collectedCatsIds = emptyList(),
-                selectedCatIds =  emptyList(),
+                selectedCatIds = emptyList(),
                 profileImageUrl = URL("https://example.com/profile.png"),
                 isSupabaseLinked = true,
                 supabaseUserId = "supabase-123",
@@ -274,16 +280,21 @@ class TrackingServiceTest {
             deepFocus = false
         )
 
-        timeProvider.setNow(Instant.ofEpochMilli(9_001_000L)) // 150 minutes
+        timeProvider.setNow(Instant.ofEpochMilli(9_001_000L))
 
         val result = service.stopTracking(session.id)
 
-        assertEquals(300, result!!.rewardedCurrency)
+        assertNotNull(result)
+
+        // 150 minutes = 300 reward intervals
+        // multiplier capped at 2.0
+        // 300 * 2.0 = 600
+        assertEquals(600, result!!.rewardedCurrency)
         assertEquals(2.0, result.multiplier, 0.0001)
         assertEquals(9_000_000L, result.sessionDurationMillis)
 
         val updatedUser = userRepository.getUser(1).firstOrNull()
-        assertEquals(300, updatedUser!!.balance)
+        assertEquals(600, updatedUser!!.balance)
     }
 
     @Test
@@ -361,20 +372,22 @@ class TrackingServiceTest {
         val timeProvider = FakeTimeProvider(Instant.ofEpochMilli(0L))
         val rewardService = RewardService()
 
-        userRepository.insertUser(User(
-            id = 1,
-            username = "User",
-            balance = 0,
-            friends = emptyList(),
-            collectedCatsIds = emptyList(),
-            selectedCatIds = emptyList(),
-            profileImageUrl = URL("https://example.com/p.png"),
-            isSupabaseLinked = false,
-            supabaseUserId = null,
-            localUpdatedAt = null,
-            lastSyncedAt = null,
-            hasPendingLocalChanges = false
-        ))
+        userRepository.insertUser(
+            User(
+                id = 1,
+                username = "User",
+                balance = 0,
+                friends = emptyList(),
+                collectedCatsIds = emptyList(),
+                selectedCatIds = emptyList(),
+                profileImageUrl = URL("https://example.com/p.png"),
+                isSupabaseLinked = false,
+                supabaseUserId = null,
+                localUpdatedAt = null,
+                lastSyncedAt = null,
+                hasPendingLocalChanges = false
+            )
+        )
 
         val service = TrackingServiceImpl(
             trackingRepository = trackingRepository,
@@ -392,10 +405,10 @@ class TrackingServiceTest {
             deepFocus = false
         )
 
-        // Track 20 mins
+        // Track 20 minutes.
         timeProvider.setNow(Instant.ofEpochMilli(Duration.ofMinutes(20).toMillis()))
 
-        // Pause 16 mins (over 15 min threshold)
+        // Pause 16 minutes, which is over the 15-minute reset threshold.
         service.pauseTracking(session.id)
         timeProvider.setNow(Instant.ofEpochMilli(Duration.ofMinutes(36).toMillis()))
         service.resumeTracking(session.id)
@@ -403,9 +416,22 @@ class TrackingServiceTest {
         val result = service.stopTracking(session.id)
 
         assertNotNull(result)
-        assertEquals(1.0, result!!.multiplier, 0.0001)
-        assertEquals(23, result.rewardedCurrency) // 20 mins * 1.15 (checkpointed)
-        assertEquals(false, result.multiplierReset) // Reset already accounted for in resumeTracking
+
+        // The 20 minutes before the long pause are checkpointed.
+        // 20 minutes = 40 reward intervals
+        // multiplier capped at 2.0
+        // 40 * 2.0 = 80
+        assertEquals(80, result!!.rewardedCurrency)
+
+        // After the long pause, the current block multiplier is reset.
+        assertEquals(1.0, result.multiplier, 0.0001)
+
+        // Reset was already handled during resumeTracking().
+        assertEquals(false, result.multiplierReset)
         assertEquals(Duration.ofMinutes(16).toMillis(), result.totalPausedMillis)
+
+        val updatedUser = userRepository.getUser(1).firstOrNull()
+        assertEquals(80, updatedUser!!.balance)
     }
+
 }
