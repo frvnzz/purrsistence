@@ -30,6 +30,8 @@ interface CatRemoteDataSource {
         userId: String,
         selectedCatIds: List<String>
     )
+
+    suspend fun deleteCollectedCats(userId: String)
 }
 
 class SupabaseCatRemoteDataSource(
@@ -142,5 +144,15 @@ class SupabaseCatRemoteDataSource(
                 .from("selected_cats")
                 .insert(rows)
         }
+    }
+
+    override suspend fun deleteCollectedCats(userId: String) {
+        supabase
+            .from("user_cats")
+            .delete {
+                filter {
+                    eq("user_id", userId)
+                }
+            }
     }
 }

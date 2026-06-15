@@ -307,6 +307,21 @@ class UserViewModel(
         }
     }
 
+    fun resetCatsAndCurrency() {
+        viewModelScope.launch {
+            _isSupabaseLoading.value = true
+            _supabaseError.value = null
+
+            try {
+                supabaseSyncService.resetCatsAndCurrency(currentUserId)
+            } catch (exception: Exception) {
+                handleSupabaseError(exception, "resetting your cats and currency")
+            } finally {
+                _isSupabaseLoading.value = false
+            }
+        }
+    }
+
     fun clearSupabaseError() {
         _supabaseError.value = null
     }

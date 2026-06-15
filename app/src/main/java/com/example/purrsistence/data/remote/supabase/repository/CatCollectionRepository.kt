@@ -10,6 +10,7 @@ interface CatCollectionRepository {
     suspend fun replaceSelectedCats(userId: String, selectedCatIds: List<String>)
     suspend fun fetchVisibleCollectedCatIds(userId: String): List<String>
     suspend fun fetchVisibleSelectedCatIds(userId: String): List<String>
+    suspend fun deleteCollectedCats(userId: String)
 }
 
 class CatCollectionRepositoryImpl(
@@ -82,4 +83,7 @@ class CatCollectionRepositoryImpl(
             .take(5)
     }
 
+    override suspend fun deleteCollectedCats(userId: String) {
+        catRemoteDataSource.deleteCollectedCats(userId)
+    }
 }

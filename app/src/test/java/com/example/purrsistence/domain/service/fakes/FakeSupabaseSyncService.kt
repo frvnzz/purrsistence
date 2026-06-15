@@ -36,6 +36,7 @@ class FakeSupabaseSyncService(
     var updatePasswordCalls = 0
     var updateAvatarPathCalls = 0
     var resetTrackingSessionsCalls = 0
+    var resetCatsAndCurrencyCalls = 0
     var getFriendsCalls = 0
     var getIncomingFriendRequestsCalls = 0
     var getOutgoingFriendRequestsCalls = 0
@@ -197,6 +198,10 @@ class FakeSupabaseSyncService(
 
     override suspend fun resetTrackingSessions(userId: Int) {
         resetTrackingSessionsCalls++
+     }
+
+    override suspend fun resetCatsAndCurrency(userId: Int) {
+        resetCatsAndCurrencyCalls++
     }
 
     override suspend fun getFriends(): List<FriendProfile> {

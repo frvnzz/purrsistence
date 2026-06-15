@@ -67,6 +67,7 @@ fun SettingsScreen(
     var showResetDialog by remember { mutableStateOf(false) }
     var showUsernameDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
+    var showResetCatsDialog by remember { mutableStateOf(false) }
 
     // set TopBar content with back button
     LaunchedEffect(Unit) {
@@ -171,6 +172,19 @@ fun SettingsScreen(
                 tint = MaterialTheme.colorScheme.error,
                 textColor = MaterialTheme.colorScheme.error
             )
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = Spacing.lg),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+            SettingsItem(
+                title = "Reset Cats and Currency",
+                description = "Reset owned cats and balance",
+                icon = Icons.Default.DeleteForever,
+                onClick = { showResetCatsDialog = true },
+                tint = MaterialTheme.colorScheme.error,
+                textColor = MaterialTheme.colorScheme.error
+            )
         }
 
         Spacer(modifier = Modifier.height(Spacing.xxl))
@@ -208,6 +222,39 @@ fun SettingsScreen(
             dismissButton = {
                 TextButton(
                     onClick = { showResetDialog = false },
+                    shape = Shapes.buttons
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showResetCatsDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetCatsDialog = false },
+            title = { Text("Reset Cats and Currency?") },
+            text = {
+                Text("This will reset your balance to 100 and lock all cats except the default House Cat. This action cannot be undone.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        userViewModel.resetCatsAndCurrency()
+                        showResetCatsDialog = false
+                    },
+                    shape = Shapes.buttons,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text("Reset")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showResetCatsDialog = false },
                     shape = Shapes.buttons
                 ) {
                     Text("Cancel")

@@ -71,6 +71,10 @@ interface TrackingSyncService {
         userId: Int
     )
 
+    suspend fun resetCatsAndCurrency(
+        userId: Int
+    )
+
     suspend fun getFriends(): List<FriendProfile>
 
     suspend fun getIncomingFriendRequests(): List<Friendship>
@@ -525,6 +529,41 @@ class SupabaseSyncService(
             Log.w(
                 "SupabaseSyncService",
                 "Tracking sessions were reset locally, but remote sync failed."
+            )
+        }
+    }
+
+    override suspend fun resetCatsAndCurrency(userId: Int) {
+        val localUser = requireLocalUser()
+        val updatedUser = localUser.copy(
+            balance = 100,
+            collectedCatsIds = listOf("cat_1"),
+            selectedCatIds = listOf("cat_1")
+        )
+
+        userRepository.updateUserFromLocalAction(updatedUser)
+
+        if (!isSignedIn()) {
+            return
+        }
+
+        val syncStatus = runSyncSafely("resetting cats and currency remotely") {
+            val supabaseUserId = requireSupabaseUserId()
+
+            profileRepository.updateBalance(supabaseUserId, 100)
+            catRepository.deleteCollectedCats(supabaseUserId)
+            catRepository.addCollectedCat(supabaseUserId, "cat_1")
+            catRepository.replaceSelectedCats(supabaseUserId, listOf("cat_1"))
+
+            userRepository.markUserSynced(userId)
+
+            SyncStatus.CONFLICT_RESOLVED_FROM_LOCAL
+        }
+
+        if (syncStatus == SyncStatus.SYNC_FAILED) {
+            Log.w(
+                "SupabaseSyncService",
+                "Cats and currency were reset locally, but remote sync failed."
             )
         }
     }
