@@ -680,6 +680,7 @@ class SupabaseSyncService(
         val remoteUser = localUser.copy(
             username = remoteData.profile.username,
             profileImageUrl = remoteData.profile.avatarPath.toUrlOrNull(),
+            balance = remoteData.profile.balance,
             collectedCatsIds = remoteData.collectedCatIds,
             selectedCatIds = remoteData.selectedCatIds,
             isSupabaseLinked = true,
@@ -720,6 +721,7 @@ class SupabaseSyncService(
     private data class SyncComparableUserData(
         val username: String,
         val profileImageUrl: String?,
+        val balance: Int,
         val collectedCatIds: List<String>,
         val selectedCatIds: List<String>,
         val goalSignatures: List<String>,
@@ -734,6 +736,7 @@ class SupabaseSyncService(
                 return SyncComparableUserData(
                     username = user.username,
                     profileImageUrl = user.profileImageUrl?.toString(),
+                    balance = user.balance,
                     collectedCatIds = user.collectedCatsIds.sorted(),
                     selectedCatIds = user.selectedCatIds,
                     goalSignatures = goals
@@ -773,6 +776,7 @@ class SupabaseSyncService(
                 return SyncComparableUserData(
                     username = remoteData.profile.username,
                     profileImageUrl = remoteData.profile.avatarPath,
+                    balance = remoteData.profile.balance,
                     collectedCatIds = remoteData.collectedCatIds.sorted(),
                     selectedCatIds = remoteData.selectedCatIds,
                     goalSignatures = remoteData.goals

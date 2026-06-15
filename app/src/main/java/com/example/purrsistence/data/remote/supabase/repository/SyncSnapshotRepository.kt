@@ -91,6 +91,11 @@ class SyncSnapshotRepositoryImpl(
             avatarPath = localUser.profileImageUrl?.toString()
         )
 
+        profileRepository.updateBalance(
+            userId = supabaseUserId,
+            balance = localUser.balance
+        )
+
         catRepository.uploadCollectedCats(
             userId = supabaseUserId,
             catIds = localUser.collectedCatsIds
