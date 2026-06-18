@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
                 val exampleUserEntity = UserEntity(
                     userId = 1,
                     username = "testuser",
-                    balance = 100,
+                    balance = 10000,
                     friends = listOf("alice", "bob"),
                     collectedCatsIds = listOf("cat_1"),
                     selectedCatIds = listOf("cat_1"),

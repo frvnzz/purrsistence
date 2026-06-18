@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.R
+import com.example.purrsistence.service.RewardService.Companion.FISH_PER_MINUTE
 import com.example.purrsistence.ui.theme.DarkTertiary
 import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
@@ -101,7 +102,7 @@ fun FocusTimerProgress(
                 textAlign = TextAlign.Center
             )
             //checkpointed currency + potential currency = total currency in tracking session
-            val potentialCurrency = (minutesSinceReset * multiplier).roundToInt()
+            val potentialCurrency = (minutesSinceReset * FISH_PER_MINUTE * multiplier).roundToInt()
             val totalLiveCurrency = checkpointedCurrency + potentialCurrency
 
             // Earned currency (fish)

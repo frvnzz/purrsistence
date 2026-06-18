@@ -7,15 +7,19 @@ import kotlin.math.round
 
 class RewardService {
 
+    companion object {
+        const val FISH_PER_MINUTE = 10
+    }
+
     fun calculateReward(duration: Duration, hasLongPause: Boolean = false, checkpointedCurrency: Int = 0): Pair<Int, Double> {
         val effectiveMinutes = duration.toMinutes().toInt()
         val multiplier = calculateRewardMultiplier(effectiveMinutes)
-        
-        //if multiplier was reset in the last time block, we only return 1.0 for the current block.
-        //but the total coins should include checkpointed ones.
+
         val currentMultiplier = if (hasLongPause) 1.0 else multiplier
-        val currentCoins = round(effectiveMinutes * currentMultiplier).toInt()
-        
+
+        val baseFish = effectiveMinutes * FISH_PER_MINUTE
+        val currentCoins = round(baseFish * currentMultiplier).toInt()
+
         return (currentCoins + checkpointedCurrency) to currentMultiplier
     }
 
@@ -32,7 +36,6 @@ class RewardService {
             GoalType.DAILY -> Duration.ofMinutes(15)
             GoalType.WEEKLY -> Duration.ofHours(2)
 
-            // Keep existing monthly behavior unless a monthly minimum is added later.
             GoalType.MONTHLY -> Duration.ZERO
         }
     }
@@ -50,9 +53,9 @@ class RewardService {
         }
 
         return when (goal.type) {
-            GoalType.DAILY -> 50
-            GoalType.WEEKLY -> 200
-            GoalType.MONTHLY -> 500
+            GoalType.DAILY -> 500
+            GoalType.WEEKLY -> 2000
+            GoalType.MONTHLY -> 5000
         }
     }
 }

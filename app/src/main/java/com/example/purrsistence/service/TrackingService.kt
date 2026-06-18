@@ -3,6 +3,7 @@ package com.example.purrsistence.service
 import com.example.purrsistence.data.local.repository.GoalRepository
 import com.example.purrsistence.data.local.repository.TrackingRepository
 import com.example.purrsistence.data.local.repository.UserRepository
+import com.example.purrsistence.service.RewardService.Companion.FISH_PER_MINUTE
 import com.example.purrsistence.domain.model.TrackingSession
 import com.example.purrsistence.domain.model.TrackingStopResult
 import com.example.purrsistence.domain.time.TimeProvider
@@ -137,7 +138,7 @@ class TrackingServiceImpl(
         if (Duration.between(pauseStart, now).toMinutes() >= 15) {
             val minutesBeforePause = session.getEffectiveMinutesSinceLastReset(pauseStart)
             val currentMultiplier = rewardService.calculateRewardMultiplier(minutesBeforePause)
-            val earnedCoins = (minutesBeforePause * currentMultiplier).roundToInt()
+            val earnedCoins = (minutesBeforePause * FISH_PER_MINUTE * currentMultiplier).roundToInt()
             checkpointed += earnedCoins
             lastReset = now
         }
