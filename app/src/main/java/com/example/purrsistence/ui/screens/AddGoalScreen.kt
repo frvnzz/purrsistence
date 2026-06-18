@@ -44,6 +44,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
+import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.ui.components.DeepFocusAccessibilityDialog
 import com.example.purrsistence.ui.components.goalsScreen.DurationBox
 import com.example.purrsistence.ui.state.TopBarState
@@ -51,6 +52,7 @@ import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.util.clampDurationParts
 import com.example.purrsistence.ui.util.durationPartsToMinutes
+import com.example.purrsistence.ui.util.goalCompletionRewardWarningText
 import com.example.purrsistence.ui.util.maxHourForGoalType
 import com.example.purrsistence.ui.util.openAccessibilitySettings
 import com.example.purrsistence.ui.util.requiresDeepFocusSetup
@@ -110,7 +112,13 @@ fun AddGoalScreen(
     val durationValid = durationInMinutes >= 1
 
     val formValid = titleValid && durationValid && titleNotTooLong
+    val rewardService = remember { RewardService() }
 
+    val completionRewardWarning = goalCompletionRewardWarningText(
+        rewardService = rewardService,
+        type = type.lowercase(),
+        targetMinutes = durationInMinutes
+    )
 
     Box(
         modifier = Modifier
@@ -216,6 +224,15 @@ fun AddGoalScreen(
                 Text(
                     text = "Duration must be at least 1 minute",
                     color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            if (completionRewardWarning != null) {
+                Spacer(modifier = Modifier.height(Spacing.sm))
+
+                Text(
+                    text = completionRewardWarning,
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodySmall
                 )
             }

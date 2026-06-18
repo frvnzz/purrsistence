@@ -3,10 +3,8 @@ package com.example.purrsistence.service
 import com.example.purrsistence.data.local.repository.GoalRepository
 import com.example.purrsistence.data.local.repository.TrackingRepository
 import com.example.purrsistence.data.local.repository.UserRepository
-import com.example.purrsistence.domain.model.Goal
 import com.example.purrsistence.domain.model.TrackingSession
 import com.example.purrsistence.domain.model.TrackingStopResult
-import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.domain.time.TimeProvider
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.Duration
@@ -91,9 +89,12 @@ class TrackingServiceImpl(
         var goalCompletionReward = 0
         goalWithSessions?.let {
             val wasCompleted = goalService.completeGoalIfReached(it, now.atZone(ZoneId.systemDefault()))
-            if(wasCompleted) {
-                goalCompletionReward = calculateGoalCompletionReward(it.goal)
-                userRepository.addCurrency(finishedSession.userId, goalCompletionReward)
+            if (wasCompleted) {
+                goalCompletionReward = rewardService.calculateGoalCompletionReward(it.goal)
+
+                if (goalCompletionReward > 0) {
+                    userRepository.addCurrency(finishedSession.userId, goalCompletionReward)
+                }
             }
         }
 
@@ -105,14 +106,6 @@ class TrackingServiceImpl(
             totalPausedMillis = finishedSession.getTotalPausedMillis(now),
             multiplierReset = hasLongPause
         )
-    }
-
-    private fun calculateGoalCompletionReward(goal: Goal): Int {
-        return when (goal.type) {
-            GoalType.DAILY -> 50
-            GoalType.WEEKLY -> 200
-            GoalType.MONTHLY -> 500
-        }
     }
 
     override suspend fun pauseTracking(trackingId: Int): Boolean {

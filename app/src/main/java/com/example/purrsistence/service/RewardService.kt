@@ -1,5 +1,7 @@
 package com.example.purrsistence.service
 
+import com.example.purrsistence.domain.model.Goal
+import com.example.purrsistence.domain.model.types.GoalType
 import java.time.Duration
 import kotlin.math.round
 
@@ -24,5 +26,33 @@ class RewardService {
         val multiplier = 1.15 + (additionalReward * 0.10)
 
         return multiplier.coerceAtMost(2.0)
+    }
+    fun minimumGoalRewardDuration(type: GoalType): Duration {
+        return when (type) {
+            GoalType.DAILY -> Duration.ofMinutes(15)
+            GoalType.WEEKLY -> Duration.ofHours(2)
+
+            // Keep existing monthly behavior unless a monthly minimum is added later.
+            GoalType.MONTHLY -> Duration.ZERO
+        }
+    }
+
+    fun isEligibleForCompletionReward(
+        type: GoalType,
+        targetDuration: Duration
+    ): Boolean {
+        return targetDuration >= minimumGoalRewardDuration(type)
+    }
+
+    fun calculateGoalCompletionReward(goal: Goal): Int {
+        if (!isEligibleForCompletionReward(goal.type, goal.targetDuration)) {
+            return 0
+        }
+
+        return when (goal.type) {
+            GoalType.DAILY -> 50
+            GoalType.WEEKLY -> 200
+            GoalType.MONTHLY -> 500
+        }
     }
 }
