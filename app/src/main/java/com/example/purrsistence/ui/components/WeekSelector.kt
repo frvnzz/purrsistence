@@ -107,6 +107,17 @@ private fun WeekRightControls(
     compact: Boolean
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
+        // Next week button (used to step forward, disabled when already at current week)
+        IconButton(
+            enabled = state.weekOffset < 0,
+            onClick = { viewModel.nextWeek() },
+            modifier = if (compact) Modifier.size(32.dp) else Modifier
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = "Next week"
+            )
+        }
         if (state.weekOffset < 0) {
             // Show a compact action to quickly return to the current week when viewing past weeks
             IconButton(
@@ -119,18 +130,6 @@ private fun WeekRightControls(
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
-        }
-
-        // Next week button (used to step forward, disabled when already at current week)
-        IconButton(
-            enabled = state.weekOffset < 0,
-            onClick = { viewModel.nextWeek() },
-            modifier = if (compact) Modifier.size(32.dp) else Modifier
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Next week"
-            )
         }
     }
 }
