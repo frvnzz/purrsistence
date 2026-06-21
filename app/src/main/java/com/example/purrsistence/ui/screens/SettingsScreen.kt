@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -42,9 +43,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.state.TopBarState
@@ -245,8 +249,16 @@ fun SettingsScreen(
                         onValueChange = { newUsername = it },
                         label = { Text("New Username") },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        isError = errorMessage != null
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { 
+                                contentDescription = "New Username field"
+                            },
+                        isError = errorMessage != null,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        )
                     )
                     if (errorMessage != null) {
                         Text(
@@ -323,7 +335,15 @@ fun SettingsScreen(
                         label = { Text("Current Password") },
                         visualTransformation = PasswordVisualTransformation(),
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { 
+                                contentDescription = "Current Password field"
+                            },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Next
+                        )
                     )
                     Spacer(modifier = Modifier.height(Spacing.md))
                     TextField(
@@ -332,8 +352,16 @@ fun SettingsScreen(
                         label = { Text("New Password") },
                         visualTransformation = PasswordVisualTransformation(),
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        isError = errorMessage != null
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { 
+                                contentDescription = "New Password field"
+                            },
+                        isError = errorMessage != null,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        )
                     )
                     if (errorMessage != null) {
                         Text(

@@ -38,9 +38,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -207,7 +212,11 @@ fun AuthScreen(
                             leadingIcon = {
                                 Icon(Icons.Default.Person, contentDescription = null)
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics { 
+                                    contentDescription = "Username field"
+                                },
                             shape = Shapes.inputs,
                             isError = usernameError != null,
                             supportingText = {
@@ -215,7 +224,11 @@ fun AuthScreen(
                                     Text(text = usernameError!!)
                                 }
                             },
-                            singleLine = true
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
+                            )
                         )
 
                         Spacer(modifier = Modifier.height(Spacing.md))
@@ -231,7 +244,11 @@ fun AuthScreen(
                         leadingIcon = {
                             Icon(Icons.Default.Email, contentDescription = null)
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { 
+                                contentDescription = "Email address field"
+                            },
                         shape = Shapes.inputs,
                         isError = emailError != null,
                         supportingText = {
@@ -239,7 +256,11 @@ fun AuthScreen(
                                 Text(text = emailError!!)
                             }
                         },
-                        singleLine = true
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(Spacing.md))
@@ -263,7 +284,11 @@ fun AuthScreen(
                             }
                         },
                         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { 
+                                contentDescription = "Password field"
+                            },
                         shape = Shapes.inputs,
                         isError = passwordError != null,
                         supportingText = {
@@ -271,7 +296,22 @@ fun AuthScreen(
                                 Text(text = passwordError!!)
                             }
                         },
-                        singleLine = true
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = if (isLoginMode) ImeAction.Done else ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (validateInputs()) {
+                                    if (isLoginMode) {
+                                        userViewModel.signInWithSupabase(email, password)
+                                    } else {
+                                        userViewModel.signUpWithSupabase(email, password, username.trim())
+                                    }
+                                }
+                            }
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(Spacing.lg))

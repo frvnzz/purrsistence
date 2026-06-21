@@ -3,7 +3,9 @@ package com.example.purrsistence.ui.components.homeScreen
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,10 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.purrsistence.R
+import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.domain.model.PlacedCat
 import com.example.purrsistence.domain.model.RoomSpot
 import com.example.purrsistence.ui.components.HeartBurstState
@@ -42,7 +51,22 @@ fun RoomView(
 
     val activeBursts = remember { mutableStateListOf<HeartBurstState>() }
 
-    //clean up bursts for cats that are no longer present
+    // Function to handle cat tap logic to avoid duplication
+    val handleCatTapAction = { placedCat: PlacedCat, spot: RoomSpot ->
+        if (!placedCat.isSleeping) {
+            onCatTap()
+        }
+        activeBursts.add(
+            HeartBurstState(
+                catId = placedCat.catId,
+                x = 50.dp,
+                y = 20.dp,
+                zIndex = spot.yPercent
+            )
+        )
+    }
+
+    // clean up bursts for cats that are no longer present
     LaunchedEffect(placedCats) {
         val currentCatIds = placedCats.map { it.catId }.toSet()
         activeBursts.removeAll { it.catId != null && (it.catId !in currentCatIds) }
@@ -74,45 +98,50 @@ fun RoomView(
         Box(
             modifier = Modifier
                 .size(actualWidth, actualHeight)
-                .pointerInput(Unit) {
-                    detectTapGestures { offset ->
-                        // Correctly calculate percentages relative to the image
-                        val xPct = offset.x / size.width
-                        val yPct = offset.y / size.height
-                        Log.d("RoomCoords", "Tapped at: xPercent = ${"%.3f".format(xPct)}f, yPercent = ${"%.3f".format(yPct)}f")
-                    }
-                }
         ) {
             Image(
                 painter = painter,
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            // Correctly calculate percentages relative to the image
+                            val xPct = offset.x / size.width
+                            val yPct = offset.y / size.height
+                            Log.d(
+                                "RoomCoords",
+                                "Tapped at: xPercent = ${"%.3f".format(xPct)}f, yPercent = ${
+                                    "%.3f".format(yPct)
+                                }f"
+                            )
+                        }
+                    },
                 contentScale = ContentScale.Fit
             )
 
             placedCats.forEach { placedCat ->
                 val spot = spots.find { it.id == placedCat.spotId } ?: return@forEach
+                val catInfo = CatList.getCatById(placedCat.catId)
 
                 Box(
                     modifier = Modifier
                         .offset(
-                            x = (actualWidth * spot.xPercent) - 50.dp,
-                            y = (actualHeight * spot.yPercent) - 100.dp
+                            x = (actualWidth * spot.xPercent) - 41.dp, // Center the 82dp cat
+                            y = (actualHeight * spot.yPercent) - 82.dp
                         )
+                        .size(82.dp)
                         .zIndex(spot.yPercent)
                         .pointerInput(placedCat.catId) {
                             detectTapGestures {
-                                if (!placedCat.isSleeping) {
-                                    onCatTap()
-                                }
-                                activeBursts.add(
-                                    HeartBurstState(
-                                        catId = placedCat.catId,
-                                        x = 50.dp,
-                                        y = 20.dp,
-                                        zIndex = spot.yPercent
-                                    )
-                                )
+                                handleCatTapAction(placedCat, spot)
+                            }
+                        }
+                        .semantics {
+                            contentDescription = "${catInfo?.name ?: "Cat"} ${if (placedCat.isSleeping) "(Sleeping)" else ""}"
+                            onClick(label = "pet") {
+                                handleCatTapAction(placedCat, spot)
+                                true
                             }
                         }
                 ) {
@@ -121,7 +150,7 @@ fun RoomView(
                         isMirrored = placedCat.isMirrored,
                         initialFrame = placedCat.initialFrame,
                         isSleeping = placedCat.isSleeping,
-                        modifier = Modifier.size(82.dp)
+                        modifier = Modifier.fillMaxSize()
                     )
 
                     if (placedCat.isSleeping) {

@@ -21,6 +21,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 
@@ -44,34 +47,29 @@ fun EditableProfileAvatar(
                 .fillMaxSize()
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.secondary)
-                .clickable(onClick = onPickProfileImage),
+                .clickable(onClick = onPickProfileImage)
+                .semantics { 
+                    contentDescription = if (profileImageUri != null) "Profile Picture" else "No profile picture set"
+                    traversalIndex = 1f 
+                },
             contentAlignment = Alignment.Center
         ) {
             if (profileImageUri != null) {
                 AsyncImage(
                     model = profileImageUri,
-                    contentDescription = "Profile Picture",
+                    contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             } else {
                 Icon(
                     imageVector = Icons.Default.Camera,
-                    contentDescription = "Add Profile Picture",
+                    contentDescription = null,
                     modifier = Modifier.size(if (isLandscape) 24.dp else 36.dp),
                     tint = MaterialTheme.colorScheme.onSecondary
                 )
             }
         }
-
-        AvatarActionButton(
-            icon = Icons.Default.Camera,
-            contentDescription = "Change Profile Picture",
-            onClick = onPickProfileImage,
-            modifier = Modifier.align(Alignment.BottomEnd),
-            size = actionButtonSize,
-            iconSize = actionIconSize
-        )
 
         if (profileImageUri != null) {
             AvatarActionButton(
@@ -80,11 +78,24 @@ fun EditableProfileAvatar(
                 onClick = onRemoveProfileImage,
                 containerColor = MaterialTheme.colorScheme.error,
                 contentColor = MaterialTheme.colorScheme.onError,
-                modifier = Modifier.align(Alignment.TopEnd),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .semantics { traversalIndex = 5f },
                 size = actionButtonSize,
                 iconSize = actionIconSize
             )
         }
+
+        AvatarActionButton(
+            icon = Icons.Default.Camera,
+            contentDescription = if (profileImageUri == null) "Add Profile Picture" else "Change Profile Picture",
+            onClick = onPickProfileImage,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .semantics { traversalIndex = 6f },
+            size = actionButtonSize,
+            iconSize = actionIconSize
+        )
     }
 }
 
