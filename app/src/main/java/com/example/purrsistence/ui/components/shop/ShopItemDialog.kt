@@ -22,9 +22,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.R
@@ -35,6 +39,7 @@ import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.util.formatLocalizedInteger
+import com.example.purrsistence.ui.util.isAnimationEnabled
 
 @Composable
 fun ShopItemDialog(
@@ -44,6 +49,8 @@ fun ShopItemDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+    val context = LocalContext.current
+    val isAnimationEnabled = remember(context) { context.isAnimationEnabled() }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -86,7 +93,14 @@ fun ShopItemDialog(
                         ),
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = Elevation.Lvl2
-                        )
+                        ),
+                        modifier = Modifier.clearAndSetSemantics {
+                            contentDescription = if (isPurchased) {
+                                item.name
+                            } else {
+                                "${item.name}, ${item.price} fish"
+                            }
+                        }
                     ) {
                         Column(
                             modifier = Modifier.padding(Spacing.lg),
@@ -95,7 +109,7 @@ fun ShopItemDialog(
 
                             CatImage(
                                 cat = item,
-                                isAnimated = isPurchased,
+                                isAnimated = isPurchased && isAnimationEnabled,
                                 modifier = Modifier.size(96.dp)
                             )
 
@@ -132,7 +146,7 @@ fun ShopItemDialog(
                     )
                 }
 
-                if (isPurchased) {
+                if (isPurchased && isAnimationEnabled) {
                     ConfettiEffect(modifier = Modifier.matchParentSize())
                 }
             }

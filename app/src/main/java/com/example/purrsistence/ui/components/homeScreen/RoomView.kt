@@ -3,9 +3,7 @@ package com.example.purrsistence.ui.components.homeScreen
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,12 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -37,6 +33,7 @@ import com.example.purrsistence.domain.model.RoomSpot
 import com.example.purrsistence.ui.components.HeartBurstState
 import com.example.purrsistence.ui.components.HeartParticleEffect
 import com.example.purrsistence.ui.components.ZzzParticleEffect
+import com.example.purrsistence.ui.util.isAnimationEnabled
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
@@ -46,6 +43,9 @@ fun RoomView(
     modifier: Modifier = Modifier,
     onCatTap: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val isAnimationEnabled = remember(context) { context.isAnimationEnabled() }
+
     val painter = painterResource(R.drawable.home_room1)
     val imageSize = painter.intrinsicSize
 
@@ -150,10 +150,11 @@ fun RoomView(
                         isMirrored = placedCat.isMirrored,
                         initialFrame = placedCat.initialFrame,
                         isSleeping = placedCat.isSleeping,
+                        isAnimated = isAnimationEnabled,
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    if (placedCat.isSleeping) {
+                    if (placedCat.isSleeping && isAnimationEnabled) {
                         ZzzParticleEffect(
                             modifier = Modifier
                                 .offset(x = 40.dp, y = 10.dp)
@@ -161,14 +162,16 @@ fun RoomView(
                     }
 
                     // render bursts tied to this specific cat
-                    activeBursts.filter { it.catId == placedCat.catId }.forEach { burst ->
-                        key(burst.id) {
-                            HeartParticleEffect(
-                                onAnimationComplete = { activeBursts.remove(burst) },
-                                modifier = Modifier
-                                    .zIndex(burst.zIndex)
-                                    .offset(x = burst.x, y = burst.y)
-                            )
+                    if (isAnimationEnabled) {
+                        activeBursts.filter { it.catId == placedCat.catId }.forEach { burst ->
+                            key(burst.id) {
+                                HeartParticleEffect(
+                                    onAnimationComplete = { activeBursts.remove(burst) },
+                                    modifier = Modifier
+                                        .zIndex(burst.zIndex)
+                                        .offset(x = burst.x, y = burst.y)
+                                )
+                            }
                         }
                     }
                 }

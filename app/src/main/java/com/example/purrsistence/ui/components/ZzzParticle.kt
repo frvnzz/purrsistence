@@ -15,10 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
+import com.example.purrsistence.ui.util.isAnimationEnabled
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -26,24 +28,30 @@ import kotlin.random.Random
 fun ZzzParticleEffect(
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val isAnimationEnabled = remember(context) { context.isAnimationEnabled() }
     val particles = remember { mutableStateListOf<ZParticleData>() }
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            particles.add(
-                ZParticleData(
-                    initialX = Random.nextInt(-10, 10),
-                    initialY = 0,
-                    targetX = Random.nextInt(-30, 30),
-                    targetY = Random.nextInt(-100, -60),
-                    duration = Random.nextInt(2000, 3000),
-                    size = Random.nextInt(12, 24).sp
+    LaunchedEffect(isAnimationEnabled) {
+        if (isAnimationEnabled) {
+            while (true) {
+                particles.add(
+                    ZParticleData(
+                        initialX = Random.nextInt(-10, 10),
+                        initialY = 0,
+                        targetX = Random.nextInt(-30, 30),
+                        targetY = Random.nextInt(-100, -60),
+                        duration = Random.nextInt(2000, 3000),
+                        size = Random.nextInt(12, 24).sp
+                    )
                 )
-            )
-            delay(1000)
-            if (particles.size > 5) {
-                particles.removeAt(0)
+                delay(1000)
+                if (particles.size > 5) {
+                    particles.removeAt(0)
+                }
             }
+        } else {
+            particles.clear()
         }
     }
 
