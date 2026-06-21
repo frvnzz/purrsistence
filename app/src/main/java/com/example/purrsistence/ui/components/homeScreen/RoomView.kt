@@ -121,6 +121,7 @@ fun RoomView(
                         isMirrored = placedCat.isMirrored,
                         initialFrame = placedCat.initialFrame,
                         isSleeping = placedCat.isSleeping,
+                        isSitting = placedCat.isSitting,
                         modifier = Modifier.size(82.dp)
                     )
 
