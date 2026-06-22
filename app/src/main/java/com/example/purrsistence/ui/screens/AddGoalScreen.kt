@@ -146,7 +146,8 @@ fun AddGoalScreen(
 
             Text(
                 text = "Goal Title",
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.clearAndSetSemantics { }
             )
 
             Spacer(modifier = Modifier.height(Spacing.lg))
@@ -155,9 +156,20 @@ fun AddGoalScreen(
                 value = title,
                 onValueChange = { title = it },
 
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        if (!titleValid) error("Goal title cannot be empty")
+                        if (!titleNotTooLong) error("Goal title can not be longer than 30 characters")
+                    },
 
-                label = { Text("Goal Title") },
+                label = {
+                    Text(
+                        if (!titleValid) "Goal Title - Goal title cannot be empty"
+                        else if (!titleNotTooLong) "Goal Title - Goal title can not be longer than 30 characters"
+                        else "Goal Title"
+                    )
+                },
 
                 isError = !titleValid || !titleNotTooLong,
 
@@ -165,8 +177,8 @@ fun AddGoalScreen(
                     if (!titleValid) {
                         Text("Goal title cannot be empty")
                     }
-                    if(!titleNotTooLong){
-                        Text("Goal title can not be longer than 50 characters")
+                    if (!titleNotTooLong) {
+                        Text("Goal title can not be longer than 30 characters")
                     }
                 },
 

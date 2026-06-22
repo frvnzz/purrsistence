@@ -39,13 +39,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.selectableGroup
 import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.service.RewardService
@@ -178,7 +177,8 @@ fun EditGoalScreen(
 
                 Text(
                     text = "Goal Title",
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.clearAndSetSemantics { }
                 )
 
                 Spacer(
@@ -188,15 +188,26 @@ fun EditGoalScreen(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Goal Title") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            if (!titleValid) error("Goal title cannot be empty")
+                            if (!titleNotTooLong) error("Goal title can not be longer than 30 characters")
+                        },
+                    label = {
+                        Text(
+                            if (!titleValid) "Goal Title - Goal title cannot be empty"
+                            else if (!titleNotTooLong) "Goal Title - Goal title can not be longer than 30 characters"
+                            else "Goal Title"
+                        )
+                    },
                     isError = !titleValid || !titleNotTooLong,
                     supportingText = {
                         if (!titleValid) {
                             Text("Goal title cannot be empty")
                         }
-                        if(!titleNotTooLong){
-                            Text("Goal title can not be longer than 50 characters")
+                        if (!titleNotTooLong) {
+                            Text("Goal title can not be longer than 30 characters")
                         }
                     },
                     shape = Shapes.cards,
