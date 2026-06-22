@@ -21,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.R
@@ -55,6 +56,9 @@ fun ShopItemCard(
             .clearAndSetSemantics {
                 contentDescription = "${item.name}, ${item.price} fish, $buttonText"
                 role = Role.Button
+                if (!canAfford || isOwned) {
+                    disabled()
+                }
             }
             .clickable(
                 enabled = canAfford && !isOwned,

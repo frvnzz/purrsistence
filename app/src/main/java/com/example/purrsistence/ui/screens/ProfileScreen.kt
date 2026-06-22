@@ -29,6 +29,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -165,7 +166,11 @@ fun ProfileScreen(
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = Shapes.cards
                     )
-                    .padding(Spacing.md),
+                    .padding(Spacing.md)
+                    .semantics {
+                        isTraversalGroup = true
+                        paneTitle = "Profile Details"
+                    },
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
                 ProfileHeaderSection(
@@ -190,7 +195,12 @@ fun ProfileScreen(
 
             InventorySection(
                 user = user,
-                modifier = Modifier.weight(0.68f),
+                modifier = Modifier
+                    .weight(0.68f)
+                    .semantics {
+                        isTraversalGroup = true
+                        paneTitle = "Inventory"
+                    },
                 maxGridHeight = 1000.dp,
                 isLandscape = true,
                 onCatClick = { selectedCatForCloseup = it }

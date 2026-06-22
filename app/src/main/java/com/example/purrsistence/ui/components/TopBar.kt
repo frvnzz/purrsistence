@@ -3,6 +3,7 @@ package com.example.purrsistence.ui.components
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,11 +19,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.theme.Spacing
 
@@ -43,17 +50,21 @@ fun TopBar(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .statusBarsPadding()
+            .semantics { isTraversalGroup = true }
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(topBarHeight)
-                .padding(horizontal = Spacing.lg),
+                .padding(horizontal = Spacing.lg)
+                .semantics { isTraversalGroup = true },
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             Row(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { isTraversalGroup = true },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Back Button
@@ -61,7 +72,8 @@ fun TopBar(
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .clickable(onClick = onBackClick),
+                            .clickable(onClick = onBackClick)
+                            .semantics { traversalIndex = 0f },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -75,16 +87,32 @@ fun TopBar(
                     )
                 }
                 // Screen Header
+                val focusRequester = remember { FocusRequester() }
+
+                LaunchedEffect(title) {
+                    focusRequester.requestFocus()
+                }
+
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.semantics { heading() }
+                    modifier = Modifier
+                        .semantics { 
+                            heading()
+                            traversalIndex = 1f
+                        }
+                        .focusRequester(focusRequester)
+                        .focusable()
                 )
             }
 
             // Right slot
             Box(
+                modifier = Modifier.semantics { 
+                    isTraversalGroup = true
+                    traversalIndex = 2f 
+                },
                 contentAlignment = Alignment.CenterEnd
             ) {
                 if (actions != null) {

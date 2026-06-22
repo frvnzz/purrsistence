@@ -149,24 +149,24 @@ fun GoalBottomDrawer(
                 .height(height)
                 .semantics {
                     contentDescription = "Goal selection drawer"
-                    role = Role.Button
-                    stateDescription = if (isExpanded) "Expanded" else "Collapsed"
+                    if (!alwaysExpanded) {
+                        role = Role.Button
+                        stateDescription = if (isExpanded) "Expanded" else "Collapsed"
 
-                    onClick(
-                        label =
-                            if (isExpanded) {
-                                "Collapse goal list"
-                            } else {
-                                "Expand goal list"
-                            }
-                    ) {
-                        if (!alwaysExpanded) {
+                        onClick(
+                            label =
+                                if (isExpanded) {
+                                    "Collapse goal list"
+                                } else {
+                                    "Expand goal list"
+                                }
+                        ) {
                             focusManager.clearFocus()
                             coroutineScope.launch {
                                 progressAnimatable.animateTo(if (isExpanded) 0f else 1f)
                             }
+                            true
                         }
-                        true
                     }
                 }
                 .background(
@@ -231,7 +231,7 @@ fun GoalBottomDrawer(
                 Text(
                     text = "Choose Goal to track:",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.85f),
+                    color = MaterialTheme.colorScheme.onSecondary,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -248,25 +248,31 @@ fun GoalBottomDrawer(
                         .clickable(
                             enabled = !alwaysExpanded,
                             onClickLabel =
-                                if (isExpanded) {
+                                if (alwaysExpanded) {
+                                    null
+                                } else if (isExpanded) {
                                     "Collapse goal list"
                                 } else {
                                     "Expand goal list"
                                 },
                             onClick = {
-                                coroutineScope.launch {
-                                    progressAnimatable.animateTo(if (isExpanded) 0f else 1f)
+                                if (!alwaysExpanded) {
+                                    coroutineScope.launch {
+                                        progressAnimatable.animateTo(if (isExpanded) 0f else 1f)
+                                    }
                                 }
                             }
                         )
                         .semantics {
-                            role = Role.Button
-                            stateDescription =
-                                if (isExpanded) {
-                                    "Expanded Goal Selection"
-                                } else {
-                                    "Collapsed Goal Selection"
-                                }
+                            if (!alwaysExpanded) {
+                                role = Role.Button
+                                stateDescription =
+                                    if (isExpanded) {
+                                        "Expanded Goal Selection"
+                                    } else {
+                                        "Collapsed Goal Selection"
+                                    }
+                            }
                         }
                         .padding(horizontal = Spacing.lg),
                     verticalAlignment = Alignment.CenterVertically

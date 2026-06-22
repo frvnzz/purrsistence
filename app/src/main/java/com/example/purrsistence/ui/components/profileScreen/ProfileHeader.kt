@@ -30,8 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -103,7 +106,8 @@ private fun PortraitProfileHeader(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = Shapes.cards
             )
-            .padding(Spacing.lg),
+            .padding(Spacing.lg)
+            .semantics { isTraversalGroup = true },
         horizontalArrangement = Arrangement.spacedBy(Spacing.md),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -118,19 +122,62 @@ private fun PortraitProfileHeader(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .align(Alignment.CenterVertically),
+                .align(Alignment.CenterVertically)
+                .semantics {
+                    isTraversalGroup = true
+                    traversalIndex = 2f
+                },
             verticalArrangement = Arrangement.spacedBy(Spacing.sm)
         ) {
-            UsernameDisplay(
-                user = user,
-                username = username,
-                isEditing = isEditing,
-                usernameFocusRequester = usernameFocusRequester,
-                callbacks = callbacks,
-                usernameError = usernameError
-            )
+            if (isEditing) {
+                UsernameDisplay(
+                    user = user,
+                    username = username,
+                    isEditing = true,
+                    usernameFocusRequester = usernameFocusRequester,
+                    callbacks = callbacks,
+                    usernameError = usernameError
+                )
+                UserStatsRow(user = user)
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clearAndSetSemantics {
+                                contentDescription = "${user?.username ?: "User"}. ${user?.collectedCatsIds?.size ?: 0} cats collected."
+                            }
+                    ) {
+                        UsernameDisplay(
+                            user = user,
+                            username = username,
+                            isEditing = false,
+                            usernameFocusRequester = usernameFocusRequester,
+                            callbacks = callbacks,
+                            usernameError = usernameError,
+                            showEditButton = false
+                        )
+                        UserStatsRow(user = user)
+                    }
 
-            UserStatsRow(user = user)
+                    IconButton(
+                        onClick = { callbacks.onEditingChange(true) },
+                        modifier = Modifier
+                            .size(24.dp)
+                            .semantics { traversalIndex = 3f }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = "Edit Username",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -148,7 +195,8 @@ private fun LandscapeProfileHeader(
 ) {
     Column(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .semantics { isTraversalGroup = true },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
     ) {
@@ -161,21 +209,59 @@ private fun LandscapeProfileHeader(
         )
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics {
+                    isTraversalGroup = true
+                    traversalIndex = 2f
+                },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            UsernameDisplay(
-                user = user,
-                username = username,
-                isEditing = isEditing,
-                usernameFocusRequester = usernameFocusRequester,
-                callbacks = callbacks,
-                textAlign = TextAlign.Center,
-                usernameError = usernameError
-            )
+            if (isEditing) {
+                UsernameDisplay(
+                    user = user,
+                    username = username,
+                    isEditing = true,
+                    usernameFocusRequester = usernameFocusRequester,
+                    callbacks = callbacks,
+                    textAlign = TextAlign.Center,
+                    usernameError = usernameError
+                )
+                UserStatsRow(user = user)
+            } else {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clearAndSetSemantics {
+                        contentDescription = "${user?.username ?: "User"}. ${user?.collectedCatsIds?.size ?: 0} cats collected."
+                    }
+                ) {
+                    UsernameDisplay(
+                        user = user,
+                        username = username,
+                        isEditing = false,
+                        usernameFocusRequester = usernameFocusRequester,
+                        callbacks = callbacks,
+                        textAlign = TextAlign.Center,
+                        usernameError = usernameError,
+                        showEditButton = false
+                    )
+                    UserStatsRow(user = user)
+                }
 
-            UserStatsRow(user = user)
+                IconButton(
+                    onClick = { callbacks.onEditingChange(true) },
+                    modifier = Modifier
+                        .size(24.dp)
+                        .semantics { traversalIndex = 3f }
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = "Edit Username",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
 }
@@ -187,13 +273,15 @@ private fun UsernameDisplay(
     isEditing: Boolean,
     usernameFocusRequester: FocusRequester,
     callbacks: ProfileHeaderCallbacks,
+    modifier: Modifier = Modifier,
     textAlign: TextAlign = TextAlign.Start,
-    usernameError: String?
+    usernameError: String?,
+    showEditButton: Boolean = true
 ) {
     if (isEditing) {
         // Edit mode
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth(),
             horizontalAlignment = if (textAlign == TextAlign.Center) Alignment.CenterHorizontally else Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(Spacing.xs)
         ) {
@@ -266,7 +354,7 @@ private fun UsernameDisplay(
     } else {
         // View mode
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth(),
             horizontalArrangement = if (textAlign == TextAlign.Center) Arrangement.Center else Arrangement.spacedBy(Spacing.sm),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -278,38 +366,40 @@ private fun UsernameDisplay(
                 textAlign = textAlign,
                 modifier = Modifier
                     .then(if (textAlign == TextAlign.Center) Modifier else Modifier.weight(1f))
-                    .semantics {
-                        contentDescription = "Username: ${user?.username ?: "Username"}"
-                    },
             )
 
-            IconButton(
-                onClick = { callbacks.onEditingChange(true) },
-                modifier = Modifier.size(24.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Edit,
-                    contentDescription = "Edit Username",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+            if (showEditButton) {
+                IconButton(
+                    onClick = { callbacks.onEditingChange(true) },
+                    modifier = Modifier
+                        .size(24.dp)
+                        .semantics { traversalIndex = 3f }
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = "Edit Username",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun UserStatsRow(user: User?) {
+private fun UserStatsRow(
+    user: User?,
+    modifier: Modifier = Modifier
+) {
     Row(
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(Spacing.md),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = "${user?.collectedCatsIds?.size ?: 0} Cats",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.semantics {
-                contentDescription = "Number of collected cats by User is ${user?.collectedCatsIds?.size ?: 0}"
-            }
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         if (user?.isSupabaseLinked == true) {

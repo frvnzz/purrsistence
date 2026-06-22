@@ -16,17 +16,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.model.GoalWithSessions
 import java.time.Instant
 import java.util.Locale
 
 // UI companion for the goals list sorting. Kept small and reusable.
-enum class SortOption(val label: String) {
+enum class SortOption(val label: String, val contentDescription: String? = null) {
     LAST_TRACKED("Last tracked"),
     DATE_CREATED("Date created"),
-    ALPHA_ASC("A → Z"),
-    ALPHA_DESC("Z → A")
+    ALPHA_ASC("A → Z", "A to Z"),
+    ALPHA_DESC("Z → A", "Z to A")
 }
 
 @Composable
@@ -42,7 +44,15 @@ fun GoalsSortMenu(
             onClick = { expanded = true },
             modifier = Modifier.padding(horizontal = 4.dp)
         ) {
-            Text(selectedSort.label, style = MaterialTheme.typography.labelMedium)
+            Text(
+                selectedSort.label,
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.semantics {
+                    selectedSort.contentDescription?.let {
+                        contentDescription = it
+                    }
+                }
+            )
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
                 contentDescription = "Open sort menu",
@@ -55,7 +65,16 @@ fun GoalsSortMenu(
             onDismissRequest = { expanded = false }
         ) {
             DropdownMenuItem(
-                text = { Text(SortOption.LAST_TRACKED.label) },
+                text = {
+                    Text(
+                        SortOption.LAST_TRACKED.label,
+                        modifier = Modifier.semantics {
+                            SortOption.LAST_TRACKED.contentDescription?.let {
+                                contentDescription = it
+                            }
+                        }
+                    )
+                },
                 onClick = {
                     onSortChange(SortOption.LAST_TRACKED)
                     expanded = false
@@ -63,7 +82,16 @@ fun GoalsSortMenu(
             )
 
             DropdownMenuItem(
-                text = { Text(SortOption.DATE_CREATED.label) },
+                text = {
+                    Text(
+                        SortOption.DATE_CREATED.label,
+                        modifier = Modifier.semantics {
+                            SortOption.DATE_CREATED.contentDescription?.let {
+                                contentDescription = it
+                            }
+                        }
+                    )
+                },
                 onClick = {
                     onSortChange(SortOption.DATE_CREATED)
                     expanded = false
@@ -71,7 +99,16 @@ fun GoalsSortMenu(
             )
 
             DropdownMenuItem(
-                text = { Text(SortOption.ALPHA_ASC.label) },
+                text = {
+                    Text(
+                        SortOption.ALPHA_ASC.label,
+                        modifier = Modifier.semantics {
+                            SortOption.ALPHA_ASC.contentDescription?.let {
+                                contentDescription = it
+                            }
+                        }
+                    )
+                },
                 onClick = {
                     onSortChange(SortOption.ALPHA_ASC)
                     expanded = false
@@ -79,7 +116,16 @@ fun GoalsSortMenu(
             )
 
             DropdownMenuItem(
-                text = { Text(SortOption.ALPHA_DESC.label) },
+                text = {
+                    Text(
+                        SortOption.ALPHA_DESC.label,
+                        modifier = Modifier.semantics {
+                            SortOption.ALPHA_DESC.contentDescription?.let {
+                                contentDescription = it
+                            }
+                        }
+                    )
+                },
                 onClick = {
                     onSortChange(SortOption.ALPHA_DESC)
                     expanded = false
