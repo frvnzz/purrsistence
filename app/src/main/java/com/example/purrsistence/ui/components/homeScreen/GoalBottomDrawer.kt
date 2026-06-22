@@ -231,7 +231,7 @@ fun GoalBottomDrawer(
                 Text(
                     text = "Choose Goal to track:",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.85f),
+                    color = MaterialTheme.colorScheme.onSecondary,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
