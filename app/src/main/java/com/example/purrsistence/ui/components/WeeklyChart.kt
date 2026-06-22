@@ -93,6 +93,7 @@ fun WeeklyChart(dailyStats: List<DailyStat>) {
         Text(
             text = "Tracked Time per Day",
             style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.semantics { heading() }
         )
 

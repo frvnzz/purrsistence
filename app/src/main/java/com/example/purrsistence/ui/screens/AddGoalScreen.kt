@@ -31,9 +31,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -44,6 +46,8 @@ import androidx.compose.ui.semantics.selectableGroup
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.ui.components.DeepFocusAccessibilityDialog
@@ -57,6 +61,8 @@ import com.example.purrsistence.ui.util.goalCompletionRewardWarningText
 import com.example.purrsistence.ui.util.maxHourForGoalType
 import com.example.purrsistence.ui.util.openAccessibilitySettings
 import com.example.purrsistence.ui.util.requiresDeepFocusSetup
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun AddGoalScreen(
@@ -81,10 +87,25 @@ fun AddGoalScreen(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
-    var title by remember { mutableStateOf("New Goal") }
+    val defaultGoalTitle = "New Goal"
+
+    var title by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = defaultGoalTitle,
+                selection = TextRange(defaultGoalTitle.length)
+            )
+        )
+    }
     var type by remember { mutableStateOf("Weekly") }
     var hours by remember { mutableStateOf("02") }
     var minutes by remember { mutableStateOf("30") }
+
+    var titleWasAutoSelected by remember {
+        mutableStateOf(false)
+    }
+
+    val coroutineScope = rememberCoroutineScope()
 
     var deepFocus by remember { mutableStateOf(false) }
 
@@ -108,8 +129,8 @@ fun AddGoalScreen(
         (hours.toIntOrNull() ?: 0) * 60 +
                 (minutes.toIntOrNull() ?: 0)
 
-    val titleValid = title.isNotBlank()
-    val titleNotTooLong = title.length<=30
+    val titleValid = title.text.isNotBlank()
+    val titleNotTooLong = title.text.length<=30
     val durationValid = durationInMinutes >= 1
 
     val formValid = titleValid && durationValid && titleNotTooLong
@@ -154,7 +175,30 @@ fun AddGoalScreen(
 
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = { title = it
+                    if (it.text != defaultGoalTitle) {
+                        titleWasAutoSelected = true
+                    }
+                },
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (
+                            focusState.isFocused &&
+                            title.text == defaultGoalTitle &&
+                            !titleWasAutoSelected
+                        ) {
+                            coroutineScope.launch {
+                                delay(50)
+
+                                title = title.copy(
+                                    selection = TextRange(0, title.text.length)
+                                )
+
+                                titleWasAutoSelected = true
+                            }
+                        }
 
                 modifier = Modifier
                     .fillMaxWidth()
@@ -408,7 +452,7 @@ fun AddGoalScreen(
                     )
 
                     onSave(
-                        title.trim(),
+                        title.text.trim(),
                         type,
                         totalMinutes,
                         deepFocus
