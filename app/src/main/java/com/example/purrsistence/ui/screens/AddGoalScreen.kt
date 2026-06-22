@@ -117,7 +117,7 @@ fun AddGoalScreen(
     LaunchedEffect(type) {
         val (safeHours, safeMinutes) = clampDurationParts(
             type = type,
-            hours= hours,
+            hours = hours,
             minutes = minutes
         )
 
@@ -130,7 +130,7 @@ fun AddGoalScreen(
                 (minutes.toIntOrNull() ?: 0)
 
     val titleValid = title.text.isNotBlank()
-    val titleNotTooLong = title.text.length<=30
+    val titleNotTooLong = title.text.length <= 30
     val durationValid = durationInMinutes >= 1
 
     val formValid = titleValid && durationValid && titleNotTooLong
@@ -175,8 +175,11 @@ fun AddGoalScreen(
 
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it
-                    if (it.text != defaultGoalTitle) {
+
+                onValueChange = { newValue ->
+                    title = newValue
+
+                    if (newValue.text != defaultGoalTitle) {
                         titleWasAutoSelected = true
                     }
                 },
@@ -199,19 +202,26 @@ fun AddGoalScreen(
                                 titleWasAutoSelected = true
                             }
                         }
-
-                modifier = Modifier
-                    .fillMaxWidth()
+                    }
                     .semantics {
-                        if (!titleValid) error("Goal title cannot be empty")
-                        if (!titleNotTooLong) error("Goal title can not be longer than 30 characters")
+                        if (!titleValid) {
+                            error("Goal title cannot be empty")
+                        }
+
+                        if (!titleNotTooLong) {
+                            error("Goal title cannot be longer than 30 characters")
+                        }
                     },
 
                 label = {
                     Text(
-                        if (!titleValid) "Goal Title - Goal title cannot be empty"
-                        else if (!titleNotTooLong) "Goal Title - Goal title can not be longer than 30 characters"
-                        else "Goal Title"
+                        if (!titleValid) {
+                            "Goal Title - Goal title cannot be empty"
+                        } else if (!titleNotTooLong) {
+                            "Goal Title - Goal title cannot be longer than 30 characters"
+                        } else {
+                            "Goal Title"
+                        }
                     )
                 },
 
@@ -221,8 +231,9 @@ fun AddGoalScreen(
                     if (!titleValid) {
                         Text("Goal title cannot be empty")
                     }
+
                     if (!titleNotTooLong) {
-                        Text("Goal title can not be longer than 30 characters")
+                        Text("Goal title cannot be longer than 30 characters")
                     }
                 },
 
