@@ -15,10 +15,17 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.platform.LocalContext
+import com.example.purrsistence.ui.util.isAnimationEnabled
 import kotlin.random.Random
 
 @Composable
 fun ConfettiEffect(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val isAnimationEnabled = remember(context) { context.isAnimationEnabled() }
+    
+    if (!isAnimationEnabled) return
+
     val infiniteTransition = rememberInfiniteTransition(label = "confetti")
     val colors = listOf(
         Color(0xFFFFC107),

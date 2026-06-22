@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
@@ -19,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -30,6 +30,7 @@ import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.util.SoundManager
+import com.example.purrsistence.ui.util.isAnimationEnabled
 
 @Composable
 fun CatCloseupDialog(
@@ -37,6 +38,8 @@ fun CatCloseupDialog(
     onDismiss: () -> Unit,
     soundManager: SoundManager? = null
 ) {
+    val context = LocalContext.current
+    val isAnimationEnabled = remember(context) { context.isAnimationEnabled() }
     val activeBursts = remember { mutableStateListOf<HeartBurstState>() }
 
     AlertDialog(
@@ -64,31 +67,35 @@ fun CatCloseupDialog(
                         .pointerInput(Unit) {
                             detectTapGestures { offset ->
                                 soundManager?.playMeow()
-                                activeBursts.add(
-                                    HeartBurstState(
-                                        x = offset.x.toDp(),
-                                        y = offset.y.toDp(),
-                                        zIndex = 1f
+                                if (isAnimationEnabled) {
+                                    activeBursts.add(
+                                        HeartBurstState(
+                                            x = offset.x.toDp(),
+                                            y = offset.y.toDp(),
+                                            zIndex = 1f
+                                        )
                                     )
-                                )
+                                }
                             }
                         },
                     contentAlignment = Alignment.Center
                 ) {
                     CatImage(
                         cat = cat,
-                        isAnimated = true,
+                        isAnimated = isAnimationEnabled,
                         modifier = Modifier.size(180.dp)
                     )
 
-                    activeBursts.forEach { burst ->
-                        key(burst.id) {
-                            HeartParticleEffect(
-                                onAnimationComplete = { activeBursts.remove(burst) },
-                                modifier = Modifier
-                                    .zIndex(burst.zIndex)
-                                    .padding(start = burst.x, top = burst.y)
-                            )
+                    if (isAnimationEnabled) {
+                        activeBursts.forEach { burst ->
+                            key(burst.id) {
+                                HeartParticleEffect(
+                                    onAnimationComplete = { activeBursts.remove(burst) },
+                                    modifier = Modifier
+                                        .zIndex(burst.zIndex)
+                                        .padding(start = burst.x, top = burst.y)
+                                )
+                            }
                         }
                     }
                 }

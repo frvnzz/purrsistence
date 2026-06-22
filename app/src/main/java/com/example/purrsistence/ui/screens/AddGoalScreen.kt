@@ -40,6 +40,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.selectableGroup
 import androidx.compose.ui.semantics.selected
@@ -116,7 +117,7 @@ fun AddGoalScreen(
     LaunchedEffect(type) {
         val (safeHours, safeMinutes) = clampDurationParts(
             type = type,
-            hours= hours,
+            hours = hours,
             minutes = minutes
         )
 
@@ -129,7 +130,7 @@ fun AddGoalScreen(
                 (minutes.toIntOrNull() ?: 0)
 
     val titleValid = title.text.isNotBlank()
-    val titleNotTooLong = title.text.length<=30
+    val titleNotTooLong = title.text.length <= 30
     val durationValid = durationInMinutes >= 1
 
     val formValid = titleValid && durationValid && titleNotTooLong
@@ -166,15 +167,19 @@ fun AddGoalScreen(
 
             Text(
                 text = "Goal Title",
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.clearAndSetSemantics { }
             )
 
             Spacer(modifier = Modifier.height(Spacing.lg))
 
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it
-                    if (it.text != defaultGoalTitle) {
+
+                onValueChange = { newValue ->
+                    title = newValue
+
+                    if (newValue.text != defaultGoalTitle) {
                         titleWasAutoSelected = true
                     }
                 },
@@ -197,13 +202,28 @@ fun AddGoalScreen(
                                 titleWasAutoSelected = true
                             }
                         }
+                    }
+                    .semantics {
+                        if (!titleValid) {
+                            error("Goal title cannot be empty")
+                        }
 
-                        if (!focusState.isFocused && title.text == defaultGoalTitle) {
-                            titleWasAutoSelected = false
+                        if (!titleNotTooLong) {
+                            error("Goal title cannot be longer than 30 characters")
                         }
                     },
 
-                label = { Text("Goal Title") },
+                label = {
+                    Text(
+                        if (!titleValid) {
+                            "Goal Title - Goal title cannot be empty"
+                        } else if (!titleNotTooLong) {
+                            "Goal Title - Goal title cannot be longer than 30 characters"
+                        } else {
+                            "Goal Title"
+                        }
+                    )
+                },
 
                 isError = !titleValid || !titleNotTooLong,
 
@@ -211,8 +231,9 @@ fun AddGoalScreen(
                     if (!titleValid) {
                         Text("Goal title cannot be empty")
                     }
-                    if(!titleNotTooLong){
-                        Text("Goal title can not be longer than 50 characters")
+
+                    if (!titleNotTooLong) {
+                        Text("Goal title cannot be longer than 30 characters")
                     }
                 },
 
@@ -255,7 +276,8 @@ fun AddGoalScreen(
 
                 Text(
                     text = ":",
-                    style = MaterialTheme.typography.displayLarge
+                    style = MaterialTheme.typography.displayLarge,
+                    modifier = Modifier.clearAndSetSemantics { }
                 )
 
                 DurationBox(
