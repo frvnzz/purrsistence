@@ -1,18 +1,19 @@
 package com.example.purrsistence.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -23,6 +24,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.domain.model.FriendProfileDetails
@@ -57,13 +64,14 @@ fun FriendProfileScreen(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .semantics { paneTitle = "Friend Profile Screen" },
+        contentAlignment = Alignment.Center
     ) {
         when {
             isLoading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.padding(Spacing.md)
-                )
+                CircularProgressIndicator()
             }
 
             error != null -> {
@@ -87,75 +95,77 @@ fun FriendProfileScreen(
 fun FriendProfileDetailsContent(
     details: FriendProfileDetails
 ) {
-    val selectedCats =
-        details.selectedCatIds.mapNotNull { catId ->
-            CatList.getCatById(catId)
-        }
+    val selectedCatIdsSet = details.selectedCatIds.toSet()
+    val collectedCats = details.collectedCatIds.mapNotNull { catId ->
+        CatList.getCatById(catId)
+    }.sortedByDescending { selectedCatIdsSet.contains(it.id) }
 
-    val collectedCats =
-        details.collectedCatIds.mapNotNull { catId ->
-            CatList.getCatById(catId)
-        }
-
-    LazyColumn(
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = Spacing.md),
-        contentPadding = PaddingValues(
-            vertical = Spacing.md
-        )
+        contentPadding = PaddingValues(bottom = Spacing.xl),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
     ) {
-        item {
-            Text(
-                text = details.profile.username,
-                style = MaterialTheme.typography.headlineSmall
-            )
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Column {
+                Spacer(modifier = Modifier.height(Spacing.md))
 
-            Spacer(modifier = Modifier.height(Spacing.sm))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = Shapes.cards,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    tonalElevation = Elevation.Lvl2
+                ) {
+                    Column(
+                        modifier = Modifier.padding(Spacing.lg),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = details.profile.username,
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.semantics { heading() }
+                        )
 
-            Text(
-                text = "Tracked this week: ${formatTrackedMinutes(details.weeklyTrackedMinutes)}",
-                style = MaterialTheme.typography.titleMedium
-            )
+                        Spacer(modifier = Modifier.height(Spacing.xs))
 
-            Spacer(modifier = Modifier.height(Spacing.lg))
+                        Text(
+                            text = "Tracked: ${formatTrackedMinutes(details.weeklyTrackedMinutes)} this week",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
 
-            Text(
-                text = "Selected Cats",
-                style = MaterialTheme.typography.titleMedium
-            )
+                Spacer(modifier = Modifier.height(Spacing.xl))
 
-            Spacer(modifier = Modifier.height(Spacing.sm))
-        }
+                Text(
+                    text = "Cat Collection",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier
+                        .padding(horizontal = Spacing.xs)
+                        .semantics { heading() }
+                )
 
-        if (selectedCats.isEmpty()) {
-            item {
-                EmptyText("No selected cats.")
+                Spacer(modifier = Modifier.height(Spacing.sm))
             }
-        } else {
-            items(selectedCats) { cat ->
-                FriendCatItem(cat = cat)
-            }
-        }
-
-        item {
-            Spacer(modifier = Modifier.height(Spacing.lg))
-
-            Text(
-                text = "Cat Collection",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.sm))
         }
 
         if (collectedCats.isEmpty()) {
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 EmptyText("No cats collected yet.")
             }
         } else {
             items(collectedCats) { cat ->
-                FriendCatItem(cat = cat)
+                FriendCatItem(
+                    cat = cat,
+                    isSelected = selectedCatIdsSet.contains(cat.id)
+                )
             }
         }
     }
@@ -163,41 +173,61 @@ fun FriendProfileDetailsContent(
 
 @Composable
 fun FriendCatItem(
-    cat: ShopItem
+    cat: ShopItem,
+    isSelected: Boolean
 ) {
     Surface(
         shape = Shapes.cards,
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = Elevation.Lvl4,
+        color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = if (isSelected) Elevation.Lvl2 else Elevation.None,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = Spacing.xs)
+            .semantics(mergeDescendants = true) {
+                if (isSelected) {
+                    stateDescription = "Currently selected cat"
+                }
+            }
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(Spacing.md),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(Spacing.sm),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CatImage(
-                cat = cat,
-                isAnimated = false,
-                modifier = Modifier.size(64.dp)
-            )
-
-            Spacer(modifier = Modifier.width(Spacing.md))
-
-            Column {
-                Text(
-                    text = cat.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            Box(contentAlignment = Alignment.Center) {
+                CatImage(
+                    cat = cat,
+                    isAnimated = false,
+                    modifier = Modifier.size(64.dp)
                 )
 
+                if (isSelected) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = androidx.compose.foundation.shape.CircleShape,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(10.dp)
+                    ) {}
+                }
+            }
+
+            Spacer(modifier = Modifier.height(Spacing.xs))
+
+            Text(
+                text = cat.name,
+                style = MaterialTheme.typography.labelLarge,
+                color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
+
+            if (isSelected) {
                 Text(
-                    text = "${cat.price} coins",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "Selected",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -212,7 +242,8 @@ private fun EmptyText(
         text = text,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(vertical = Spacing.sm)
+        modifier = Modifier.padding(vertical = Spacing.sm),
+        textAlign = TextAlign.Center
     )
 }
 
