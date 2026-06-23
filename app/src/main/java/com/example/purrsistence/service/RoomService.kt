@@ -2,6 +2,7 @@ package com.example.purrsistence.service
 
 import com.example.purrsistence.domain.model.PlacedCat
 import com.example.purrsistence.domain.model.RoomSpot
+import kotlin.random.Random
 
 class RoomService {
 
@@ -31,7 +32,10 @@ class RoomService {
         return ownedCatIds.mapIndexed { index, catId ->
             val spot = shuffledSpots[index % shuffledSpots.size]
             val initialFrame = frameOffsets.getOrElse(index % frameOffsets.size) { 0 }
-            val isSleeping = Math.random() < 0.2 // 20% chance of sleeping
+
+            val animationRoll = Random.nextFloat()
+            val isSleeping = animationRoll < 0.2f // 20% chance of sleeping
+            val isSitting = animationRoll in 0.2f..<0.5f // 20% chance of sitting
 
             PlacedCat(
                 catId = catId,
@@ -40,7 +44,8 @@ class RoomService {
                 // Mirror orientation belongs to the spot
                 isMirrored = spot.isMirrored,
                 initialFrame = initialFrame,
-                isSleeping = isSleeping
+                isSleeping = isSleeping,
+                isSitting = isSitting
             )
         }
     }

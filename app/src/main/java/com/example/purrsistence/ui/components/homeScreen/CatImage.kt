@@ -17,7 +17,8 @@ fun CatImage(
     isMirrored: Boolean = false,
     isAnimated: Boolean = true,
     initialFrame: Int = 0,
-    isSleeping: Boolean = false
+    isSleeping: Boolean = false,
+    isSitting: Boolean = false
 ) {
     val cat = CatList.getCatById(catId)
     if (cat != null) {
@@ -27,7 +28,8 @@ fun CatImage(
             isMirrored = isMirrored,
             isAnimated = isAnimated,
             initialFrame = initialFrame,
-            isSleeping = isSleeping
+            isSleeping = isSleeping,
+            isSitting = isSitting
         )
     }
 }
@@ -39,7 +41,8 @@ fun CatImage(
     isMirrored: Boolean = false,
     isAnimated: Boolean = true,
     initialFrame: Int = 0,
-    isSleeping: Boolean = false
+    isSleeping: Boolean = false,
+    isSitting: Boolean = false
 ) {
     val finalModifier = modifier
         .graphicsLayer {
@@ -53,7 +56,10 @@ fun CatImage(
 
     if (isSleeping && cat.sleepingImageRes != null) {
         imageRes = cat.sleepingImageRes
-        animData = cat.sleepingAnimationData // This is likely null for static images
+        animData = cat.sleepingAnimationData
+    } else if (isSitting && cat.sittingImageRes != null) {
+        imageRes = cat.sittingImageRes
+        animData = cat.sittingAnimationData
     } else {
         imageRes = cat.imageRes
         animData = cat.animationData
