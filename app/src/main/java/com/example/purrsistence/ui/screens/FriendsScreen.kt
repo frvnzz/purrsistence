@@ -40,6 +40,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
 import com.example.purrsistence.domain.model.FriendProfile
 import com.example.purrsistence.domain.model.Friendship
 import com.example.purrsistence.ui.state.TopBarState
@@ -84,7 +89,9 @@ fun FriendsScreen(
 
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .semantics { paneTitle = "Friends Screen" }
     ) {
         when {
             isLoading &&
@@ -240,9 +247,9 @@ private fun SectionTitle(
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(
-            vertical = Spacing.sm
-        )
+        modifier = Modifier
+            .padding(vertical = Spacing.sm)
+            .semantics { heading() }
     )
 }
 
@@ -268,6 +275,7 @@ fun FriendRequestItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = Spacing.xs)
+            .semantics(mergeDescendants = true) {}
     ) {
         Row(
             modifier = Modifier
@@ -330,6 +338,7 @@ fun OutgoingFriendRequestItem(
             .fillMaxWidth()
             .height(80.dp)
             .padding(vertical = Spacing.xs)
+            .semantics(mergeDescendants = true) {}
     ) {
         Row(
             modifier = Modifier
@@ -382,7 +391,13 @@ fun FriendListItem(
             .fillMaxWidth()
             .height(80.dp)
             .padding(vertical = Spacing.xs)
-            .clickable(onClick = onClick)
+            .clickable(
+                onClick = onClick,
+                onClickLabel = "View profile of ${friend.username}"
+            )
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+            }
     ) {
         Row(
             modifier = Modifier

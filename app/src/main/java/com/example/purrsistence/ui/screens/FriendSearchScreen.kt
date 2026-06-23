@@ -9,6 +9,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import com.example.purrsistence.domain.model.FriendProfile
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Elevation
@@ -43,6 +46,7 @@ fun FriendSearchScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(Spacing.md)
+            .semantics { paneTitle = "Search Friends Screen" }
     ) {
         OutlinedTextField(
             value = searchQuery,
@@ -51,7 +55,7 @@ fun FriendSearchScreen(
                 viewModel.searchProfiles(value)
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = {
+            label = {
                 Text("Search by username")
             },
             leadingIcon = {
@@ -138,6 +142,7 @@ fun SearchResultItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = Spacing.xs)
+            .semantics(mergeDescendants = true) {}
     ) {
         Row(
             modifier = Modifier
@@ -162,6 +167,9 @@ fun SearchResultItem(
 
             Button(
                 onClick = onAddClick,
+                modifier = Modifier.semantics {
+                    contentDescription = "Send friend request to ${profile.username}"
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
