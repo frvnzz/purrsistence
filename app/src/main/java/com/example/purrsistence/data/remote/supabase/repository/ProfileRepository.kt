@@ -11,6 +11,7 @@ interface ProfileRepository {
     suspend fun getProfile(userId: String): FriendProfile
     suspend fun updateUsername(userId: String, username: String)
     suspend fun updateAvatarPath(userId: String, avatarPath: String?)
+    suspend fun updateBalance(userId: String, balance: Int)
     suspend fun getRemoteUpdatedAt(userId: String): Instant
     suspend fun searchProfiles(query: String, limit: Int = 10): List<FriendProfile>
     suspend fun fetchFriendProfile(userId: String): FriendProfile
@@ -60,7 +61,8 @@ class ProfileRepositoryImpl(
         return FriendProfile(
             id = profile.id,
             username = profile.username,
-            avatarPath = profile.avatarPath
+            avatarPath = profile.avatarPath,
+            balance = profile.balance
         )
     }
 
@@ -81,6 +83,16 @@ class ProfileRepositoryImpl(
         remoteDataSource.updateAvatarPath(
             userId = userId,
             avatarPath = avatarPath
+        )
+    }
+
+    override suspend fun updateBalance(
+        userId: String,
+        balance: Int
+    ) {
+        remoteDataSource.updateBalance(
+            userId = userId,
+            balance = balance
         )
     }
 

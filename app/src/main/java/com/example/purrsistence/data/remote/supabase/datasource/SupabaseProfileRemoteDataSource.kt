@@ -16,6 +16,7 @@ interface ProfileRemoteDataSource {
     suspend fun fetchProfile(userId: String): ProfileDto
     suspend fun updateUsername(userId: String, username: String)
     suspend fun updateAvatarPath(userId: String, avatarPath: String?)
+    suspend fun updateBalance(userId: String, balance: Int)
     suspend fun fetchUserSyncState(userId: String): UserSyncStateDto
     suspend fun searchProfiles(query: String): List<ProfileDto>
     suspend fun searchProfilesByUsername(query: String, limit: Int = 10): List<ProfileSearchResultDto>
@@ -73,6 +74,23 @@ class SupabaseProfileRemoteDataSource(
             .update(
                 {
                     set("avatar_path", avatarPath)
+                }
+            ) {
+                filter {
+                    eq("id", userId)
+                }
+            }
+    }
+
+    override suspend fun updateBalance(
+        userId: String,
+        balance: Int
+    ) {
+        supabase
+            .from("profiles")
+            .update(
+                {
+                    set("balance", balance)
                 }
             ) {
                 filter {

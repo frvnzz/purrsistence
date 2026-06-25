@@ -9,7 +9,9 @@ fun FriendshipDto.toFriendship(): Friendship {
         id = id,
         requesterId = requesterId,
         addresseeId = addresseeId,
-        status = status.toFriendshipStatus()
+        status = status.toFriendshipStatus(),
+        requesterUsername = requester?.username,
+        addresseeUsername = addressee?.username
     )
 }
 

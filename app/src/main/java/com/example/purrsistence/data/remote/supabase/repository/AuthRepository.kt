@@ -10,6 +10,7 @@ interface AuthRepository {
     suspend fun signUp(email: String, password: String, username: String)
     suspend fun signIn(email: String, password: String)
     suspend fun signOut()
+    suspend fun updatePassword(currentPassword: String, newPassword: String)
     val sessionStatus: Flow<SessionStatus>
 }
 
@@ -49,6 +50,10 @@ class AuthRepositoryImpl(
 
     override suspend fun signOut() {
         remoteDataSource.signOut()
+    }
+
+    override suspend fun updatePassword(currentPassword: String, newPassword: String) {
+        remoteDataSource.updatePassword(currentPassword, newPassword)
     }
 
     override val sessionStatus: Flow<SessionStatus> = remoteDataSource.sessionStatus

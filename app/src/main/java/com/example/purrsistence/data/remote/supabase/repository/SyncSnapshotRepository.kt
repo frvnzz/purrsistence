@@ -48,7 +48,7 @@ class SyncSnapshotRepositoryImpl(
             catRepository
                 .getSelectedCatIds(supabaseUserId)
                 .distinct()
-                .take(3)
+                .take(5)
 
         val goals =
             goalTrackingRepository.getGoals(
@@ -91,14 +91,22 @@ class SyncSnapshotRepositoryImpl(
             avatarPath = localUser.profileImageUrl?.toString()
         )
 
+        profileRepository.updateBalance(
+            userId = supabaseUserId,
+            balance = localUser.balance
+        )
+
         catRepository.uploadCollectedCats(
             userId = supabaseUserId,
             catIds = localUser.collectedCatsIds
         )
 
+        val validSelectedCatIds = localUser.selectedCatIds
+            .filter { it in localUser.collectedCatsIds }
+
         catRepository.replaceSelectedCats(
             userId = supabaseUserId,
-            selectedCatIds = localUser.selectedCatIds
+            selectedCatIds = validSelectedCatIds
         )
 
         uploadGoalsAndTracking(

@@ -8,6 +8,7 @@ import com.example.purrsistence.service.TrackingSyncService
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.time.Instant
 
 class FakeSupabaseSyncService(
     initialSignedIn: Boolean = false,
@@ -32,6 +33,7 @@ class FakeSupabaseSyncService(
     var forceDownloadCalls = 0
     var addCollectedCatCalls = 0
     var updateUsernameCalls = 0
+    var updatePasswordCalls = 0
     var updateAvatarPathCalls = 0
     var resetTrackingSessionsCalls = 0
     var getFriendsCalls = 0
@@ -46,6 +48,8 @@ class FakeSupabaseSyncService(
     var lastEmail: String? = null
     var lastPassword: String? = null
     var lastUsername: String? = null
+    var lastCurrentPassword: String? = null
+    var lastNewPassword: String? = null
     var lastCatId: String? = null
     var lastAvatarPath: String? = null
     var lastAddresseeId: String? = null
@@ -165,11 +169,23 @@ class FakeSupabaseSyncService(
         lastCatId = catId
     }
 
+    override suspend fun updateSelectedCats(
+        selectedCatIds: List<String>
+    ): SyncStatus {
+        return SyncStatus.IN_SYNC
+    }
+
     override suspend fun updateUsername(
         username: String
     ) {
         updateUsernameCalls++
         lastUsername = username
+    }
+
+    override suspend fun updatePassword(currentPassword: String, newPassword: String) {
+        updatePasswordCalls++
+        lastCurrentPassword = currentPassword
+        lastNewPassword = newPassword
     }
 
     override suspend fun updateAvatarPath(
@@ -226,7 +242,9 @@ class FakeSupabaseSyncService(
     }
 
     override suspend fun getFriendProfileDetails(
-        friendUserId: String
+        friendUserId: String,
+        weekStart: Instant,
+        weekEnd: Instant
     ): FriendProfileDetails {
         return FriendProfileDetails(
             profile = FriendProfile(
@@ -234,7 +252,8 @@ class FakeSupabaseSyncService(
                 username = ""
             ),
             collectedCatIds = emptyList(),
-            selectedCatIds = emptyList()
+            selectedCatIds = emptyList(),
+            weeklyTrackedMinutes = 0
         )
     }
 

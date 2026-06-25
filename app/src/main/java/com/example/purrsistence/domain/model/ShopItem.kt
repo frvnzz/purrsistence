@@ -7,5 +7,9 @@ data class ShopItem(
     val name: String,
     val price: Int,
     val imageRes: Int,
-    val animationData: SpriteSheetData? = null
+    val animationData: SpriteSheetData? = null,
+    val sleepingImageRes: Int? = null,
+    val sleepingAnimationData: SpriteSheetData? = null,
+    val sittingImageRes: Int? = null,
+    val sittingAnimationData: SpriteSheetData? = null,
 )

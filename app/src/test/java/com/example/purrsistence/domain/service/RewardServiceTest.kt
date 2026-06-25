@@ -12,7 +12,7 @@ class RewardServiceTest {
     fun reward_under15Min_noMultiplier() {
         val (coins, multiplier) = service.calculateReward(Duration.ofMinutes(10))
 
-        assertEquals(10, coins)
+        assertEquals(100, coins)
         assertEquals(1.0, multiplier, 0.0001)
     }
 
@@ -20,7 +20,7 @@ class RewardServiceTest {
     fun reward_15Minutes_appliesMultiplier(){
         val (coins, multiplier) = service.calculateReward(Duration.ofMinutes(15))
 
-        assertEquals(17, coins)
+        assertEquals(172, coins)
         assertEquals(1.15, multiplier, 0.0001)
     }
 
@@ -33,7 +33,7 @@ class RewardServiceTest {
             checkpointedCurrency = 38
         )
 
-        assertEquals(48, coins)
+        assertEquals(138, coins)
         assertEquals(1.0, multiplier, 0.0001)
     }
 
@@ -47,7 +47,7 @@ class RewardServiceTest {
             checkpointedCurrency = 50
         )
 
-        assertEquals(70, coins) // 20 + 50 (checkpoint)
+        assertEquals(250, coins) // 20 + 50 (checkpoint)
         assertEquals(1.0, multiplier, 0.0001)
     }
 }

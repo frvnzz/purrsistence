@@ -39,6 +39,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.selectableGroup
 import androidx.compose.ui.semantics.selected
@@ -46,13 +48,15 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.model.types.GoalType
+import com.example.purrsistence.service.RewardService
 import com.example.purrsistence.ui.components.DeepFocusAccessibilityDialog
-import com.example.purrsistence.ui.components.addEditGoal.DurationBox
+import com.example.purrsistence.ui.components.goalsScreen.DurationBox
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.util.clampDurationParts
 import com.example.purrsistence.ui.util.durationPartsToMinutes
+import com.example.purrsistence.ui.util.goalCompletionRewardWarningText
 import com.example.purrsistence.ui.util.maxHourForGoalType
 import com.example.purrsistence.ui.util.openAccessibilitySettings
 import com.example.purrsistence.ui.util.requiresDeepFocusSetup
@@ -125,9 +129,18 @@ fun EditGoalScreen(
                     (minutes.toIntOrNull() ?: 0)
 
         val titleValid = title.isNotBlank()
+        val titleNotTooLong = title.length<=30
         val durationValid = durationInMinutes >= 1
 
-        val formValid = titleValid && durationValid
+        val formValid = titleValid && durationValid && titleNotTooLong
+
+        val rewardService = remember { RewardService() }
+
+        val completionRewardWarning = goalCompletionRewardWarningText(
+            rewardService = rewardService,
+            type = type.lowercase(),
+            targetMinutes = durationInMinutes
+        )
 
         LaunchedEffect(Unit) {
             setTopBar(
@@ -165,7 +178,8 @@ fun EditGoalScreen(
 
                 Text(
                     text = "Goal Title",
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.clearAndSetSemantics { }
                 )
 
                 Spacer(
@@ -175,12 +189,26 @@ fun EditGoalScreen(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Goal Title") },
-                    isError = !titleValid,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            if (!titleValid) error("Goal title cannot be empty")
+                            if (!titleNotTooLong) error("Goal title can not be longer than 30 characters")
+                        },
+                    label = {
+                        Text(
+                            if (!titleValid) "Goal Title - Goal title cannot be empty"
+                            else if (!titleNotTooLong) "Goal Title - Goal title can not be longer than 30 characters"
+                            else "Goal Title"
+                        )
+                    },
+                    isError = !titleValid || !titleNotTooLong,
                     supportingText = {
                         if (!titleValid) {
                             Text("Goal title cannot be empty")
+                        }
+                        if (!titleNotTooLong) {
+                            Text("Goal title can not be longer than 30 characters")
                         }
                     },
                     shape = Shapes.cards,
@@ -222,7 +250,8 @@ fun EditGoalScreen(
 
                     Text(
                         text = ":",
-                        style = MaterialTheme.typography.displayLarge
+                        style = MaterialTheme.typography.displayLarge,
+                        modifier = Modifier.clearAndSetSemantics { }
                     )
 
                     DurationBox(
@@ -239,6 +268,15 @@ fun EditGoalScreen(
                     Text(
                         text = "Duration must be at least 1 minute",
                         color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                if (completionRewardWarning != null) {
+                    Spacer(modifier = Modifier.height(Spacing.sm))
+
+                    Text(
+                        text = completionRewardWarning,
+                        color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -431,6 +469,7 @@ fun EditGoalScreen(
             DeepFocusAccessibilityDialog(
                 onDismiss = {
                     showAccessibilityDialog.value = false
+                    deepFocus = false
                 },
 
                 onOpenSettings = {

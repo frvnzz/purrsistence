@@ -79,7 +79,7 @@ class CatCollectionRepositoryImpl(
         return catRemoteDataSource
             .fetchVisibleSelectedCatIds(userId)
             .distinct()
-            .take(3)
+            .take(5)
     }
 
 }

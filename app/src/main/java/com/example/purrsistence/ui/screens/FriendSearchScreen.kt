@@ -9,8 +9,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.semantics
 import com.example.purrsistence.domain.model.FriendProfile
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.theme.Elevation
+import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.viewmodel.FriendViewModel
 
@@ -41,6 +46,7 @@ fun FriendSearchScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(Spacing.md)
+            .semantics { paneTitle = "Search Friends Screen" }
     ) {
         OutlinedTextField(
             value = searchQuery,
@@ -49,7 +55,7 @@ fun FriendSearchScreen(
                 viewModel.searchProfiles(value)
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = {
+            label = {
                 Text("Search by username")
             },
             leadingIcon = {
@@ -58,7 +64,8 @@ fun FriendSearchScreen(
                     contentDescription = null
                 )
             },
-            singleLine = true
+            singleLine = true,
+            shape = Shapes.inputs
         )
 
         Spacer(
@@ -128,10 +135,14 @@ fun SearchResultItem(
     profile: FriendProfile,
     onAddClick: () -> Unit
 ) {
-    Card(
+    Surface(
+        shape = Shapes.cards,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = Elevation.Lvl2,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = Spacing.xs)
+            .semantics(mergeDescendants = true) {}
     ) {
         Row(
             modifier = Modifier
@@ -143,18 +154,27 @@ fun SearchResultItem(
             Column {
                 Text(
                     text = profile.username,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Text(
                     text = "Send friend request",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
             Button(
-                onClick = onAddClick
+                onClick = onAddClick,
+                modifier = Modifier.semantics {
+                    contentDescription = "Send friend request to ${profile.username}"
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = Shapes.buttons
             ) {
                 Text("Add")
             }

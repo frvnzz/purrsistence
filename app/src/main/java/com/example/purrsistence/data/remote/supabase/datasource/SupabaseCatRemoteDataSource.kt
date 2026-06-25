@@ -69,11 +69,20 @@ class SupabaseCatRemoteDataSource(
         userId: String,
         catIds: List<String>
     ) {
-        catIds.distinct().forEach { catId ->
-            addCollectedCat(
+        val rows = catIds.distinct().map { catId ->
+            UserCatDto(
                 userId = userId,
-                catId = catId
+                catId = catId,
+                source = "shop"
             )
+        }
+
+        if (rows.isNotEmpty()) {
+            supabase
+                .from("user_cats")
+                .upsert(rows) {
+                    onConflict = "user_id,cat_id"
+                }
         }
     }
 
@@ -118,18 +127,20 @@ class SupabaseCatRemoteDataSource(
                 }
             }
 
-        selectedCatIds
-            .take(3)
-            .forEachIndexed { index, catId ->
-                supabase
-                    .from("selected_cats")
-                    .insert(
-                        SelectedCatDto(
-                            userId = userId,
-                            slot = index + 1,
-                            catId = catId
-                        )
-                    )
+        val rows = selectedCatIds
+            .take(5)
+            .mapIndexed { index, catId ->
+                SelectedCatDto(
+                    userId = userId,
+                    slot = index + 1,
+                    catId = catId
+                )
             }
+
+        if (rows.isNotEmpty()) {
+            supabase
+                .from("selected_cats")
+                .insert(rows)
+        }
     }
 }

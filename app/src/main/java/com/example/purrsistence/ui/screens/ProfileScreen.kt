@@ -29,10 +29,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.example.purrsistence.domain.model.ShopItem
+import com.example.purrsistence.ui.components.CurrencyBadge
+import com.example.purrsistence.ui.components.profileScreen.CatCloseupDialog
 import com.example.purrsistence.ui.components.profileScreen.InventorySection
 import com.example.purrsistence.ui.components.profileScreen.ProfileActionButtons
 import com.example.purrsistence.ui.components.profileScreen.ProfileHeaderCallbacks
@@ -40,6 +44,7 @@ import com.example.purrsistence.ui.components.profileScreen.ProfileHeaderSection
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
+import com.example.purrsistence.ui.util.SoundManager
 import com.example.purrsistence.ui.viewmodel.UserViewModel
 
 @Composable
@@ -47,21 +52,17 @@ fun ProfileScreen(
     userViewModel: UserViewModel,
     setTopBar: (TopBarState) -> Unit,
     onNavigateToSettings: () -> Unit = {},
-    onNavigateToFriends: () -> Unit = {}
+    onNavigateToFriends: () -> Unit = {},
+    openShop: () -> Unit,
+    soundManager: SoundManager? = null
 ) {
-    // set TopBar content (header only)
-    LaunchedEffect(Unit) {
-        setTopBar(
-            TopBarState(
-                title = "Profile"
-            )
-        )
-    }
-
     val user by userViewModel.user.collectAsState()
+    val balance = user?.balance ?: 0
+    var usernameError by remember { mutableStateOf<String?>(null) }
     var isEditingName by remember { mutableStateOf(false) }
     var editedUsername by remember(user?.username) { mutableStateOf(user?.username ?: "") }
     var selectedProfileImageUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedCatForCloseup by remember { mutableStateOf<ShopItem?>(null) }
     val focusManager = LocalFocusManager.current
     val usernameFocusRequester = remember { FocusRequester() }
 
@@ -72,6 +73,14 @@ fun ProfileScreen(
             selectedProfileImageUri = profileImageUrl.toString().toUri()
         } ?: run {
             selectedProfileImageUri = null
+        }
+    }
+
+    fun validateUsername(username: String): String? {
+        return when {
+            username.isBlank() -> "Username cannot be empty"
+            username.any { it.isWhitespace() } -> "Username cannot contain spaces"
+            else -> null
         }
     }
 
@@ -94,8 +103,13 @@ fun ProfileScreen(
 
     val onSaveUsername = {
         focusManager.clearFocus()
-        userViewModel.updateUsername(editedUsername)
-        isEditingName = false
+
+        usernameError = validateUsername(editedUsername)
+
+        if (usernameError == null) {
+            userViewModel.updateUsername(editedUsername.trim())
+            isEditingName = false
+        }
     }
 
     val onPickProfileImage = {
@@ -112,11 +126,25 @@ fun ProfileScreen(
     }
 
     val headerCallbacks = ProfileHeaderCallbacks(
-        onUsernameChange = { editedUsername = it },
+        onUsernameChange = {
+            editedUsername = it
+            usernameError = null
+        },
         onEditingChange = { isEditingName = it },
         onSaveUsername = onSaveUsername,
         onPickProfileImage = onPickProfileImage,
         onRemoveProfileImage = onRemoveProfileImage
+    )
+
+    // TopBar with CurrencyBadge
+    setTopBar(
+        TopBarState(
+            title = "Profile",
+            actions = { CurrencyBadge(
+                balance = balance,
+                onClick = openShop
+            ) }
+        )
     )
 
     if (isLandscape) {
@@ -138,7 +166,11 @@ fun ProfileScreen(
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = Shapes.cards
                     )
-                    .padding(Spacing.md),
+                    .padding(Spacing.md)
+                    .semantics {
+                        isTraversalGroup = true
+                        paneTitle = "Profile Details"
+                    },
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
                 ProfileHeaderSection(
@@ -148,7 +180,8 @@ fun ProfileScreen(
                     profileImageUri = selectedProfileImageUri,
                     usernameFocusRequester = usernameFocusRequester,
                     callbacks = headerCallbacks,
-                    isLandscape = true
+                    isLandscape = true,
+                    usernameError = usernameError
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -162,9 +195,15 @@ fun ProfileScreen(
 
             InventorySection(
                 user = user,
-                modifier = Modifier.weight(0.68f),
+                modifier = Modifier
+                    .weight(0.68f)
+                    .semantics {
+                        isTraversalGroup = true
+                        paneTitle = "Inventory"
+                    },
                 maxGridHeight = 1000.dp,
-                isLandscape = true
+                isLandscape = true,
+                onCatClick = { selectedCatForCloseup = it }
             )
         }
     } else {
@@ -185,7 +224,8 @@ fun ProfileScreen(
                     isEditing = isEditingName,
                     profileImageUri = selectedProfileImageUri,
                     usernameFocusRequester = usernameFocusRequester,
-                    callbacks = headerCallbacks
+                    callbacks = headerCallbacks,
+                    usernameError = usernameError
                 )
             }
 
@@ -199,9 +239,18 @@ fun ProfileScreen(
             item {
                 InventorySection(
                     user = user,
-                    maxGridHeight = 500.dp
+                    maxGridHeight = 500.dp,
+                    onCatClick = { selectedCatForCloseup = it }
                 )
             }
         }
+    }
+
+    selectedCatForCloseup?.let { cat ->
+        CatCloseupDialog(
+            cat = cat,
+            onDismiss = { selectedCatForCloseup = null },
+            soundManager = soundManager
+        )
     }
 }

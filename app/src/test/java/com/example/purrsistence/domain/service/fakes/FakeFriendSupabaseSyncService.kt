@@ -7,9 +7,11 @@ import com.example.purrsistence.domain.model.types.SyncStatus
 import com.example.purrsistence.service.TrackingSyncService
 import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import java.time.Instant
 
 class FakeFriendSupabaseSyncService(
-    override val sessionStatus: Flow<SessionStatus> = kotlinx.coroutines.flow.MutableStateFlow(SessionStatus.NotAuthenticated())
+    override val sessionStatus: Flow<SessionStatus> = MutableStateFlow(SessionStatus.NotAuthenticated())
 ) : TrackingSyncService {
 
     var signedIn: Boolean = true
@@ -27,6 +29,9 @@ class FakeFriendSupabaseSyncService(
     var acceptFriendRequestCalls = 0
     var declineFriendRequestCalls = 0
     var deleteFriendshipCalls = 0
+    var updateUsernameCalls = 0
+    var updatePasswordCalls = 0
+    var updateAvatarPathCalls = 0
     var resetTrackingSessionsCalls = 0
 
     var lastSearchQuery: String? = null
@@ -35,11 +40,16 @@ class FakeFriendSupabaseSyncService(
     var lastDeclinedFriendshipId: Long? = null
     var lastDeletedFriendshipId: Long? = null
     var lastLoadedFriendUserId: String? = null
+    var lastUpdatePasswordCurrent: String? = null
+    var lastUpdatePasswordNew: String? = null
 
     val friendsResult = mutableListOf<FriendProfile>()
     val incomingRequestsResult = mutableListOf<Friendship>()
     val outgoingRequestsResult = mutableListOf<Friendship>()
     val searchResults = mutableListOf<FriendProfile>()
+
+    var lastWeekStart: Instant? = null
+    var lastWeekEnd: Instant? = null
 
     var friendProfileDetailsResult: FriendProfileDetails =
         FriendProfileDetails(
@@ -48,7 +58,8 @@ class FakeFriendSupabaseSyncService(
                 username = "friend"
             ),
             collectedCatIds = listOf("cat_1"),
-            selectedCatIds = listOf("cat_1")
+            selectedCatIds = listOf("cat_1"),
+            weeklyTrackedMinutes = 1,
         )
 
     var throwOnSearch: Exception? = null
@@ -58,6 +69,7 @@ class FakeFriendSupabaseSyncService(
     var throwOnDecline: Exception? = null
     var throwOnDelete: Exception? = null
     var throwOnLoadFriendProfile: Exception? = null
+    var throwOnUpdatePassword: Exception? = null
 
     override fun isSignedIn(): Boolean {
         return signedIn
@@ -112,9 +124,26 @@ class FakeFriendSupabaseSyncService(
 
     override suspend fun addCollectedCatToSupabaseAndLocal(catId: String) = Unit
 
-    override suspend fun updateUsername(username: String) = Unit
+    override suspend fun updateSelectedCats(
+        selectedCatIds: List<String>
+    ): SyncStatus {
+        return SyncStatus.IN_SYNC
+    }
 
-    override suspend fun updateAvatarPath(avatarPath: String?) = Unit
+    override suspend fun updateUsername(username: String) {
+        updateUsernameCalls++
+    }
+
+    override suspend fun updatePassword(currentPassword: String, newPassword: String) {
+        throwOnUpdatePassword?.let { throw it }
+        updatePasswordCalls++
+        lastUpdatePasswordCurrent = currentPassword
+        lastUpdatePasswordNew = newPassword
+    }
+
+    override suspend fun updateAvatarPath(avatarPath: String?) {
+        updateAvatarPathCalls++
+    }
     override suspend fun resetTrackingSessions(userId: Int) {
         resetTrackingSessionsCalls++
     }
@@ -169,11 +198,17 @@ class FakeFriendSupabaseSyncService(
     }
 
     override suspend fun getFriendProfileDetails(
-        friendUserId: String
+        friendUserId: String,
+        weekStart: Instant,
+        weekEnd: Instant
     ): FriendProfileDetails {
         throwOnLoadFriendProfile?.let { throw it }
+
         getFriendProfileDetailsCalls++
         lastLoadedFriendUserId = friendUserId
+        lastWeekStart = weekStart
+        lastWeekEnd = weekEnd
+
         return friendProfileDetailsResult
     }
 

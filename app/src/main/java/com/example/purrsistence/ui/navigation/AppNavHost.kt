@@ -8,6 +8,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -43,9 +44,14 @@ fun AppNavHost(
     trackingViewModel: TrackingViewModel,
     statisticsViewModel: StatisticsViewModel,
     friendViewModel: FriendViewModel,
+    openShop: () -> Unit,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState,
-    soundManager: SoundManager
+    soundManager: SoundManager,
+    onRoomViewPositioned: (LayoutCoordinates) -> Unit = {},
+    onCurrencyBadgePositioned: (LayoutCoordinates) -> Unit = {},
+    onSelectCatsPositioned: (LayoutCoordinates) -> Unit = {},
+    onStartButtonPositioned: (LayoutCoordinates) -> Unit = {}
 ) {
     LaunchedEffect(Unit) {
         trackingViewModel.events.collect { event ->
@@ -87,8 +93,16 @@ fun AppNavHost(
                         deepFocus = deepFocus
                     )
                 },
+                onAddGoalClick = {
+                    navController.navigate("add_goal")
+                },
                 setTopBar = setTopBar,
-                soundManager = soundManager
+                openShop = openShop,
+                soundManager = soundManager,
+                onRoomViewPositioned = onRoomViewPositioned,
+                onCurrencyBadgePositioned = onCurrencyBadgePositioned,
+                onSelectCatsPositioned = onSelectCatsPositioned,
+                onStartButtonPositioned = onStartButtonPositioned
             )
         }
 
@@ -102,6 +116,14 @@ fun AppNavHost(
                 },
                 onGoalClick = { goalId ->
                     navController.navigate("goalDetails/$goalId")
+                },
+                onStartTracking = { goalId, goalTitle, userId, deepFocus ->
+                    trackingViewModel.startTrack(
+                        goalId = goalId,
+                        goalTitle = goalTitle,
+                        userId = userId,
+                        deepFocus = deepFocus
+                    )
                 },
                 snackbarHostState = snackbarHostState,
                 setTopBar = setTopBar
@@ -234,7 +256,9 @@ fun AppNavHost(
                     } else {
                         navController.navigate("auth?redirect=friends")
                     }
-                }
+                },
+                openShop = openShop,
+                soundManager = soundManager
             )
         }
 

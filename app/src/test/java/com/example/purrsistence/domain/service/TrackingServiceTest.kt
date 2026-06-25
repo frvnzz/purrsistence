@@ -97,12 +97,12 @@ class TrackingServiceTest {
         val result = service.stopTracking(session.id)
 
         assertNotNull(result)
-        assertEquals(17, result!!.rewardedCurrency)
+        assertEquals(172, result!!.rewardedCurrency)
         assertEquals(1.15, result.multiplier, 0.0001)
         assertEquals(900000L, result.sessionDurationMillis)
 
         val updatedUser = userRepository.getUser(1)
-        assertEquals(17, updatedUser.first()?.balance)
+        assertEquals(172, updatedUser.first()?.balance)
     }
 
     @Test
@@ -225,12 +225,12 @@ class TrackingServiceTest {
 
         val result = service.stopTracking(session.id)
 
-        assertEquals(14, result!!.rewardedCurrency)
+        assertEquals(140, result!!.rewardedCurrency)
         assertEquals(1.0, result.multiplier, 0.0001)
         assertEquals(840_000L, result.sessionDurationMillis)
 
         val updatedUser = userRepository.getUser(1).firstOrNull()
-        assertEquals(14, updatedUser!!.balance)
+        assertEquals(140, updatedUser!!.balance)
     }
 
     @Test
@@ -278,12 +278,12 @@ class TrackingServiceTest {
 
         val result = service.stopTracking(session.id)
 
-        assertEquals(300, result!!.rewardedCurrency)
+        assertEquals(3000, result!!.rewardedCurrency)
         assertEquals(2.0, result.multiplier, 0.0001)
         assertEquals(9_000_000L, result.sessionDurationMillis)
 
         val updatedUser = userRepository.getUser(1).firstOrNull()
-        assertEquals(300, updatedUser!!.balance)
+        assertEquals(3000, updatedUser!!.balance)
     }
 
     @Test
@@ -404,7 +404,7 @@ class TrackingServiceTest {
 
         assertNotNull(result)
         assertEquals(1.0, result!!.multiplier, 0.0001)
-        assertEquals(23, result.rewardedCurrency) // 20 mins * 1.15 (checkpointed)
+        assertEquals(230, result.rewardedCurrency) // 20 mins * 1.15 (checkpointed)
         assertEquals(false, result.multiplierReset) // Reset already accounted for in resumeTracking
         assertEquals(Duration.ofMinutes(16).toMillis(), result.totalPausedMillis)
     }

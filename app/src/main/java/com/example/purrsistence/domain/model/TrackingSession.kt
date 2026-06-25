@@ -91,6 +91,49 @@ data class TrackingSession(
         return Duration.between(startTime, endTime ?: now)
     }
 
+    fun getWorkingIntervals(now: Instant = Instant.now()): List<Pair<Instant, Instant>> {
+        val end = endTime ?: now
+        if (end.isBefore(startTime)) return emptyList()
+
+        val fullInterval = startTime to end
+        val pauses = getPauseIntervals().toMutableList()
+        currentPauseStart?.let { pauseStart ->
+            if (pauseStart.isBefore(end)) {
+                pauses.add(pauseStart to end)
+            }
+        }
+
+        // Sort and clip pauses to the session's [startTime, end]
+        val clippedPauses = pauses
+            .map { (pStart, pEnd) ->
+                val actualStart = if (pStart.isBefore(startTime)) startTime else pStart
+                val actualEnd = if (pEnd.isAfter(end)) end else pEnd
+                actualStart to actualEnd
+            }
+            .filter { (pStart, pEnd) -> pStart.isBefore(pEnd) }
+            .sortedBy { it.first }
+
+        if (clippedPauses.isEmpty()) return listOf(fullInterval)
+
+        val workingIntervals = mutableListOf<Pair<Instant, Instant>>()
+        var currentStart = startTime
+
+        for ((pStart, pEnd) in clippedPauses) {
+            if (pStart.isAfter(currentStart)) {
+                workingIntervals.add(currentStart to pStart)
+            }
+            if (pEnd.isAfter(currentStart)) {
+                currentStart = pEnd
+            }
+        }
+
+        if (currentStart.isBefore(end)) {
+            workingIntervals.add(currentStart to end)
+        }
+
+        return workingIntervals
+    }
+
     fun finishedDuration(): Duration? {
         val finishedAt = endTime ?: return null
         return effectiveDuration(finishedAt)

@@ -3,14 +3,14 @@ package com.example.purrsistence.service
 import com.example.purrsistence.data.local.repository.GoalRepository
 import com.example.purrsistence.data.local.repository.TrackingRepository
 import com.example.purrsistence.data.local.repository.UserRepository
-import com.example.purrsistence.domain.model.Goal
+import com.example.purrsistence.service.RewardService.Companion.FISH_PER_MINUTE
 import com.example.purrsistence.domain.model.TrackingSession
 import com.example.purrsistence.domain.model.TrackingStopResult
-import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.domain.time.TimeProvider
 import kotlinx.coroutines.flow.firstOrNull
 import java.time.Duration
 import java.time.ZoneId
+import kotlin.math.roundToInt
 
 interface TrackingService{
     suspend fun getActiveTrackingSession(): TrackingSession?
@@ -90,9 +90,12 @@ class TrackingServiceImpl(
         var goalCompletionReward = 0
         goalWithSessions?.let {
             val wasCompleted = goalService.completeGoalIfReached(it, now.atZone(ZoneId.systemDefault()))
-            if(wasCompleted) {
-                goalCompletionReward = calculateGoalCompletionReward(it.goal)
-                userRepository.addCurrency(finishedSession.userId, goalCompletionReward)
+            if (wasCompleted) {
+                goalCompletionReward = rewardService.calculateGoalCompletionReward(it.goal)
+
+                if (goalCompletionReward > 0) {
+                    userRepository.addCurrency(finishedSession.userId, goalCompletionReward)
+                }
             }
         }
 
@@ -104,14 +107,6 @@ class TrackingServiceImpl(
             totalPausedMillis = finishedSession.getTotalPausedMillis(now),
             multiplierReset = hasLongPause
         )
-    }
-
-    private fun calculateGoalCompletionReward(goal: Goal): Int {
-        return when (goal.type) {
-            GoalType.DAILY -> 50
-            GoalType.WEEKLY -> 200
-            GoalType.MONTHLY -> 500
-        }
     }
 
     override suspend fun pauseTracking(trackingId: Int): Boolean {
@@ -143,7 +138,7 @@ class TrackingServiceImpl(
         if (Duration.between(pauseStart, now).toMinutes() >= 15) {
             val minutesBeforePause = session.getEffectiveMinutesSinceLastReset(pauseStart)
             val currentMultiplier = rewardService.calculateRewardMultiplier(minutesBeforePause)
-            val earnedCoins = Math.round(minutesBeforePause * currentMultiplier).toInt()
+            val earnedCoins = (minutesBeforePause * FISH_PER_MINUTE * currentMultiplier).roundToInt()
             checkpointed += earnedCoins
             lastReset = now
         }

@@ -1,31 +1,27 @@
 package com.example.purrsistence.ui.components.shop
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.R
@@ -43,11 +39,14 @@ fun ShopItemCard(
     isOwned: Boolean,
     onBuy: () -> Unit
 ) {
+    val isLandscape =
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     val canAfford = balance >= item.price
 
     val buttonText = when {
         isOwned -> "Owned"
-        !canAfford -> "No Funds"
+        !canAfford -> "Need Fish"
         else -> "Adopt"
     }
 
@@ -57,6 +56,9 @@ fun ShopItemCard(
             .clearAndSetSemantics {
                 contentDescription = "${item.name}, ${item.price} fish, $buttonText"
                 role = Role.Button
+                if (!canAfford || isOwned) {
+                    disabled()
+                }
             }
             .clickable(
                 enabled = canAfford && !isOwned,
@@ -70,81 +72,100 @@ fun ShopItemCard(
             containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Spacing.lg),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.md)
-        ) {
-            CatImage(
-                cat = item,
-                isAnimated = false,
-                modifier = Modifier.size(96.dp)
-            )
-
-            Text(
-                text = item.name,
-                style = MaterialTheme.typography.titleMedium
-            )
-
+        if (isLandscape) {
+            // LANDSCAPE CARD
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Spacing.lg),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.lg),
+                verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Image(
-                    painter = painterResource(R.drawable.fish_blue2_24),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
+                CatImage(
+                    cat = item,
+                    isAnimated = false,
+                    modifier = Modifier.size(96.dp)
+                )
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                ) {
+
+                    Text(
+                        text = item.name,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                    ) {
+
+                        Image(
+                            painter = painterResource(R.drawable.fish_blue2_24),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+
+                        Text(
+                            text = formatLocalizedInteger(item.price),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+
+                    StatusButton(
+                        canAfford = canAfford,
+                        isOwned = isOwned,
+                        buttonText = buttonText
+                    )
+                }
+            }
+
+        } else {
+            // PORTRAIT CARD
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Spacing.lg),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Spacing.md)
+            ) {
+                CatImage(
+                    cat = item,
+                    isAnimated = false,
+                    modifier = Modifier.size(96.dp)
                 )
 
                 Text(
-                    text = formatLocalizedInteger(item.price),
+                    text = item.name,
                     style = MaterialTheme.typography.titleMedium
                 )
-            }
 
-            Surface(
-                shape = Shapes.buttons,
-                color = if (canAfford && !isOwned) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.secondary.copy(alpha = 0.45f)
-                },
-                modifier = Modifier.clearAndSetSemantics { }
-            ) {
                 Row(
-                    modifier = Modifier.padding(vertical = Spacing.sm, horizontal = Spacing.xl),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
-                    Icon(
-                        imageVector = when {
-                            isOwned -> Icons.Outlined.Check
-                            else -> Icons.Outlined.Sell
-                        },
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = if (canAfford && !isOwned) {
-                            MaterialTheme.colorScheme.onPrimary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
-                        }
-                    )
 
-                    Spacer(modifier = Modifier.width(Spacing.sm))
+                    Image(
+                        painter = painterResource(R.drawable.fish_blue2_24),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
 
                     Text(
-                        text = buttonText,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = if (canAfford && !isOwned) {
-                            MaterialTheme.colorScheme.onPrimary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
-                        }
+                        text = formatLocalizedInteger(item.price),
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
+
+                StatusButton(
+                    canAfford = canAfford,
+                    isOwned = isOwned,
+                    buttonText = buttonText
+                )
             }
         }
     }

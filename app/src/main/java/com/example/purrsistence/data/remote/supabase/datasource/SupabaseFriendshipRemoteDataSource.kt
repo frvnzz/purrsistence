@@ -4,6 +4,7 @@ import com.example.purrsistence.data.remote.supabase.dto.FriendshipDto
 import com.example.purrsistence.data.remote.supabase.dto.ProfileDto
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 
 interface FriendshipRemoteDataSource {
     suspend fun fetchAcceptedFriendProfiles(userId: String): List<ProfileDto>
@@ -64,7 +65,7 @@ class SupabaseFriendshipRemoteDataSource(
     ): List<FriendshipDto> {
         return supabase
             .from("friendships")
-            .select {
+            .select(Columns.raw("*, requester:profiles!requester_id(*)")) {
                 filter {
                     eq("addressee_id", userId)
                     eq("status", "pending")
@@ -78,7 +79,7 @@ class SupabaseFriendshipRemoteDataSource(
     ): List<FriendshipDto> {
         return supabase
             .from("friendships")
-            .select {
+            .select(Columns.raw("*, addressee:profiles!addressee_id(*)")) {
                 filter {
                     eq("requester_id", userId)
                     eq("status", "pending")
@@ -107,7 +108,7 @@ class SupabaseFriendshipRemoteDataSource(
     }
 
     override suspend fun declineFriendRequest(friendshipId: Long) {
-        updateFriendshipStatus(friendshipId, "declined")
+        deleteFriendship(friendshipId)
     }
 
     override suspend fun deleteFriendship(friendshipId: Long) {

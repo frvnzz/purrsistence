@@ -1,5 +1,7 @@
 package com.example.purrsistence.ui.util
 
+import android.content.Context
+import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
 
@@ -20,5 +22,21 @@ fun AccessibilityManager.safeAnnounce(message: String) {
         } catch (e: Exception) {
             // any other internal accessibility errors
         }
+    }
+}
+
+/**
+ * Returns true if animations are enabled in the system settings.
+ * Specifically checks the "Remove animations" setting in Accessibility.
+ */
+fun Context.isAnimationEnabled(): Boolean {
+    return try {
+        Settings.Global.getFloat(
+            contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f
+        ) > 0f
+    } catch (e: Exception) {
+        true
     }
 }

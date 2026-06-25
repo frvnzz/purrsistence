@@ -1,6 +1,9 @@
 package com.example.purrsistence.ui.screens
 
 import android.content.res.Configuration
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,15 +11,26 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.example.purrsistence.R
 import com.example.purrsistence.ui.components.tracking.TrackingActionButton
 import com.example.purrsistence.ui.theme.DarkTertiary
 import com.example.purrsistence.ui.theme.Spacing
@@ -36,6 +50,12 @@ fun RewardsScreen(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
     // get the session duration (without paused duration)
     val effectiveSessionMillis = state.sessionDurationMillis ?: 0L
 
@@ -44,28 +64,47 @@ fun RewardsScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(Spacing.xl),
+                .padding(Spacing.xl)
+                .semantics { isTraversalGroup = true },
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { isTraversalGroup = true },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
                 Text(
                     text = state.goalTitle,
-                    style = MaterialTheme.typography.headlineMedium,
-                    textAlign = TextAlign.Center
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .focusable()
+                        .semantics { heading() }
                 )
 
                 Spacer(modifier = Modifier.height(Spacing.xxl))
 
-                Text(
-                    text = "+${formatLocalizedInteger(state.rewardedCurrency ?: 0)} fish",
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                // Rewarded currency
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                ) {
+                    Text(
+                        text = "+${formatLocalizedInteger(state.rewardedCurrency ?: 0)}",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    // fish icon
+                    Image(
+                        painter = painterResource(id = R.drawable.fish_blue2_24),
+                        contentDescription = "Fish",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(Spacing.md))
 
@@ -95,15 +134,28 @@ fun RewardsScreen(
 
                     Spacer(modifier = Modifier.height(Spacing.sm))
 
-                    Text(
-                        text = "+${formatLocalizedInteger(state.goalCompletionReward ?: 0)} bonus fish",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+                    ) {
+                        Text(
+                            text = "+${formatLocalizedInteger(state.goalCompletionReward ?: 0)} bonus",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+
+                        Image(
+                            painter = painterResource(id = R.drawable.fish_blue2_24),
+                            contentDescription = "Fish",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
 
             Column(
-                modifier = Modifier.weight(0.6f),
+                modifier = Modifier
+                    .weight(0.6f)
+                    .semantics { isTraversalGroup = true },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 TrackingActionButton(
@@ -129,16 +181,32 @@ fun RewardsScreen(
                 Text(
                     text = state.goalTitle,
                     style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .focusable()
+                        .semantics { heading() }
                 )
 
                 Spacer(modifier = Modifier.height(Spacing.xxl))
 
-                Text(
-                    text = "+${formatLocalizedInteger(state.rewardedCurrency ?: 0)} fish",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                // Rewarded currency
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                ) {
+                    Text(
+                        text = "+${formatLocalizedInteger(state.rewardedCurrency ?: 0)}",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    // fish icon
+                    Image(
+                        painter = painterResource(id = R.drawable.fish_blue2_24),
+                        contentDescription = "Fish",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(Spacing.md))
 
@@ -168,10 +236,21 @@ fun RewardsScreen(
 
                     Spacer(modifier = Modifier.height(Spacing.sm))
 
-                    Text(
-                        text = "+${formatLocalizedInteger(state.goalCompletionReward ?: 0)} bonus fish",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+                    ) {
+                        Text(
+                            text = "+${formatLocalizedInteger(state.goalCompletionReward ?: 0)} bonus",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+
+                        Image(
+                            painter = painterResource(id = R.drawable.fish_blue2_24),
+                            contentDescription = "Fish",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
 

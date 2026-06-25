@@ -27,6 +27,7 @@ val OnBackground = Color(0xFF1F1F1F)
 // Other
 val Disabled = Color(0xFF878787)
 val Outline = Color(0xFF1C1616)
+val Error = Color(0xFFB23F5B)
 
 
 // DEFAULT ANDROID LIGHT MODE COLORS

@@ -9,11 +9,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -107,21 +107,6 @@ private fun WeekRightControls(
     compact: Boolean
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        if (state.weekOffset < 0) {
-            // Show a compact action to quickly return to the current week when viewing past weeks
-            TextButton(
-                onClick = { viewModel.jumpToThisWeek() },
-                modifier = Modifier.padding(end = if (compact) 0.dp else 8.dp)
-            ) {
-                Text(
-                    text = if (compact) "Current" else "Back to this week",
-                    style = if (compact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-
         // Next week button (used to step forward, disabled when already at current week)
         IconButton(
             enabled = state.weekOffset < 0,
@@ -132,6 +117,19 @@ private fun WeekRightControls(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "Next week"
             )
+        }
+        if (state.weekOffset < 0) {
+            // Show a compact action to quickly return to the current week when viewing past weeks
+            IconButton(
+                onClick = { viewModel.jumpToThisWeek() },
+                modifier = if (compact) Modifier.size(32.dp) else Modifier
+            ) {
+                Icon(
+                    Icons.Default.Today,
+                    contentDescription = "Back to this week",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

@@ -79,7 +79,8 @@ class ProfileService(
                 FriendProfile(
                     id = friend.id.toString(),
                     username = friend.username,
-                    avatarPath = friend.profileImageUrl?.toString()
+                    avatarPath = friend.profileImageUrl?.toString(),
+                    balance = friend.balance
                 )
             },
             collectedCatIds = collectedCatsIds,

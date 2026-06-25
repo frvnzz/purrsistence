@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -29,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,9 +43,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.ui.state.TopBarState
 import com.example.purrsistence.ui.theme.Shapes
@@ -58,7 +65,12 @@ fun SettingsScreen(
 ) {
     val isSignedIn by userViewModel.isSupabaseSignedIn.collectAsState()
     val user by userViewModel.user.collectAsState()
+    val isLoading by userViewModel.isSupabaseLoading.collectAsState()
+    val supabaseError by userViewModel.supabaseError.collectAsState()
+
     var showResetDialog by remember { mutableStateOf(false) }
+    var showUsernameDialog by remember { mutableStateOf(false) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
 
     // set TopBar content with back button
     LaunchedEffect(Unit) {
@@ -83,14 +95,33 @@ fun SettingsScreen(
                 title = "Profile",
                 description = if (isSignedIn) user?.username else "Login to sync and unlock more features",
                 icon = Icons.Default.AccountCircle,
-                onClick = { if (!isSignedIn) onNavigateToAuth() },
-                enabled = !isSignedIn
+                onClick = {
+                    if (isSignedIn) {
+                        showUsernameDialog = true
+                    } else {
+                        onNavigateToAuth()
+                    }
+                },
+                enabled = true
             )
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = Spacing.lg),
                 thickness = 0.5.dp,
                 color = MaterialTheme.colorScheme.outlineVariant
             )
+            if (isSignedIn) {
+                SettingsItem(
+                    title = "Change Password",
+                    description = "Update your account password",
+                    icon = Icons.Default.Lock,
+                    onClick = { showPasswordDialog = true }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = Spacing.lg),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+            }
             SettingsItem(
                 title = "Cloud Sync",
                 description = if (isSignedIn) "Purrsistence Cloud Synced" else "Local Only Mode",
@@ -188,6 +219,192 @@ fun SettingsScreen(
             }
         )
     }
+
+    if (showUsernameDialog) {
+        var newUsername by remember { mutableStateOf(user?.username ?: "") }
+        var errorMessage by remember { mutableStateOf<String?>(null) }
+
+        //clear error when starting
+        LaunchedEffect(showUsernameDialog) {
+            userViewModel.clearSupabaseError()
+        }
+
+        //observe ViewModel error and map it
+        LaunchedEffect(supabaseError) {
+            val error = supabaseError
+            errorMessage = when {
+                error == null -> null
+                error.contains("duplicate key", ignoreCase = true) -> "Username is already taken."
+                else -> "Failed to update username. Please try again."
+            }
+        }
+
+        AlertDialog(
+            onDismissRequest = { if (!isLoading) showUsernameDialog = false },
+            title = { Text("Update Username") },
+            text = {
+                Column {
+                    TextField(
+                        value = newUsername,
+                        onValueChange = { newUsername = it },
+                        label = { Text("New Username") },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { 
+                                contentDescription = "New Username field"
+                            },
+                        isError = errorMessage != null,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        )
+                    )
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(top = Spacing.xs)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (newUsername.isNotBlank()) {
+                            userViewModel.updateUsernameInSupabase(newUsername)
+                        }
+                    },
+                    enabled = (!isLoading && newUsername.isNotBlank() && newUsername != user?.username),
+                    shape = Shapes.buttons
+                ) {
+                    Text(if (isLoading) "Updating..." else "Update")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showUsernameDialog = false },
+                    enabled = !isLoading,
+                    shape = Shapes.buttons
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+
+        //close if isLoading goes from true to false and no error
+        var wasLoading by remember { mutableStateOf(false) }
+        LaunchedEffect(isLoading) {
+            if (wasLoading && !isLoading && supabaseError == null) {
+                showUsernameDialog = false
+            }
+            wasLoading = isLoading
+        }
+    }
+
+    if (showPasswordDialog) {
+        var currentPassword by remember { mutableStateOf("") }
+        var newPassword by remember { mutableStateOf("") }
+        var errorMessage by remember { mutableStateOf<String?>(null) }
+
+        LaunchedEffect(showPasswordDialog) {
+            userViewModel.clearSupabaseError()
+        }
+
+        LaunchedEffect(supabaseError) {
+            val error = supabaseError
+            errorMessage = when {
+                error == null -> null
+                error.contains("invalid login credentials", ignoreCase = true) -> "Current password is incorrect."
+                error.contains("weak_password", ignoreCase = true) -> "New password is too weak."
+                error.contains("should be at least", ignoreCase = true) -> "Password is too short."
+                else -> "Failed to update password. Please try again."
+            }
+        }
+
+        AlertDialog(
+            onDismissRequest = { if (!isLoading) showPasswordDialog = false },
+            title = { Text("Change Password") },
+            text = {
+                Column {
+                    TextField(
+                        value = currentPassword,
+                        onValueChange = { currentPassword = it },
+                        label = { Text("Current Password") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { 
+                                contentDescription = "Current Password field"
+                            },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Next
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(Spacing.md))
+                    TextField(
+                        value = newPassword,
+                        onValueChange = { newPassword = it },
+                        label = { Text("New Password") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { 
+                                contentDescription = "New Password field"
+                            },
+                        isError = errorMessage != null,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        )
+                    )
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(top = Spacing.xs)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (currentPassword.isNotBlank() && newPassword.isNotBlank()) {
+                            userViewModel.updatePasswordInSupabase(currentPassword, newPassword)
+                        }
+                    },
+                    enabled = !isLoading && currentPassword.isNotBlank() && newPassword.isNotBlank(),
+                    shape = Shapes.buttons
+                ) {
+                    Text(if (isLoading) "Updating..." else "Update")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showPasswordDialog = false },
+                    enabled = !isLoading,
+                    shape = Shapes.buttons
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+
+        var wasLoading by remember { mutableStateOf(false) }
+        LaunchedEffect(isLoading) {
+            if (wasLoading && !isLoading && supabaseError == null) {
+                showPasswordDialog = false
+            }
+            wasLoading = isLoading
+        }
+    }
 }
 
 
@@ -253,7 +470,7 @@ fun SettingsItem(
             )
             if (description != null) {
                 Text(
-                    text = if (enabled) description else "$description",
+                    text = description,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline
                 )

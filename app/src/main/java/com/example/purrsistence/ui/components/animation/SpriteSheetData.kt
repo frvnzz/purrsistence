@@ -4,5 +4,7 @@ data class SpriteSheetData(
     val columns: Int,
     val rows: Int,
     val totalFrames: Int,
-    val frameDurationMs: Long = 100L
+    val frameDurationMs: Long = 100L,
+    val offsetY: Float = 0f,
+    val scale: Float = 1f
 )

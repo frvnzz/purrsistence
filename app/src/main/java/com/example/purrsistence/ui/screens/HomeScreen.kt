@@ -15,6 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.paneTitle
@@ -23,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import com.example.purrsistence.service.RoomService
 import com.example.purrsistence.ui.components.CurrencyBadge
 import com.example.purrsistence.ui.components.DeepFocusAccessibilityDialog
+import com.example.purrsistence.ui.components.TutorialOverlay
+import com.example.purrsistence.ui.components.TutorialStep
 import com.example.purrsistence.ui.components.homeScreen.CatSelectionDialog
 import com.example.purrsistence.ui.components.homeScreen.GoalBottomDrawer
 import com.example.purrsistence.ui.components.homeScreen.RoomView
@@ -40,8 +44,14 @@ fun HomeScreen(
     userViewModel: UserViewModel,
     goalViewModel: GoalViewModel,
     onStartTracking: (Int, String, Int, Boolean) -> Unit,
+    onAddGoalClick: () -> Unit,
     setTopBar: (TopBarState) -> Unit,
-    soundManager: SoundManager
+    openShop: () -> Unit,
+    soundManager: SoundManager,
+    onRoomViewPositioned: (LayoutCoordinates) -> Unit = {},
+    onCurrencyBadgePositioned: (LayoutCoordinates) -> Unit = {},
+    onSelectCatsPositioned: (LayoutCoordinates) -> Unit = {},
+    onStartButtonPositioned: (LayoutCoordinates) -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape =
@@ -52,6 +62,8 @@ fun HomeScreen(
     var showCatSelectionDialog by remember { mutableStateOf(false) }
 
     val user by userViewModel.user.collectAsState()
+    val tutorialCompleted by userViewModel.tutorialCompleted.collectAsState()
+
     val balance = user?.balance ?: 0
     val collectedCats = user?.collectedCatsIds ?: emptyList()
     val selectedCatIds = user?.selectedCatIds ?: emptyList()
@@ -67,12 +79,24 @@ fun HomeScreen(
         roomService.assignCatsToSpots(catsToDisplay, spots)
     }
 
+    // SELECTED GOAL (GoalBottomDrawer)
     val goals by goalViewModel.goals(1).collectAsState(initial = emptyList())
     val selectedGoalId = goalViewModel.selectedGoalId
 
-    LaunchedEffect(goals) {
-        if (selectedGoalId == null && goals.isNotEmpty()) {
-            goalViewModel.selectGoal(goals.first().goal.id)
+    LaunchedEffect(goals, selectedGoalId) {
+        val activeGoals = goals.filter { !it.goal.inactive }
+        // Case A: GoalBottomDrawer is empty, no goals to select
+        if (activeGoals.isEmpty()) {
+            return@LaunchedEffect
+        }
+        // Case B: No Goal is selected, select the first one
+        val selectedStillExists =
+            activeGoals.any { it.goal.id == selectedGoalId }
+        // Case C: Selected Goal no longer exists, select the first one
+        if (!selectedStillExists) {
+            goalViewModel.selectGoal(
+                activeGoals.first().goal.id
+            )
         }
     }
     val selectedGoal = goals.find { it.goal.id == selectedGoalId }?.goal
@@ -81,7 +105,11 @@ fun HomeScreen(
     setTopBar(
         TopBarState(
             title = "Home",
-            actions = { CurrencyBadge(balance = balance) }
+            actions = { CurrencyBadge(
+                balance = balance,
+                onClick = openShop,
+                modifier = Modifier.onGloballyPositioned { onCurrencyBadgePositioned(it) }
+            ) }
         )
     )
 
@@ -100,7 +128,7 @@ fun HomeScreen(
                         start = Spacing.lg,
                         top = Spacing.lg,
                         end = Spacing.lg,
-                        bottom = 100.dp // same as collapsedHeight from GoalBottomDrawer
+                        bottom = 127.dp // same as collapsedHeight from GoalBottomDrawer
                     )
             ) {
                 SelectCatsButton(
@@ -108,12 +136,14 @@ fun HomeScreen(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(bottom = Spacing.md)
+                        .onGloballyPositioned { onSelectCatsPositioned(it) }
                 )
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .weight(1f)
+                        .onGloballyPositioned { onRoomViewPositioned(it) },
                     contentAlignment = Alignment.Center
                 ) {
                     RoomView(
@@ -139,7 +169,9 @@ fun HomeScreen(
                     onNeedsAccessibilitySetup = { showAccessibilityDialog = true }
                 )
             },
-            alwaysExpanded = isLandscape
+            onAddGoalClick = onAddGoalClick,
+            alwaysExpanded = isLandscape,
+            onStartButtonPositioned = onStartButtonPositioned
         )
 
         if (showAccessibilityDialog) {

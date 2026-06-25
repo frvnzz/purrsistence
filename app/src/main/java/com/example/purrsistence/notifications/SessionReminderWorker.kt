@@ -1,6 +1,6 @@
 package com.example.purrsistence.notifications
 
-import android.Manifest
+import android.Manifest.permission
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -17,7 +17,7 @@ class SessionReminderWorker(
     workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    @RequiresPermission(permission.POST_NOTIFICATIONS)
     override suspend fun doWork(): Result {
         val title = inputData.getString(KEY_TITLE) ?: "The cats are waiting"
         val message = inputData.getString(KEY_MESSAGE)

@@ -1,5 +1,6 @@
 package com.example.purrsistence.service
 
+import android.util.Log
 import com.example.purrsistence.data.local.repository.GoalRepository
 import com.example.purrsistence.data.local.repository.TrackingRepository
 import com.example.purrsistence.data.local.repository.UserRepository
@@ -19,6 +20,7 @@ import com.example.purrsistence.domain.model.TrackingSession
 import com.example.purrsistence.domain.model.User
 import com.example.purrsistence.domain.model.types.SyncStatus
 import io.github.jan.supabase.auth.status.SessionStatus
+import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.net.URL
@@ -57,7 +59,11 @@ interface TrackingSyncService {
 
     suspend fun addCollectedCatToSupabaseAndLocal(catId: String)
 
+    suspend fun updateSelectedCats(selectedCatIds: List<String>): SyncStatus
+
     suspend fun updateUsername(username: String)
+
+    suspend fun updatePassword(currentPassword: String, newPassword: String)
 
     suspend fun updateAvatarPath(avatarPath: String?)
 
@@ -79,11 +85,12 @@ interface TrackingSyncService {
 
     suspend fun declineFriendRequest(friendshipId: Long)
 
-    suspend fun getFriendProfileDetails(friendUserId: String): FriendProfileDetails
+    suspend fun getFriendProfileDetails(friendUserId: String, weekStart: Instant, weekEnd: Instant): FriendProfileDetails
 
     suspend fun deleteFriendship(
         friendshipId: Long
     )
+
 }
 
 
@@ -108,6 +115,20 @@ class SupabaseSyncService(
         return authRepository.currentUserId()
     }
 
+    private suspend fun runSyncSafely(
+        actionName: String,
+        block: suspend () -> SyncStatus
+    ): SyncStatus {
+        return try {
+            block()
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: Exception) {
+            Log.e("SupabaseSyncService", "Sync failed while $actionName", exception)
+            SyncStatus.SYNC_FAILED
+        }
+    }
+
     override val sessionStatus: Flow<SessionStatus> = authRepository.sessionStatus
 
     override suspend fun signUp(
@@ -122,8 +143,56 @@ class SupabaseSyncService(
         )
 
         if (isSignedIn()) {
-            syncUserAfterSignIn()
+            syncUserAfterSignUp(username)
+
+            forceDownloadFromSupabase()
         }
+    }
+
+    private suspend fun syncUserAfterSignUp(
+        username: String
+    ): SyncStatus {
+        if (!isSignedIn()) {
+            return SyncStatus.NOT_LINKED
+        }
+
+        val localUser = requireLocalUser()
+        val supabaseUserId = requireSupabaseUserId()
+
+        val localGoals =
+            goalRepository.getGoalsForSync(localUserId)
+
+        val localTrackingSessions =
+            trackingRepository.getTrackingSessionsForSync(localUserId)
+
+        val localCollectedCatIds =
+            localUser.collectedCatsIds.distinct()
+
+        val localSelectedCatIds =
+            localUser.selectedCatIds
+                .distinct()
+                .filter { catId -> catId in localCollectedCatIds }
+
+        val linkedUser = localUser.copy(
+            username = username.ifBlank { localUser.username },
+            collectedCatsIds = localCollectedCatIds,
+            selectedCatIds = localSelectedCatIds,
+            isSupabaseLinked = true,
+            supabaseUserId = supabaseUserId
+        )
+
+        syncSnapshotRepository.uploadUserData(
+            supabaseUserId = supabaseUserId,
+            localUser = linkedUser,
+            goals = localGoals,
+            trackingSessions = localTrackingSessions
+        )
+
+        userRepository.updateUserFromRemoteSync(linkedUser)
+
+        userRepository.markUserSynced(localUserId)
+
+        return SyncStatus.IN_SYNC
     }
 
     override suspend fun signIn(
@@ -151,11 +220,15 @@ class SupabaseSyncService(
     }
 
     override suspend fun syncAfterLocalGoalChanged(): SyncStatus {
-        return syncGoalsAndTrackingAfterLocalChange()
+        return runSyncSafely("syncing local goal changes") {
+            syncGoalsAndTrackingAfterLocalChange()
+        }
     }
 
     override suspend fun syncAfterLocalTrackingSessionChanged(): SyncStatus {
-        return syncGoalsAndTrackingAfterLocalChange()
+        return runSyncSafely("syncing local tracking session changes") {
+            syncGoalsAndTrackingAfterLocalChange()
+        }
     }
 
     private suspend fun syncGoalsAndTrackingAfterLocalChange(): SyncStatus {
@@ -185,102 +258,10 @@ class SupabaseSyncService(
             localUserId = localUserId
         )
 
-        val localUpdatedAt = localUser.localUpdatedAt ?: Instant.EPOCH
-        val remoteUpdatedAt = remoteData.remoteUpdatedAt
-
-        val useLocalData =
-            localUser.hasPendingLocalChanges &&
-                    localUpdatedAt.isAfter(remoteUpdatedAt)
-
-        val mergedCollectedCatIds =
-            (localUser.collectedCatsIds + remoteData.collectedCatIds)
-                .distinct()
-
-        val mergedSelectedCatIds =
-            (localUser.selectedCatIds + remoteData.selectedCatIds)
-                .distinct()
-                .filter { catId -> catId in mergedCollectedCatIds }
-                .take(3)
-
-        val mergedUsername =
-            if (useLocalData) {
-                localUser.username
-            } else {
-                remoteData.profile.username
-            }
-
-        val mergedAvatarPath =
-            if (useLocalData) {
-                localUser.profileImageUrl?.toString()
-            } else {
-                remoteData.profile.avatarPath
-            }
-
-        val localGoals =
-            goalRepository.getGoalsForSync(localUserId)
-
-        val localTrackingSessions =
-            trackingRepository.getTrackingSessionsForSync(localUserId)
-
-        val mergedGoals =
-            mergeGoals(
-                localGoals = localGoals,
-                remoteGoals = remoteData.goals,
-                localWinsOnConflict = useLocalData
-            )
-
-        val mergedTrackingSessions =
-            mergeTrackingSessions(
-                localSessions = localTrackingSessions,
-                remoteSessions = remoteData.trackingSessions,
-                localWinsOnConflict = useLocalData
-            )
-
-        profileRepository.updateUsername(
-            userId = supabaseUserId,
-            username = mergedUsername
-        )
-
-        profileRepository.updateAvatarPath(
-            userId = supabaseUserId,
-            avatarPath = mergedAvatarPath
-        )
-
-        catRepository.uploadCollectedCats(
-            userId = supabaseUserId,
-            catIds = mergedCollectedCatIds
-        )
-
-        catRepository.replaceSelectedCats(
-            userId = supabaseUserId,
-            selectedCatIds = mergedSelectedCatIds
-        )
-
-        syncSnapshotRepository.uploadGoalsAndTracking(
+        applyRemoteDatasetToLocal(
+            localUser = localUser,
             supabaseUserId = supabaseUserId,
-            goals = mergedGoals,
-            trackingSessions = mergedTrackingSessions
-        )
-
-        val mergedUser = localUser.copy(
-            username = mergedUsername,
-            profileImageUrl = mergedAvatarPath.toUrlOrNull(),
-            collectedCatsIds = mergedCollectedCatIds,
-            selectedCatIds = mergedSelectedCatIds,
-            isSupabaseLinked = true,
-            supabaseUserId = supabaseUserId
-        )
-
-        userRepository.updateUserFromRemoteSync(mergedUser)
-
-        goalRepository.replaceGoalsFromRemoteSync(
-            userId = localUserId,
-            goals = mergedGoals
-        )
-
-        trackingRepository.replaceTrackingSessionsFromRemoteSync(
-            userId = localUserId,
-            sessions = mergedTrackingSessions
+            remoteData = remoteData
         )
 
         userRepository.markUserSynced(localUserId)
@@ -288,7 +269,13 @@ class SupabaseSyncService(
         return SyncStatus.IN_SYNC
     }
 
-    override suspend fun checkAndSyncIfNeeded(): SyncStatus {
+    override suspend fun checkAndSyncIfNeeded(): SyncStatus{
+        return runSyncSafely("checking and syncing data") {
+            checkAndSyncIfNeededUnsafe()
+        }
+    }
+
+    private suspend fun checkAndSyncIfNeededUnsafe(): SyncStatus {
         if (!isSignedIn()) {
             return SyncStatus.NOT_LINKED
         }
@@ -344,7 +331,13 @@ class SupabaseSyncService(
         }
     }
 
-    override suspend fun forceUploadLocalToSupabase(): SyncStatus {
+    override suspend fun forceUploadLocalToSupabase(): SyncStatus{
+        return runSyncSafely("uploading local data to Supabase") {
+            forceUploadLocalToSupabaseUnsafe()
+        }
+    }
+
+    suspend fun forceUploadLocalToSupabaseUnsafe(): SyncStatus {
         if (!isSignedIn()) {
             return SyncStatus.NOT_LINKED
         }
@@ -363,6 +356,12 @@ class SupabaseSyncService(
     }
 
     override suspend fun forceDownloadFromSupabase(): SyncStatus {
+        return runSyncSafely("downloading data from Supabase") {
+            forceDownloadFromSupabaseUnsafe()
+        }
+    }
+
+    private suspend fun forceDownloadFromSupabaseUnsafe(): SyncStatus {
         if (!isSignedIn()) {
             return SyncStatus.NOT_LINKED
         }
@@ -404,6 +403,52 @@ class SupabaseSyncService(
         userRepository.updateUserFromRemoteSync(updatedUser)
     }
 
+    override suspend fun updateSelectedCats(
+        selectedCatIds: List<String>
+    ): SyncStatus {
+        return runSyncSafely("updating selected cats") {
+            updateSelectedCatsUnsafe(selectedCatIds)
+        }
+    }
+
+    private suspend fun updateSelectedCatsUnsafe(
+        selectedCatIds: List<String>
+    ): SyncStatus {
+        if (!isSignedIn()) {
+            return SyncStatus.NOT_LINKED
+        }
+
+        val localUser = requireLocalUser()
+        val supabaseUserId = requireSupabaseUserId()
+
+        val validSelectedCatIds = selectedCatIds
+            .distinct()
+            .filter { catId -> catId in localUser.collectedCatsIds }
+            .take(5)
+
+        catRepository.uploadCollectedCats(
+            userId = supabaseUserId,
+            catIds = localUser.collectedCatsIds
+        )
+
+        catRepository.replaceSelectedCats(
+            userId = supabaseUserId,
+            selectedCatIds = validSelectedCatIds
+        )
+
+        userRepository.updateUserFromRemoteSync(
+            localUser.copy(
+                selectedCatIds = validSelectedCatIds,
+                isSupabaseLinked = true,
+                supabaseUserId = supabaseUserId
+            )
+        )
+
+        userRepository.markUserSynced(localUserId)
+
+        return SyncStatus.CONFLICT_RESOLVED_FROM_LOCAL
+    }
+
     override suspend fun updateUsername(
         username: String
     ) {
@@ -422,6 +467,10 @@ class SupabaseSyncService(
                 supabaseUserId = supabaseUserId
             )
         )
+    }
+
+    override suspend fun updatePassword(currentPassword: String, newPassword: String) {
+        authRepository.updatePassword(currentPassword, newPassword)
     }
 
     override suspend fun updateAvatarPath(
@@ -445,28 +494,38 @@ class SupabaseSyncService(
     }
 
     override suspend fun resetTrackingSessions(userId: Int) {
-        //Delete local tracking sessions
+        // Delete local tracking sessions
         trackingRepository.deleteAllTrackingSessions(userId)
 
-        //Reset local goal statuses
+        // Reset local goal statuses
         goalRepository.resetGoalsStatus(userId)
 
-        //mark user as having pending local changes to ensure sync picks up the reset goals
+        // Mark user as having pending local changes
         val localUser = requireLocalUser()
         userRepository.updateUserFromLocalAction(localUser)
 
-        //Handle remote sync if signed in
-        if (isSignedIn()) {
+        if (!isSignedIn()) {
+            return
+        }
+
+        val syncStatus = runSyncSafely("resetting tracking sessions remotely") {
             val supabaseUserId = requireSupabaseUserId()
 
-            //delete remote tracking sessions
             goalTrackingRepository.deleteTrackingSessions(supabaseUserId)
 
-            //update remote goals with the reset status
             val localGoals = goalRepository.getGoalsForSync(userId)
             goalTrackingRepository.upsertGoals(supabaseUserId, localGoals)
 
             userRepository.markUserSynced(userId)
+
+            SyncStatus.CONFLICT_RESOLVED_FROM_LOCAL
+        }
+
+        if (syncStatus == SyncStatus.SYNC_FAILED) {
+            Log.w(
+                "SupabaseSyncService",
+                "Tracking sessions were reset locally, but remote sync failed."
+            )
         }
     }
 
@@ -508,8 +567,10 @@ class SupabaseSyncService(
     }
 
     override suspend fun getFriendProfileDetails(
-        friendUserId: String
-    ): FriendProfileDetails {
+        friendUserId: String,
+        weekStart: Instant,
+        weekEnd: Instant
+    ): FriendProfileDetails  {
         require(friendUserId.isNotBlank()) {
             "Friend user id must not be blank."
         }
@@ -534,12 +595,19 @@ class SupabaseSyncService(
                 .filter { catId ->
                     catId in collectedCatIds
                 }
-                .take(3)
+
+        val weeklyTrackedMinutes =
+            goalTrackingRepository.fetchWeeklyTrackedMinutes(
+                userId = friendUserId,
+                weekStart = weekStart,
+                weekEnd = weekEnd
+            )
 
         return FriendProfileDetails(
             profile = profile,
             collectedCatIds = collectedCatIds,
-            selectedCatIds = selectedCatIds
+            selectedCatIds = selectedCatIds,
+            weeklyTrackedMinutes = weeklyTrackedMinutes
         )
     }
 
@@ -612,6 +680,7 @@ class SupabaseSyncService(
         val remoteUser = localUser.copy(
             username = remoteData.profile.username,
             profileImageUrl = remoteData.profile.avatarPath.toUrlOrNull(),
+            balance = remoteData.profile.balance,
             collectedCatsIds = remoteData.collectedCatIds,
             selectedCatIds = remoteData.selectedCatIds,
             isSupabaseLinked = true,
@@ -649,65 +718,10 @@ class SupabaseSyncService(
             }
     }
 
-    private fun mergeGoals(
-        localGoals: List<Goal>,
-        remoteGoals: List<Goal>,
-        localWinsOnConflict: Boolean
-    ): List<Goal> {
-        val result = linkedMapOf<Int, Goal>()
-
-        if (localWinsOnConflict) {
-            remoteGoals.forEach { goal ->
-                result[goal.id] = goal
-            }
-
-            localGoals.forEach { goal ->
-                result[goal.id] = goal
-            }
-        } else {
-            localGoals.forEach { goal ->
-                result[goal.id] = goal
-            }
-
-            remoteGoals.forEach { goal ->
-                result[goal.id] = goal
-            }
-        }
-
-        return result.values.toList()
-    }
-
-    private fun mergeTrackingSessions(
-        localSessions: List<TrackingSession>,
-        remoteSessions: List<TrackingSession>,
-        localWinsOnConflict: Boolean
-    ): List<TrackingSession> {
-        val result = linkedMapOf<Int, TrackingSession>()
-
-        if (localWinsOnConflict) {
-            remoteSessions.forEach { session ->
-                result[session.id] = session
-            }
-
-            localSessions.forEach { session ->
-                result[session.id] = session
-            }
-        } else {
-            localSessions.forEach { session ->
-                result[session.id] = session
-            }
-
-            remoteSessions.forEach { session ->
-                result[session.id] = session
-            }
-        }
-
-        return result.values.toList()
-    }
-
     private data class SyncComparableUserData(
         val username: String,
         val profileImageUrl: String?,
+        val balance: Int,
         val collectedCatIds: List<String>,
         val selectedCatIds: List<String>,
         val goalSignatures: List<String>,
@@ -722,6 +736,7 @@ class SupabaseSyncService(
                 return SyncComparableUserData(
                     username = user.username,
                     profileImageUrl = user.profileImageUrl?.toString(),
+                    balance = user.balance,
                     collectedCatIds = user.collectedCatsIds.sorted(),
                     selectedCatIds = user.selectedCatIds,
                     goalSignatures = goals
@@ -761,6 +776,7 @@ class SupabaseSyncService(
                 return SyncComparableUserData(
                     username = remoteData.profile.username,
                     profileImageUrl = remoteData.profile.avatarPath,
+                    balance = remoteData.profile.balance,
                     collectedCatIds = remoteData.collectedCatIds.sorted(),
                     selectedCatIds = remoteData.selectedCatIds,
                     goalSignatures = remoteData.goals

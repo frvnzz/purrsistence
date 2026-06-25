@@ -1,7 +1,11 @@
 package com.example.purrsistence.ui.viewmodel
 
+import android.content.SharedPreferences
+import android.util.Log
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.purrsistence.domain.model.types.SyncStatus
 import com.example.purrsistence.service.ProfileService
 import com.example.purrsistence.service.ShopService
 import com.example.purrsistence.service.TrackingSyncService
@@ -10,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -17,8 +22,28 @@ import kotlinx.coroutines.launch
 class UserViewModel(
     private val shopService: ShopService,
     private val supabaseSyncService: TrackingSyncService,
-    private val profileService: ProfileService? = null
+    private val profileService: ProfileService? = null,
+    private val sharedPreferences: SharedPreferences? = null
 ) : ViewModel() {
+
+    private val _tutorialCompleted = MutableStateFlow(
+        sharedPreferences?.getBoolean("tutorial_completed", false) ?: true
+    )
+    val tutorialCompleted: StateFlow<Boolean> = _tutorialCompleted.asStateFlow()
+
+    private val _tutorialStepIndex = MutableStateFlow(0)
+    val tutorialStepIndex: StateFlow<Int> = _tutorialStepIndex.asStateFlow()
+
+    fun nextTutorialStep() {
+        _tutorialStepIndex.value += 1
+    }
+
+    fun completeTutorial() {
+        sharedPreferences?.edit {
+            putBoolean("tutorial_completed", true)
+        }
+        _tutorialCompleted.value = true
+    }
 
     // Centralized source of truth for the current local user
     val currentUserId: Int = 1
@@ -60,7 +85,7 @@ class UserViewModel(
     }
 
     fun buyCat(catId: String, price: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
                 // Local purchase remains the primary app
                 // behavior:
@@ -73,33 +98,71 @@ class UserViewModel(
                     supabaseSyncService.forceUploadLocalToSupabase()
                 }
             } catch (exception: Exception) {
-                _supabaseError.value = exception.message
+                handleSupabaseError(exception, "buying this cat")
             }
         }
     }
 
     fun updateSelectedCats(selectedIds: List<String>) {
         viewModelScope.launch {
-            shopService.updateSelectedCats(currentUserId, selectedIds)
+            _supabaseError.value = null
+
+            val result = shopService.updateSelectedCats(
+                userId = currentUserId,
+                selectedIds = selectedIds
+            )
+
+            if (result == SyncStatus.SYNC_FAILED) {
+                _supabaseError.value =
+                    "Cats were saved on this device, but syncing failed. Please check your connection and try again later."
+            }
         }
     }
 
     fun updateUsername(newUsername: String) {
         viewModelScope.launch {
-            profileService?.updateProfile(
-                userId = currentUserId,
-                username = newUsername,
-                profileImageUrl = user.value?.profileImageUrl
-            )
+            _isSupabaseLoading.value = true
+            _supabaseError.value = null
+
+            val trimmedUsername = newUsername.trim()
+
+            try {
+                profileService?.updateProfile(
+                    userId = currentUserId,
+                    username = trimmedUsername,
+                    profileImageUrl = user.value?.profileImageUrl
+                )
+
+                if (supabaseSyncService.currentSupabaseUserId() != null) {
+                    supabaseSyncService.updateUsername(trimmedUsername)
+                }
+            } catch (exception: Exception) {
+                handleSupabaseError(exception, "updating your username")
+            } finally {
+                _isSupabaseLoading.value = false
+            }
         }
     }
 
     fun updateProfileImage(imageUrl: String?) {
         viewModelScope.launch {
-            profileService?.updateProfilePicture(
-                userId = currentUserId,
-                profileImageUrl = imageUrl
-            )
+            _isSupabaseLoading.value = true
+            _supabaseError.value = null
+
+            try {
+                profileService?.updateProfilePicture(
+                    userId = currentUserId,
+                    profileImageUrl = imageUrl
+                )
+
+                if (supabaseSyncService.currentSupabaseUserId() != null) {
+                    supabaseSyncService.updateAvatarPath(imageUrl)
+                }
+            } catch (exception: Exception) {
+                handleSupabaseError(exception, "updating your profile picture")
+            } finally {
+                _isSupabaseLoading.value = false
+            }
         }
     }
 
@@ -108,7 +171,7 @@ class UserViewModel(
         password: String,
         username: String
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -122,7 +185,7 @@ class UserViewModel(
                 _signUpSuccess.value = true
             } catch (exception: Exception) {
                 _signUpSuccess.value = false
-                _supabaseError.value = exception.message
+                handleSupabaseError(exception, "creating your account")
             } finally {
                 _isSupabaseLoading.value = false
             }
@@ -133,7 +196,7 @@ class UserViewModel(
         email: String,
         password: String
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -144,7 +207,7 @@ class UserViewModel(
                 )
 
             } catch (exception: Exception) {
-                _supabaseError.value = exception.message
+                handleSupabaseError(exception, "signing in")
 
             } finally {
                 _isSupabaseLoading.value = false
@@ -153,7 +216,7 @@ class UserViewModel(
     }
 
     fun signOutFromSupabase() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -168,7 +231,7 @@ class UserViewModel(
     }
 
     fun syncFromSupabase() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -177,7 +240,7 @@ class UserViewModel(
                     supabaseSyncService.checkAndSyncIfNeeded()
                 }
             } catch (exception: Exception) {
-                _supabaseError.value = exception.message
+                handleSupabaseError(exception, "syncing your data")
             } finally {
                 _isSupabaseLoading.value = false
             }
@@ -185,7 +248,7 @@ class UserViewModel(
     }
 
     fun updateUsernameInSupabase(username: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -199,8 +262,23 @@ class UserViewModel(
         }
     }
 
+    fun updatePasswordInSupabase(currentPassword: String, newPassword: String) {
+        viewModelScope.launch {
+            _isSupabaseLoading.value = true
+            _supabaseError.value = null
+
+            try {
+                supabaseSyncService.updatePassword(currentPassword, newPassword)
+            } catch (exception: Exception) {
+                _supabaseError.value = exception.message
+            } finally {
+                _isSupabaseLoading.value = false
+            }
+        }
+    }
+
     fun updateAvatarPathInSupabase(avatarPath: String?) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch{
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
@@ -215,14 +293,14 @@ class UserViewModel(
     }
 
     fun resetTrackingSessions() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isSupabaseLoading.value = true
             _supabaseError.value = null
 
             try {
                 supabaseSyncService.resetTrackingSessions(currentUserId)
             } catch (exception: Exception) {
-                _supabaseError.value = exception.message
+                handleSupabaseError(exception, "resetting your tracking sessions")
             } finally {
                 _isSupabaseLoading.value = false
             }
@@ -231,5 +309,43 @@ class UserViewModel(
 
     fun clearSupabaseError() {
         _supabaseError.value = null
+    }
+
+    private fun friendlySupabaseError(
+        exception: Exception,
+        action: String
+    ): String {
+        val rawMessage = exception.message.orEmpty()
+
+        return when {
+            rawMessage.contains("Invalid login credentials", ignoreCase = true) -> {
+                "The email or password is incorrect. Please check your details and try again."
+            }
+
+            rawMessage.contains("already registered", ignoreCase = true) ||
+                    rawMessage.contains("already exists", ignoreCase = true) -> {
+                "An account with this email already exists. Please log in instead."
+            }
+
+            rawMessage.contains("timeout", ignoreCase = true) ||
+                    rawMessage.contains("request timeout", ignoreCase = true) ||
+                    rawMessage.contains("failed to connect", ignoreCase = true) ||
+                    rawMessage.contains("unable to resolve host", ignoreCase = true) ||
+                    rawMessage.contains("network", ignoreCase = true) -> {
+                "Something went wrong while $action. Please check your connection and try again. If the problem persists, contact support."
+            }
+
+            else -> {
+                "Something went wrong while $action. Please try again. If the problem persists, contact support."
+            }
+        }
+    }
+
+    private fun handleSupabaseError(
+        exception: Exception,
+        action: String
+    ) {
+        Log.e("UserViewModel", "Supabase error while $action", exception)
+        _supabaseError.value = friendlySupabaseError(exception, action)
     }
 }

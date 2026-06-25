@@ -6,5 +6,7 @@ data class Friendship(
     val id: Long?,
     val requesterId: String,
     val addresseeId: String,
-    val status: FriendshipStatus
+    val status: FriendshipStatus,
+    val requesterUsername: String? = null,
+    val addresseeUsername: String? = null
 )

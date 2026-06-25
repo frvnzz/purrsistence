@@ -39,7 +39,8 @@ fun InventorySection(
     user: User?,
     modifier: Modifier = Modifier,
     maxGridHeight: Dp,
-    isLandscape: Boolean = false
+    isLandscape: Boolean = false,
+    onCatClick: (ShopItem) -> Unit = {}
 ) {
     Column(modifier = modifier) {
         Text(
@@ -62,7 +63,10 @@ fun InventorySection(
                     val catId = ids[index]
                     val cat = CatList.getCatById(catId)
                     if (cat != null) {
-                        CatInventoryCard(cat = cat)
+                        CatInventoryCard(
+                            cat = cat,
+                            onClick = { onCatClick(cat) }
+                        )
                     }
                 }
             }
@@ -78,7 +82,7 @@ fun InventorySection(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No cats in inventory yet.\nVisit the Shop to adopt some!",
+                    text = "No cats in inventory yet.\nVisit the Shelter to adopt some!",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(Spacing.md),
                     textAlign = TextAlign.Center
@@ -91,9 +95,11 @@ fun InventorySection(
 @Composable
 fun CatInventoryCard(
     cat: ShopItem,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     Surface(
+        onClick = onClick,
         modifier = modifier
             .aspectRatio(1f)
             .clip(Shapes.cards)

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,7 +50,7 @@ fun DeleteGoalsButton(
             modifier = Modifier.height(40.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Delete,
+                imageVector = Icons.Default.CheckBoxOutlineBlank,
                 contentDescription = "Enter Delete Mode"
             )
         }

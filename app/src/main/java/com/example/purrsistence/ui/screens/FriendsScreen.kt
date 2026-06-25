@@ -18,22 +18,38 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.paneTitle
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
 import com.example.purrsistence.domain.model.FriendProfile
 import com.example.purrsistence.domain.model.Friendship
 import com.example.purrsistence.ui.state.TopBarState
+import com.example.purrsistence.ui.theme.Elevation
+import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.viewmodel.FriendViewModel
 
@@ -51,6 +67,7 @@ fun FriendsScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
+    var requestToCancel by remember { mutableStateOf<Friendship?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.loadFriendsData()
@@ -72,7 +89,9 @@ fun FriendsScreen(
 
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .semantics { paneTitle = "Friends Screen" }
     ) {
         when {
             isLoading &&
@@ -138,7 +157,10 @@ fun FriendsScreen(
 
                         items(outgoingRequests) { request ->
                             OutgoingFriendRequestItem(
-                                request = request
+                                request = request,
+                                onCancel = {
+                                    requestToCancel = request
+                                }
                             )
                         }
 
@@ -184,6 +206,37 @@ fun FriendsScreen(
                 }
             }
         }
+
+        requestToCancel?.let { request ->
+            AlertDialog(
+                onDismissRequest = { requestToCancel = null },
+                title = { Text("Cancel Request?") },
+                text = {
+                    val name = request.addresseeUsername ?: request.addresseeId
+                    Text("Are you sure you want to cancel the friend request to $name?")
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            request.id?.let { viewModel.deleteFriendship(it) }
+                            requestToCancel = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        shape = Shapes.buttons
+                    ) {
+                        Text("Cancel Request")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { requestToCancel = null },
+                        shape = Shapes.buttons
+                    ) {
+                        Text("Keep")
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -194,9 +247,9 @@ private fun SectionTitle(
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(
-            vertical = Spacing.sm
-        )
+        modifier = Modifier
+            .padding(vertical = Spacing.sm)
+            .semantics { heading() }
     )
 }
 
@@ -222,6 +275,7 @@ fun FriendRequestItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = Spacing.xs)
+            .semantics(mergeDescendants = true) {}
     ) {
         Row(
             modifier = Modifier
@@ -237,7 +291,7 @@ fun FriendRequestItem(
                 )
 
                 Text(
-                    text = request.requesterId,
+                    text = request.requesterUsername ?: request.requesterId,
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -273,25 +327,51 @@ fun FriendRequestItem(
 
 @Composable
 fun OutgoingFriendRequestItem(
-    request: Friendship
+    request: Friendship,
+    onCancel: (Long) -> Unit
 ) {
-    Card(
+    Surface(
+        shape = Shapes.cards,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = Elevation.Lvl2,
         modifier = Modifier
             .fillMaxWidth()
+            .height(80.dp)
             .padding(vertical = Spacing.xs)
+            .semantics(mergeDescendants = true) {}
     ) {
-        Column(
-            modifier = Modifier.padding(Spacing.md)
+        Row(
+            modifier = Modifier
+                .padding(Spacing.md)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = "Pending request",
-                style = MaterialTheme.typography.labelSmall
-            )
+            Column {
+                Text(
+                    text = "Pending request",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
 
-            Text(
-                text = request.addresseeId,
-                style = MaterialTheme.typography.bodyLarge
-            )
+                Text(
+                    text = request.addresseeUsername ?: request.addresseeId,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            IconButton(
+                onClick = {
+                    onCancel(request.id!!)
+                }
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Cancel",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }
@@ -303,11 +383,21 @@ fun FriendListItem(
     onClick: () -> Unit,
     onDelete: (() -> Unit)?
 ) {
-    Card(
+    Surface(
+        shape = Shapes.cards,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = Elevation.Lvl4,
         modifier = Modifier
             .fillMaxWidth()
+            .height(80.dp)
             .padding(vertical = Spacing.xs)
-            .clickable(onClick = onClick)
+            .clickable(
+                onClick = onClick,
+                onClickLabel = "View profile of ${friend.username}"
+            )
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+            }
     ) {
         Row(
             modifier = Modifier
@@ -319,7 +409,8 @@ fun FriendListItem(
             Column {
                 Text(
                     text = friend.username,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Text(
@@ -343,4 +434,3 @@ fun FriendListItem(
         }
     }
 }
-

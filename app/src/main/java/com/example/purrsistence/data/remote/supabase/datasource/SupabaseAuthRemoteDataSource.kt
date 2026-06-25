@@ -13,6 +13,7 @@ interface AuthRemoteDataSource {
     suspend fun signUp(email: String, password: String, username: String)
     suspend fun signIn(email: String, password: String)
     suspend fun signOut()
+    suspend fun updatePassword(currentPassword: String, newPassword: String)
     fun currentUserId(): String?
     val sessionStatus: Flow<SessionStatus>
 }
@@ -47,6 +48,22 @@ class SupabaseAuthRemoteDataSource(
 
     override suspend fun signOut() {
         supabase.auth.signOut()
+    }
+
+    override suspend fun updatePassword(currentPassword: String, newPassword: String) {
+        val email = supabase.auth.currentUserOrNull()?.email
+            ?: throw Exception("User email not found")
+
+        //verify old password by signing in again
+        supabase.auth.signInWith(Email) {
+            this.email = email
+            this.password = currentPassword
+        }
+
+        //if old password correct, update password
+        supabase.auth.updateUser {
+            password = newPassword
+        }
     }
 
     override fun currentUserId(): String? {

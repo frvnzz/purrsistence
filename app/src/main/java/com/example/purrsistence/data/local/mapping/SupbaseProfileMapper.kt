@@ -8,7 +8,8 @@ fun ProfileDto.toFriendProfile(): FriendProfile {
     return FriendProfile(
         id = id,
         username = username,
-        avatarPath = avatarPath
+        avatarPath = avatarPath,
+        balance = balance
     )
 }
 
@@ -16,7 +17,8 @@ fun ProfileSearchResultDto.toFriendProfile(): FriendProfile {
     return FriendProfile(
         id = id,
         username = username,
-        avatarPath = avatarPath
+        avatarPath = avatarPath,
+        balance = 0
     )
 }
 
@@ -24,6 +26,7 @@ fun FriendProfile.toSupabaseDto(): ProfileDto {
     return ProfileDto(
         id = id,
         username = username,
-        avatarPath = avatarPath
+        avatarPath = avatarPath,
+        balance = balance
     )
 }

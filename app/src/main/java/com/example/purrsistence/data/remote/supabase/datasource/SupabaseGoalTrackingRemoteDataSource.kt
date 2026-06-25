@@ -1,9 +1,14 @@
 package com.example.purrsistence.data.remote.supabase.datasource
 
+import com.example.purrsistence.data.remote.supabase.dto.FriendWeeklyTrackedTimeDto
+import com.example.purrsistence.data.remote.supabase.dto.FriendWeeklyTrackedTimeParamsDto
 import com.example.purrsistence.data.remote.supabase.dto.GoalsDto
 import com.example.purrsistence.data.remote.supabase.dto.TrackingSessionDto
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.rpc
+import java.time.Instant
 
 class SupabaseGoalTrackingRemoteDataSource(
     private val supabase: SupabaseClient
@@ -85,6 +90,24 @@ class SupabaseGoalTrackingRemoteDataSource(
                     eq("tracking_id", trackingId)
                 }
             }
+    }
+
+    suspend fun fetchWeeklyTrackedMinutes(
+        userId: String,
+        weekStart: Instant,
+        weekEnd: Instant
+    ): Long{
+        return supabase.postgrest
+            .rpc(
+                function = "get_friend_weekly_tracked_minutes",
+                parameters = FriendWeeklyTrackedTimeParamsDto(
+                    friendUserId = userId,
+                    weekStart = weekStart.toString(),
+                    weekEnd = weekEnd.toString()
+                )
+            )
+            .decodeSingle<FriendWeeklyTrackedTimeDto>()
+            .totalMinutes
     }
 
     suspend fun deleteTrackingSessions(

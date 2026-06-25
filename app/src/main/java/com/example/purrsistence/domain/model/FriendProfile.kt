@@ -4,5 +4,6 @@ data class FriendProfile(
     val id: String,
     val username: String,
     val avatarPath: String? = null,
+    val balance: Int = 0,
     val friendshipId: Long? = null
 )

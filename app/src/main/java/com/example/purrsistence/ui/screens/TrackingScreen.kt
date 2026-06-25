@@ -4,6 +4,7 @@ import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,12 +26,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -60,6 +66,12 @@ fun TrackingScreen(
 
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == ORIENTATION_LANDSCAPE
+
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 
     // handle back navigation (show dialog to finish session)
     BackHandler(enabled = state.isTracking) {
@@ -116,7 +128,8 @@ fun TrackingScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(Spacing.lg),
+                .padding(Spacing.lg)
+                .semantics { isTraversalGroup = true },
             verticalAlignment = Alignment.CenterVertically
         ) {
 
@@ -124,8 +137,9 @@ fun TrackingScreen(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .semantics(mergeDescendants = true) {
-                        contentDescription = "Tracking: ${state.goalTitle}"
+                    .semantics {
+                        isTraversalGroup = true
+                        traversalIndex = 0f
                     },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -133,7 +147,11 @@ fun TrackingScreen(
                 Text(
                     text = "TRACKING",
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .focusable()
+                        .semantics { heading() }
                 )
 
                 Spacer(modifier = Modifier.height(Spacing.sm))
@@ -150,20 +168,29 @@ fun TrackingScreen(
             // TIMER
             FocusTimerProgress(
                 elapsedMillis = state.elapsedMillis,
-                pausedMillis = state.totalPausedMillis,
                 multiplier = state.liveMultiplier.toFloat(),
                 multiplierProgress = state.multiplierProgress,
                 checkpointedCurrency = state.checkpointedCurrency,
                 minutesSinceReset = state.minutesSinceReset,
                 isPaused = state.isPaused,
-                modifier = Modifier.weight(1.4f)
+                modifier = Modifier
+                    .weight(1.4f)
+                    .semantics {
+                        isTraversalGroup = true
+                        traversalIndex = 2f
+                    }
             )
 
             Spacer(modifier = Modifier.width(Spacing.xl))
 
             // BUTTONS
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics {
+                        isTraversalGroup = true
+                        traversalIndex = 1f
+                    },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg)
             ) {
@@ -206,14 +233,16 @@ fun TrackingScreen(
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.semantics(mergeDescendants = true) {
-                        contentDescription = "Tracking: ${state.goalTitle}"
-                    }
+                    modifier = Modifier.semantics { isTraversalGroup = true }
                 ) {
                     Text(
                         text = "TRACKING",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .focusRequester(focusRequester)
+                            .focusable()
+                            .semantics { heading() }
                     )
 
                     Spacer(modifier = Modifier.height(Spacing.sm))
@@ -230,7 +259,6 @@ fun TrackingScreen(
 
                 FocusTimerProgress(
                     elapsedMillis = state.elapsedMillis,
-                    pausedMillis = state.totalPausedMillis,
                     multiplier = state.liveMultiplier.toFloat(),
                     multiplierProgress = state.multiplierProgress,
                     checkpointedCurrency = state.checkpointedCurrency,
@@ -261,7 +289,6 @@ fun TrackingScreen(
 
                 TrackingActionButton(
                     text = "Finish",
-                    // remove containerColor if you think this color doesn't fit ???
                     containerColor = DarkTertiary,
                     onClick = viewModel::stopTracking
                 )

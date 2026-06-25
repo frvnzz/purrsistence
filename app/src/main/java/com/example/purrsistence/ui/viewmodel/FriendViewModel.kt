@@ -1,16 +1,20 @@
 package com.example.purrsistence.ui.viewmodel
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.purrsistence.domain.model.FriendProfile
 import com.example.purrsistence.domain.model.FriendProfileDetails
 import com.example.purrsistence.domain.model.Friendship
+import com.example.purrsistence.domain.time.WeekWindowProvider
 import com.example.purrsistence.service.TrackingSyncService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class FriendViewModel(
-    private val trackingSyncService: TrackingSyncService
+    private val trackingSyncService: TrackingSyncService,
+    private val weekWindowProvider: WeekWindowProvider
 ) : ViewModel() {
 
     private val _friends =
@@ -53,6 +57,7 @@ class FriendViewModel(
 
         if (trimmedQuery.length < 2) {
             _searchResults.value = emptyList()
+            _error.value = null
             return
         }
 
@@ -63,6 +68,7 @@ class FriendViewModel(
             try {
                 if (!trackingSyncService.isSignedIn()) {
                     _searchResults.value = emptyList()
+                    _error.value = "Please sign in to search for friends."
                     return@launch
                 }
 
@@ -85,8 +91,11 @@ class FriendViewModel(
                             profile.id !in existingFriendIds &&
                             profile.id !in outgoingRequestIds
                 }
+            } catch (exception: CancellationException) {
+                throw exception
             } catch (exception: Exception) {
-                _error.value = exception.message
+                _searchResults.value = emptyList()
+                handleFriendError("searching for friends", exception)
             } finally {
                 _isLoading.value = false
             }
@@ -104,8 +113,14 @@ class FriendViewModel(
                     return@launch
                 }
 
+                val weekWindow = weekWindowProvider.currentWeek()
+
                 _selectedFriendProfile.value =
-                    trackingSyncService.getFriendProfileDetails(friendUserId)
+                    trackingSyncService.getFriendProfileDetails(
+                        friendUserId = friendUserId,
+                        weekStart = weekWindow.start,
+                        weekEnd = weekWindow.end
+                    )
             } catch (exception: Exception) {
                 _error.value = exception.message
             } finally {
@@ -132,8 +147,10 @@ class FriendViewModel(
                     _searchResults.value.filter { profile ->
                         profile.id != addresseeId
                     }
+            } catch (exception: CancellationException) {
+                throw exception
             } catch (exception: Exception) {
-                _error.value = exception.message
+                handleFriendError("sending the friend request", exception)
             } finally {
                 _isLoading.value = false
             }
@@ -148,8 +165,10 @@ class FriendViewModel(
             try {
                 trackingSyncService.acceptFriendRequest(friendshipId)
                 loadFriendsDataInternal(showLoading = false)
+            } catch (exception: CancellationException) {
+                throw exception
             } catch (exception: Exception) {
-                _error.value = exception.message
+                handleFriendError("accepting the friend request", exception)
             } finally {
                 _isLoading.value = false
             }
@@ -164,8 +183,10 @@ class FriendViewModel(
             try {
                 trackingSyncService.declineFriendRequest(friendshipId)
                 loadFriendsDataInternal(showLoading = false)
+            } catch (exception: CancellationException) {
+                throw exception
             } catch (exception: Exception) {
-                _error.value = exception.message
+                handleFriendError("declining the friend request", exception)
             } finally {
                 _isLoading.value = false
             }
@@ -180,8 +201,10 @@ class FriendViewModel(
             try {
                 trackingSyncService.deleteFriendship(friendshipId)
                 loadFriendsDataInternal(showLoading = false)
+            } catch (exception: CancellationException) {
+                throw exception
             } catch (exception: Exception) {
-                _error.value = exception.message
+                handleFriendError("removing the friend", exception)
             } finally {
                 _isLoading.value = false
             }
@@ -206,6 +229,7 @@ class FriendViewModel(
                 _friends.value = emptyList()
                 _incomingRequests.value = emptyList()
                 _outgoingRequests.value = emptyList()
+                _error.value = "Please sign in to use friends."
                 return
             }
 
@@ -217,12 +241,54 @@ class FriendViewModel(
 
             _outgoingRequests.value =
                 trackingSyncService.getOutgoingFriendRequests()
+        } catch (exception: CancellationException) {
+            throw exception
         } catch (exception: Exception) {
-            _error.value = exception.message
+            handleFriendError("loading friends", exception)
         } finally {
             if (showLoading) {
                 _isLoading.value = false
             }
         }
+    }
+
+    private fun friendlyFriendError(
+        action: String,
+        exception: Exception
+    ): String {
+        val rawMessage = exception.message.orEmpty()
+
+        return when {
+            rawMessage.contains("timeout", ignoreCase = true) ||
+                    rawMessage.contains("request timeout", ignoreCase = true) ||
+                    rawMessage.contains("failed to connect", ignoreCase = true) ||
+                    rawMessage.contains("unable to resolve host", ignoreCase = true) ||
+                    rawMessage.contains("no address associated with hostname", ignoreCase = true) ||
+                    rawMessage.contains("network", ignoreCase = true) -> {
+                "Something went wrong while $action. Please check your connection and try again."
+            }
+
+            rawMessage.contains("not authenticated", ignoreCase = true) ||
+                    rawMessage.contains("No authenticated Supabase user", ignoreCase = true) -> {
+                "Please sign in to use friends."
+            }
+
+            rawMessage.contains("already exists", ignoreCase = true) ||
+                    rawMessage.contains("duplicate", ignoreCase = true) -> {
+                "A friend request already exists."
+            }
+
+            else -> {
+                "Something went wrong while $action. Please try again."
+            }
+        }
+    }
+
+    private fun handleFriendError(
+        action: String,
+        exception: Exception
+    ) {
+        Log.e("FriendViewModel", "Friend error while $action", exception)
+        _error.value = friendlyFriendError(action, exception)
     }
 }

@@ -1,6 +1,7 @@
 package com.example.purrsistence.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -18,29 +19,38 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.R
-import com.example.purrsistence.ui.theme.Elevation
 import com.example.purrsistence.ui.theme.Spacing
 import com.example.purrsistence.ui.util.formatLocalizedInteger
 
 @Composable
-fun CurrencyBadge(balance: Int) {
+fun CurrencyBadge(
+    balance: Int,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null
+) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .height(40.dp)
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable { onClick() }
+                } else {
+                    Modifier
+                }
+            )
             .clearAndSetSemantics {
                 contentDescription = "$balance fish"
             },
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.tertiaryContainer,
-        tonalElevation = Elevation.Lvl2
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier.padding(horizontal = Spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                // TODO: replace with actual currency icon later
-                painter = painterResource(id = R.drawable.fish_blue2_24),
+                painter = painterResource(R.drawable.fish_blue2_24),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp)
             )

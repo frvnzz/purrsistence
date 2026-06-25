@@ -9,12 +9,12 @@ import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.DoDisturb
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocalGroceryStore
+import androidx.compose.material.icons.filled.Loyalty
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.LocalGroceryStore
+import androidx.compose.material.icons.outlined.Loyalty
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -24,13 +24,19 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
-fun BottomNavBar(navController: NavController) {
+fun BottomNavBar(
+    navController: NavController,
+    onStatisticsClick: () -> Unit = {},
+    onPositioned: (LayoutCoordinates) -> Unit = {}
+) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
@@ -43,7 +49,8 @@ fun BottomNavBar(navController: NavController) {
 
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = if (isLandscape) Modifier.height(80.dp) else Modifier,
+        modifier = (if (isLandscape) Modifier.height(80.dp) else Modifier)
+            .onGloballyPositioned { onPositioned(it) },
         windowInsets = if (isLandscape) WindowInsets(0, 0, 0, 46) else NavigationBarDefaults.windowInsets
     ) {
         items.forEach { screen ->
@@ -52,6 +59,9 @@ fun BottomNavBar(navController: NavController) {
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
+                    if (screen == "statistics") {
+                        onStatisticsClick()
+                    }
                     navController.navigate(screen) {
                         // make sure that only one tab is selected at a time, and back navigates to home (startDestination)
                         popUpTo("home") { saveState = true }
@@ -74,16 +84,16 @@ fun BottomNavBar(navController: NavController) {
                             "statistics" -> if (isSelected) Icons.Filled.Assessment else Icons.Outlined.Assessment
                             "goals" -> if (isSelected) Icons.Filled.Checklist else Icons.Outlined.Checklist
                             "home" -> if (isSelected) Icons.Filled.Home else Icons.Outlined.Home
-                            "shop" -> if (isSelected) Icons.Filled.LocalGroceryStore else Icons.Outlined.LocalGroceryStore
+                            "shop" -> if (isSelected) Icons.Filled.Loyalty else Icons.Outlined.Loyalty
                             "profile" -> if (isSelected) Icons.Filled.AccountBox else Icons.Outlined.AccountBox
                             else -> Icons.Filled.DoDisturb
                         },
-                        contentDescription = screen
+                        contentDescription = if (screen == "shop") "Shelter" else screen
                     )
                 },
 
                 label = {
-                    Text(screen.replaceFirstChar { it.uppercase() })
+                    Text(if (screen == "shop") "Shelter" else screen.replaceFirstChar { it.uppercase() })
                 }
             )
         }

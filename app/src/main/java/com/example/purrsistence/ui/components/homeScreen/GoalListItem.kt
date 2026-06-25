@@ -1,7 +1,13 @@
 package com.example.purrsistence.ui.components.homeScreen
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Icon
@@ -12,9 +18,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.purrsistence.domain.model.types.GoalType
 import com.example.purrsistence.ui.theme.Elevation
+import com.example.purrsistence.ui.theme.Shapes
 import com.example.purrsistence.ui.theme.Spacing
 import java.time.Duration
 import java.util.Locale
@@ -57,7 +65,7 @@ fun GoalListItem(
         }
 
     Surface(
-        shape = MaterialTheme.shapes.large,
+        shape = Shapes.cards,
         color = backgroundColor,
         tonalElevation = Elevation.Lvl2,
         modifier = modifier.then(
@@ -83,6 +91,8 @@ fun GoalListItem(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     color =
                         if (isPlaceholder)
                             MaterialTheme.colorScheme.surfaceDim
