@@ -9,11 +9,11 @@ class RoomService {
     fun getRoomSpots(): List<RoomSpot> {
         return listOf(
             // All possible spots + coordinates where a CatImage can be rendered in RoomView
-            RoomSpot("cat_tree_left",   0.221f, 0.445f, isMirrored = true),
-            RoomSpot("bed_back",   0.400f, 0.672f, isMirrored = false),
-            RoomSpot("floor_center", 0.596f, 0.723f, isMirrored = false),
-            RoomSpot("floor_right",  0.750f, 0.850f, isMirrored = true),
-            RoomSpot("floor_front",  0.391f, 0.906f, isMirrored = false)
+            RoomSpot("cat_tree_left",   0.210f, 0.375f, isMirrored = true),
+            RoomSpot("bed_back",   0.365f, 0.600f, isMirrored = false),
+            RoomSpot("floor_center", 0.596f, 0.700f, isMirrored = false),
+            RoomSpot("floor_right",  0.710f, 0.820f, isMirrored = true),
+            RoomSpot("floor_front",  0.430f, 0.870f, isMirrored = false)
         )
     }
 

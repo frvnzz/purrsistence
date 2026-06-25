@@ -2,9 +2,13 @@ package com.example.purrsistence.ui.components.homeScreen
 
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import com.example.purrsistence.domain.cats.CatList
 import com.example.purrsistence.domain.model.ShopItem
 import com.example.purrsistence.ui.components.animation.SpriteAnimation
@@ -18,7 +22,8 @@ fun CatImage(
     isAnimated: Boolean = true,
     initialFrame: Int = 0,
     isSleeping: Boolean = false,
-    isSitting: Boolean = false
+    isSitting: Boolean = false,
+    alignment: Alignment = Alignment.Center
 ) {
     val cat = CatList.getCatById(catId)
     if (cat != null) {
@@ -29,7 +34,8 @@ fun CatImage(
             isAnimated = isAnimated,
             initialFrame = initialFrame,
             isSleeping = isSleeping,
-            isSitting = isSitting
+            isSitting = isSitting,
+            alignment = alignment
         )
     }
 }
@@ -42,8 +48,22 @@ fun CatImage(
     isAnimated: Boolean = true,
     initialFrame: Int = 0,
     isSleeping: Boolean = false,
-    isSitting: Boolean = false
+    isSitting: Boolean = false,
+    alignment: Alignment = Alignment.Center
 ) {
+    val context = LocalContext.current
+    
+    //Preload
+    val idleBitmap = remember(cat.id) { 
+        ImageBitmap.imageResource(context.resources, cat.imageRes) 
+    }
+    val sleepingBitmap = remember(cat.id) { 
+        cat.sleepingImageRes?.let { ImageBitmap.imageResource(context.resources, it) } 
+    }
+    val sittingBitmap = remember(cat.id) { 
+        cat.sittingImageRes?.let { ImageBitmap.imageResource(context.resources, it) } 
+    }
+
     val finalModifier = modifier
         .graphicsLayer {
             if (isMirrored) {
@@ -51,34 +71,36 @@ fun CatImage(
             }
         }
 
-    val imageRes: Int
+    val activeBitmap: ImageBitmap
     val animData: SpriteSheetData?
 
-    if (isSleeping && cat.sleepingImageRes != null) {
-        imageRes = cat.sleepingImageRes
+    if (isSleeping && cat.sleepingImageRes != null && sleepingBitmap != null) {
+        activeBitmap = sleepingBitmap
         animData = cat.sleepingAnimationData
-    } else if (isSitting && cat.sittingImageRes != null) {
-        imageRes = cat.sittingImageRes
+    } else if (isSitting && cat.sittingImageRes != null && sittingBitmap != null) {
+        activeBitmap = sittingBitmap
         animData = cat.sittingAnimationData
     } else {
-        imageRes = cat.imageRes
+        activeBitmap = idleBitmap
         animData = cat.animationData
     }
 
     if (animData != null) {
         SpriteAnimation(
-            spriteSheetRes = imageRes,
+            bitmap = activeBitmap,
             data = animData,
             modifier = finalModifier,
             contentDescription = cat.name,
             initialFrame = initialFrame,
-            isAnimated = isAnimated
+            isAnimated = isAnimated,
+            alignment = alignment
         )
     } else {
         Image(
-            painter = painterResource(imageRes),
+            bitmap = activeBitmap,
             contentDescription = cat.name,
-            modifier = finalModifier
+            modifier = finalModifier,
+            alignment = alignment
         )
     }
 }

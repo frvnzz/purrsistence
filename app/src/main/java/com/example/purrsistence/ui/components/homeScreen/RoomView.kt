@@ -152,6 +152,7 @@ fun RoomView(
                         isSleeping = placedCat.isSleeping,
                         isSitting = placedCat.isSitting,
                         isAnimated = isAnimationEnabled,
+                        alignment = Alignment.BottomCenter,
                         modifier = Modifier.fillMaxSize()
                     )
 
