@@ -17,13 +17,24 @@ class RoomServiceTest {
         assertEquals(5, spots.size)
 
         assertEquals("cat_tree_left", spots[0].id)
-        assertEquals(0.221f, spots[0].xPercent, 0.0001f)
-        assertEquals(0.445f, spots[0].yPercent, 0.0001f)
+        assertEquals(0.210f, spots[0].xPercent, 0.0001f)
+        assertEquals(0.375f, spots[0].yPercent, 0.0001f)
 
         assertEquals("bed_back", spots[1].id)
+        assertEquals(0.365f, spots[1].xPercent, 0.0001f)
+        assertEquals(0.600f, spots[1].yPercent, 0.0001f)
+
         assertEquals("floor_center", spots[2].id)
+        assertEquals(0.596f, spots[2].xPercent, 0.0001f)
+        assertEquals(0.700f, spots[2].yPercent, 0.0001f)
+
         assertEquals("floor_right", spots[3].id)
+        assertEquals(0.710f, spots[3].xPercent, 0.0001f)
+        assertEquals(0.820f, spots[3].yPercent, 0.0001f)
+
         assertEquals("floor_front", spots[4].id)
+        assertEquals(0.430f, spots[4].xPercent, 0.0001f)
+        assertEquals(0.870f, spots[4].yPercent, 0.0001f)
     }
 
     @Test
