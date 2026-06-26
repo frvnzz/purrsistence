@@ -14,7 +14,7 @@ function HomepageHeader() {
         <div className="row align-items--center">
           <div className="col col--6">
             <Heading as="h1" className="hero__title">
-              Build Better Habits, One Purr at a Time.
+              Build Better Habits, One Purr at a Time
             </Heading>
             <p className="hero__subtitle">
               Stay persistent, achieve your goals, and get rewarded. Earn fishies to adopt virtual cats and build your ultimate cat family.
@@ -23,7 +23,7 @@ function HomepageHeader() {
               <Link
                 className="button button--secondary button--lg"
                 to="https://github.com/frvnzz/purrsistence/releases">
-                Download the latest Release (APK)
+                Download the Latest Release (APK)
               </Link>
             </div>
           </div>
@@ -58,7 +58,7 @@ function CustomFeatures() {
     <section className="padding-vert--xl">
       <div className="container">
         <div className="text--center margin-bottom--xl">
-          <Heading as="h2">Everything you need to stay on track</Heading>
+          <Heading as="h2">Everything You Need to Stay on Track</Heading>
           <p>A perfect blend of productivity and playfulness to keep you motivated.</p>
         </div>
         <div className="row">
@@ -84,7 +84,7 @@ function GamificationSection() {
           <div className="col col--6 margin-bottom--lg">
             <div className="padding-horiz--md">
               <span className="badge badge--primary margin-bottom--md">Gamification</span>
-              <Heading as="h2">Reward your persistence with virtual pets.</Heading>
+              <Heading as="h2">Reward Your Persistence with Virtual Pets</Heading>
               <p>
                 Completing your daily goals shouldn't feel like a chore. With Purrsistence, every completed goal earns you "Fishies".
               </p>
@@ -122,7 +122,7 @@ function StatisticsSection() {
           <div className="col col--6">
             <div className="padding-horiz--md">
               <span className="badge badge--primary margin-bottom--md">Insights</span>
-              <Heading as="h2">Your progress,<br />visualized.</Heading>
+              <Heading as="h2">Your Progress, <br /> Visualized</Heading>
               <p>
                 Keep track of your consistency over time. Our statistics overview provides you with insights on your tracked time and historical data.
               </p>
@@ -141,7 +141,7 @@ function DownloadSection() {
   return (
     <section className="padding-vert--xl text--center" style={{backgroundColor: 'var(--ifm-color-emphasis-100)'}}>
       <div className="container">
-        <Heading as="h2">Ready to build your ultimate cat family?</Heading>
+        <Heading as="h2">Ready to Build Your Ultimate Cat Family?</Heading>
         <p className="margin-bottom--lg">
           Download Purrsistence today and turn your daily and weekly goals into a rewarding adventure.
         </p>
@@ -149,7 +149,7 @@ function DownloadSection() {
           <Link
             className="button button--primary button--lg"
             to="https://github.com/frvnzz/purrsistence/releases">
-            Download the latest Release (APK)
+            Download the Latest Release (APK)
           </Link>
         </div>
       </div>

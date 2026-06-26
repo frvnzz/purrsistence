@@ -8,8 +8,6 @@ sidebar_position: 3
 
 - **Purchase Sound** (purchase_success)
 
-  https://pixabay.com/sound-effects/film-special-effects-cashier-quotka-chingquot-sound-effect-129698/
-
   https://pixabay.com/sound-effects/film-special-effects-bubble-pop-389501/
 - **Meow Sound** (cat_meow)
 
