@@ -43,7 +43,7 @@ jobs:
 
       - name: Publish unit test results to GitHub
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         with:
           name: Android Unit Tests
           path: app/build/test-results/testDebugUnitTest/*.xml
